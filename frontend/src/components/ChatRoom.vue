@@ -1,7 +1,7 @@
 <template>
-  <div id="app">
-    <h1>Testing TalkJS</h1>
-    <div id="talkjs-container" style="height: 500px; width: 100%;">
+  <div>
+    <h2>Chat Room</h2>
+    <div id="talkjs-container" style="height: 500px;">
       <i>Loading chat...</i>
     </div>
   </div>
@@ -11,7 +11,7 @@
 import Talk from 'talkjs';
 
 export default {
-  name: 'App',
+  name: 'ChatRoom',
   
   mounted() {
     this.initializeTalkJS();
@@ -21,11 +21,13 @@ export default {
     async initializeTalkJS() {
       await Talk.ready;
       
+      // Hardcoded for testing - we'll fix this later
       const me = new Talk.User({
         id: 'user1',
         name: 'Alice',
         email: 'alice@example.com',
-        photoUrl: 'https://via.placeholder.com/150'
+        photoUrl: 'https://via.placeholder.com/150',
+        welcomeMessage: 'Hey there!'
       });
       
       const other = new Talk.User({
@@ -36,7 +38,7 @@ export default {
       });
       
       const session = new Talk.Session({
-        appId: 't322Fn4v',
+        appId: 'YOUR_APP_ID_HERE', // Get this from TalkJS dashboard
         me: me
       });
       
