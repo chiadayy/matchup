@@ -24,8 +24,6 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
 }
@@ -59,10 +57,10 @@ button:focus-visible {
 }
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 @media (prefers-color-scheme: light) {
@@ -77,3 +75,21 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.place-picker-container {
+  padding: 20px;
+}
+body { background: #0b0f1a; }           /* if you want dark */
+.page, .panel, .map-panel { color:#f8fafc; background:#111827; border-color:#1f2937; }
+.game { background:#0f172a; border-color:#1f2937; }
+.game.active { background:#162033; border-color:#334155; }
+.game-title { color:#e5e7eb; }
+.game-meta  { color:#94a3b8; }
+.weather-chip { border-color:#334155; color:#e5e7eb; }
+
