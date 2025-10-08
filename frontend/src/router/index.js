@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import Landing from '@/pages/Landing.vue'
 import LocationWeather from '@/pages/LocationWeather.vue'
 
 const routes = [
-  { path: '/', redirect: '/location-weather' },
+  { path: '/', name: 'Landing', component: Landing },
   { path: '/location-weather', name: 'LocationWeather', component: LocationWeather }
 ]
 
