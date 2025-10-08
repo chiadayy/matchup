@@ -10,11 +10,15 @@
 
 
 // 1) Imports first
+import './style.css'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import { createApp } from 'vue'
 import App from './App.vue'
 import './style.css'
 import router from './router'
 import { configureGoogle } from './googleMaps'
+import axios from "axios";
 
 // 2) Quick sanity logs (should print numbers > 10)
 console.log("GOOGLE len:", import.meta.env.VITE_GOOGLE_MAPS_API_KEY?.length);
