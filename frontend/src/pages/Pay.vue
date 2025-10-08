@@ -1,17 +1,25 @@
 <template>
   <div class="container mt-5">
-    <h2 class="mb-4">Checkout</h2>
+    <h2 class="mb-4">Make Payment</h2>
 
-    <form id="payment-form" @submit.prevent="handlePayment">
-      <!-- Stripe Card Element mounts here -->
-      <div id="card-element" class="form-control mb-3"></div>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Paying for Tennis Game</h5>
+            <p class="card-text">Location: Hougang Tennis Court</p>
+            <p class="card-text">Amount to Pay: $50</p>
 
-      <button type="submit" class="btn btn-primary w-100" :disabled="loading">
-        {{ loading ? "Processing..." : "Pay $50" }}
-      </button>
+            <form id="payment-form" @submit.prevent="handlePayment">
+            <!-- Stripe Card Element mounts here -->
+            <div id="card-element" class="form-control mb-3"></div>
 
-      <p id="result" class="mt-3">{{ message }}</p>
-    </form>
+            <button type="submit" class="btn btn-primary" :disabled="loading">
+                {{ loading ? "Processing..." : "Pay" }}
+            </button>
+
+            <p id="result" class="mt-3">{{ message }}</p>
+            </form>
+        </div>
+        </div>
   </div>
 </template>
 
