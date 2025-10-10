@@ -4,13 +4,13 @@
     <header class="header">
       <div class="container">
         <div class="header-content">
-          <div class="logo">SPORTYTOWN</div>
+          <div class="logo">MatchUp</div>
           <nav class="nav">
             <a href="#features" class="nav-link">Features</a>
             <a href="#how-it-works" class="nav-link">How it works</a>
             <a href="#pricing" class="nav-link">Pricing</a>
             <a href="#tech" class="nav-link">Tech</a>
-            <RouterLink to="/location-weather" class="btn btn-primary btn-sm">Open the app</RouterLink>
+            <RouterLink to="/register" class="btn btn-primary btn-sm">Get Started</RouterLink>
           </nav>
         </div>
       </div>
@@ -24,8 +24,8 @@
             <h1 class="hero-title">Pick a game. Show up ready.</h1>
             <p class="hero-subtitle">Find nearby matches, see the weather at kickoff, and join in seconds — no more messy group chats.</p>
             <div class="hero-cta">
-              <RouterLink to="/location-weather" class="btn btn-primary btn-lg">Open the app</RouterLink>
-              <a href="#how-it-works" class="btn btn-secondary btn-lg">See how it works</a>
+              <RouterLink to="/register" class="btn btn-primary btn-lg">Get Started Free</RouterLink>
+              <RouterLink to="/login" class="btn btn-secondary btn-lg">Sign In</RouterLink>
             </div>
           </div>
           <div class="hero-visual">
@@ -312,14 +312,14 @@
     <section class="cta-band">
       <div class="container">
         <h2 class="cta-title">Ready to play?</h2>
-        <RouterLink to="/location-weather" class="btn btn-primary btn-lg">Open the app</RouterLink>
+        <RouterLink to="/register" class="btn btn-primary btn-lg">Join MatchUp Today</RouterLink>
       </div>
     </section>
 
     <!-- Footer -->
     <footer class="footer">
       <div class="container">
-        <p class="footer-text">© {{ currentYear }} SPORTYTOWN</p>
+        <p class="footer-text">© {{ currentYear }} MatchUp</p>
         <div class="footer-links">
           <a href="#" class="footer-link">Privacy</a>
           <span class="footer-separator">·</span>
