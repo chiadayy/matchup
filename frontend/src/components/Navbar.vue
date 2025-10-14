@@ -1,0 +1,684 @@
+<template>
+  <nav :class="['navbar-custom', { 'scrolled': isScrolled }]">
+    <div class="navbar-container">
+      <!-- Brand + Main Navigation (Left side) -->
+      <div class="navbar-left">
+        <div class="navbar-brand">
+          <router-link to="/" class="d-flex align-items-center text-decoration-none">
+            <span class="brand-icon">🏆</span>
+            <strong class="brand-text">MatchUp</strong>
+          </router-link>
+        </div>
+
+        <!-- Desktop Navigation Links -->
+        <div class="navbar-links">
+          <!-- Browser - visible to everyone except admins -->
+          <router-link 
+            v-if="userRole !== 'admin'"
+            to="/browser" 
+            class="nav-link-custom"
+          >
+            Browser
+          </router-link>
+
+          <!-- Calendar - visible to regular users and organizers -->
+          <router-link 
+            v-if="isLoggedIn && (userRole === 'regular' || userRole === 'organizer')"
+            to="/calendar" 
+            class="nav-link-custom"
+          >
+            Calendar
+          </router-link>
+
+          <!-- My Matches - visible to regular users and organizers -->
+          <router-link 
+            v-if="isLoggedIn && (userRole === 'regular' || userRole === 'organizer')"
+            to="/my-matches" 
+            class="nav-link-custom"
+          >
+            My Matches
+          </router-link>
+
+          <!-- Game Creation - visible to organizers only -->
+          <router-link 
+            v-if="isLoggedIn && userRole === 'organizer'"
+            to="/game-creation" 
+            class="nav-link-custom"
+          >
+            Game Creation
+          </router-link>
+
+          <!-- Admin Dashboard - visible to admins only -->
+          <router-link 
+            v-if="isLoggedIn && userRole === 'admin'"
+            to="/admin-dashboard" 
+            class="nav-link-custom"
+          >
+            Admin Dashboard
+          </router-link>
+        </div>
+      </div>
+
+      <!-- Mobile Toggle Button -->
+      <button 
+        class="navbar-toggler d-lg-none" 
+        type="button" 
+        @click="toggleMobileMenu"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon">☰</span>
+      </button>
+
+      <!-- Mobile Menu (Right side) -->
+      <div :class="['mobile-menu', { 'show': showMobileMenu }]">
+        <div class="mobile-menu-content">
+          <!-- Mobile Navigation Links -->
+          <router-link 
+            to="/browser" 
+            class="mobile-nav-link"
+            @click="closeMobileMenu"
+          >
+            Browser
+          </router-link>
+
+          <router-link 
+            v-if="isLoggedIn && (userRole === 'regular' || userRole === 'organizer')"
+            to="/calendar" 
+            class="mobile-nav-link"
+            @click="closeMobileMenu"
+          >
+            Calendar
+          </router-link>
+
+          <router-link 
+            v-if="isLoggedIn && (userRole === 'regular' || userRole === 'organizer')"
+            to="/my-matches" 
+            class="mobile-nav-link"
+            @click="closeMobileMenu"
+          >
+            My Matches
+          </router-link>
+
+          <router-link 
+            v-if="isLoggedIn && userRole === 'organizer'"
+            to="/game-creation" 
+            class="mobile-nav-link"
+            @click="closeMobileMenu"
+          >
+            Game Creation
+          </router-link>
+
+          <router-link 
+            v-if="isLoggedIn && userRole === 'admin'"
+            to="/admin-dashboard" 
+            class="mobile-nav-link"
+            @click="closeMobileMenu"
+          >
+            Admin Dashboard
+          </router-link>
+
+          <div class="mobile-menu-divider"></div>
+
+          <!-- User Actions in Mobile Menu -->
+          <div v-if="isLoggedIn && userRole !== 'admin'" class="mobile-user-section">
+            <div class="mobile-profile-info">
+              <img :src="user.profilePic" alt="Profile" class="mobile-profile-pic" />
+              <span class="mobile-user-name">{{ user.name }}</span>
+            </div>
+            <router-link 
+              to="/profile" 
+              class="mobile-nav-link"
+              @click="closeMobileMenu"
+            >
+              👤 My Profile
+            </router-link>
+            <button @click="logout" class="mobile-nav-link logout-link">Logout</button>
+          </div>
+
+          <div v-if="isLoggedIn && userRole === 'admin'" class="mobile-user-section">
+            <div class="mobile-profile-info">
+              <img :src="user.profilePic" alt="Profile" class="mobile-profile-pic" />
+              <span class="mobile-user-name admin-badge">{{ user.name }} (Admin)</span>
+            </div>
+            <button @click="logout" class="mobile-nav-link logout-link">Logout</button>
+          </div>
+
+          <template v-if="!isLoggedIn">
+            <router-link 
+              to="/login" 
+              class="mobile-nav-link"
+              @click="closeMobileMenu"
+            >
+              Login
+            </router-link>
+            <router-link 
+              to="/register" 
+              class="mobile-nav-link mobile-signup"
+              @click="closeMobileMenu"
+            >
+              Sign Up
+            </router-link>
+          </template>
+        </div>
+      </div>
+
+      <!-- Desktop User Actions (Right side) -->
+      <div class="navbar-actions desktop-actions">
+        <!-- Logged in user (regular or organizer) - show profile dropdown -->
+        <div v-if="isLoggedIn && userRole !== 'admin'" class="profile-dropdown">
+          <button 
+            class="profile-button" 
+            type="button" 
+            @click="toggleDropdown"
+            ref="profileButton"
+          >
+            <img :src="user.profilePic" alt="Profile" class="profile-pic-small" />
+            <span class="user-name d-none d-md-inline">{{ user.name }}</span>
+          </button>
+          
+          <div v-if="showDropdown" class="dropdown-menu-custom" ref="dropdownMenu">
+            <router-link 
+              to="/profile" 
+              class="dropdown-item-custom"
+              @click="closeDropdown"
+            >
+              👤 My Profile
+            </router-link>
+            <hr class="dropdown-divider" />
+            <button @click="logout" class="btn btn-logout">Logout</button>
+          </div>
+        </div>
+
+        <!-- Admin user - show admin label and logout -->
+        <div v-if="isLoggedIn && userRole === 'admin'" class="admin-section">
+          <span class="admin-label">Admin</span>
+          <button @click="logout" class="btn btn-logout-small">Logout</button>
+        </div>
+        
+        <!-- Not logged in - show login and signup -->
+        <template v-if="!isLoggedIn">
+          <router-link to="/login" class="nav-link-custom">Login</router-link>
+          <router-link to="/register" class="btn btn-signup">Sign Up</router-link>
+        </template>
+      </div>
+    </div>
+  </nav>
+</template>
+
+<script>
+export default {
+  name: 'Navbar',
+  props: {
+    isLoggedIn: {
+      type: Boolean,
+      default: false
+    },
+    userRole: {
+      type: String,
+      enum: ['admin', 'organizer', 'regular'],
+      default: 'regular'
+    },
+    user: {
+      type: Object,
+      default: () => ({
+        name: 'John Doe',
+        profilePic: 'https://i.pravatar.cc/150?img=12'
+      })
+    }
+  },
+  data() {
+    return {
+      isScrolled: false,
+      showDropdown: false,
+      showMobileMenu: false
+    };
+  },
+  mounted() {
+    window.addEventListener('scroll', this.handleScroll);
+    document.addEventListener('click', this.handleClickOutside);
+  },
+  beforeUnmount() {
+    window.removeEventListener('scroll', this.handleScroll);
+    document.removeEventListener('click', this.handleClickOutside);
+  },
+  methods: {
+    handleScroll() {
+      this.isScrolled = window.scrollY > 50;
+    },
+    toggleDropdown() {
+      this.showDropdown = !this.showDropdown;
+    },
+    closeDropdown() {
+      this.showDropdown = false;
+    },
+    toggleMobileMenu() {
+      this.showMobileMenu = !this.showMobileMenu;
+    },
+    closeMobileMenu() {
+      this.showMobileMenu = false;
+    },
+    handleClickOutside(event) {
+      if (this.$refs.profileButton && this.$refs.dropdownMenu) {
+        if (!event.target.closest('.profile-dropdown')) {
+          this.closeDropdown();
+        }
+      }
+    },
+    logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        this.$emit('logout');
+        this.closeDropdown();
+        this.closeMobileMenu();
+        this.$router.push('/');
+      }
+    }
+  }
+};
+</script>
+
+<style scoped>
+.navbar-custom {
+  background-color: white;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+  padding: 1rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar-custom.scrolled {
+  padding: 0.75rem 2rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  flex: 1;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.navbar-brand a {
+  display: flex;
+  align-items: center;
+}
+
+.brand-icon {
+  background: #2C3E50;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  color: white;
+  margin-right: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.brand-text {
+  color: #2C3E50;
+  font-size: 1.25rem;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.nav-link-custom {
+  position: relative;
+  padding: 0.5rem 0;
+  color: #2C3E50;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.nav-link-custom::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background-color: #FF6B35;
+  transition: width 0.3s ease;
+}
+
+.nav-link-custom:hover::after,
+.nav-link-custom.router-link-active::after {
+  width: 80%;
+}
+
+.nav-link-custom:hover,
+.nav-link-custom.router-link-active {
+  color: #FF6B35;
+}
+
+.navbar-toggler {
+  display: none;
+  background: none;
+  border: 2px solid #2C3E50;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: #2C3E50;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.profile-dropdown {
+  position: relative;
+}
+
+.profile-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 2rem;
+  transition: background 0.3s ease;
+}
+
+.profile-button:hover {
+  background: rgba(255, 107, 53, 0.1);
+}
+
+.profile-pic-small {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #FF6B35;
+}
+
+.user-name {
+  color: #2C3E50;
+  font-weight: 500;
+}
+
+.dropdown-menu-custom {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  min-width: 200px;
+  padding: 0.5rem;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item-custom {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: #2C3E50;
+  text-decoration: none;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.dropdown-item-custom:hover {
+  background: rgba(255, 107, 53, 0.1);
+  color: #FF6B35;
+}
+
+.dropdown-divider {
+  margin: 0.5rem 0;
+  border: none;
+  border-top: 1px solid #e8ecef;
+}
+
+.btn-signup {
+  background-color: #FF6B35;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-signup:hover {
+  background-color: #FF5722;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.btn-logout {
+  width: 100%;
+  padding: 0.75rem;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+  background: #c82333;
+}
+
+.btn-logout-small {
+  padding: 0.5rem 1rem;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-logout-small:hover {
+  background: #c82333;
+}
+
+.admin-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.admin-label {
+  background: #007bff;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.admin-badge {
+  color: #007bff;
+  font-weight: 600;
+}
+
+/* Mobile Menu */
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: -100%;
+  height: 100vh;
+  width: 250px;
+  background: white;
+  box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+  transition: right 0.3s ease;
+  z-index: 999;
+  overflow-y: auto;
+  padding-top: 70px;
+}
+
+.mobile-menu.show {
+  right: 0;
+}
+
+.mobile-menu-content {
+  padding: 1rem;
+}
+
+.mobile-nav-link {
+  display: block;
+  padding: 1rem;
+  color: #2C3E50;
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid #e8ecef;
+  transition: all 0.2s ease;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mobile-nav-link:hover {
+  background: rgba(255, 107, 53, 0.1);
+  color: #FF6B35;
+}
+
+.mobile-nav-link.logout-link {
+  color: #dc3545;
+}
+
+.mobile-nav-link.logout-link:hover {
+  background: rgba(220, 53, 69, 0.1);
+}
+
+.mobile-menu-divider {
+  height: 1px;
+  background: #e8ecef;
+  margin: 1rem 0;
+}
+
+.mobile-user-section {
+  margin-bottom: 1rem;
+}
+
+.mobile-profile-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  background: rgba(255, 107, 53, 0.05);
+  border-radius: 0.5rem;
+}
+
+.mobile-profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #FF6B35;
+}
+
+.mobile-user-name {
+  font-weight: 600;
+  color: #2C3E50;
+}
+
+.mobile-signup {
+  background: #FF6B35;
+  color: white !important;
+  margin-top: 0.5rem;
+}
+
+.mobile-signup:hover {
+  background: #FF5722;
+}
+
+/* Desktop Responsive */
+@media (max-width: 991px) {
+  .navbar-toggler {
+    display: block;
+  }
+
+  .navbar-links {
+    display: none;
+  }
+
+  .mobile-menu {
+    display: block;
+  }
+
+  .desktop-actions {
+    display: none !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .navbar-custom {
+    padding: 1rem;
+  }
+
+  .navbar-left {
+    gap: 1rem;
+  }
+
+  .brand-text {
+    font-size: 1.1rem;
+  }
+
+  .mobile-menu {
+    width: 100%;
+    right: -100%;
+  }
+
+  .btn-signup {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+}
+
+.d-none {
+  display: none !important;
+}
+
+.d-flex {
+  display: flex !important;
+}
+</style>
