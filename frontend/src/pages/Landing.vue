@@ -190,7 +190,9 @@
             </div>
             <p class="testimonial-text">"{{ testimonial.text }}"</p>
             <div class="testimonial-author">
-              <div class="author-avatar">{{ testimonial.avatar }}</div>
+              <div class="author-avatar">
+                <img :src="testimonial.avatar" :alt="testimonial.name" />
+              </div>
               <div class="author-info">
                 <div class="author-name">{{ testimonial.name }}</div>
                 <div class="author-role">{{ testimonial.role }}</div>
@@ -201,36 +203,20 @@
       </div>
     </section>
 
-    <!-- Pricing with Modern Cards -->
-    <section id="pricing" class="pricing section">
+    <!-- Powered by Modern Technology -->
+    <section id="technology" class="technology section">
       <div class="container">
         <div class="section-header">
-          <span class="section-badge">💎 Pricing</span>
-          <h2 class="section-title">Simple, transparent pricing</h2>
-          <p class="section-subtitle">Choose the plan that works for you</p>
+          <span class="section-badge">⚡ Technology</span>
+          <h2 class="section-title">Powered by modern technology</h2>
+          <p class="section-subtitle">Built with cutting-edge tools for the best experience</p>
         </div>
 
-        <div class="pricing-grid-modern">
-          <div class="pricing-card-modern" v-for="(plan, index) in pricingPlans" :key="index" :class="{ featured: plan.featured }">
-            <div class="pricing-badge" v-if="plan.featured">Most Popular</div>
-            <div class="pricing-icon">{{ plan.icon }}</div>
-            <h3 class="pricing-tier-modern">{{ plan.name }}</h3>
-            <div class="pricing-price">
-              <span class="price-amount">{{ plan.price }}</span>
-              <span class="price-period" v-if="plan.period">{{ plan.period }}</span>
-            </div>
-            <p class="pricing-desc-modern">{{ plan.description }}</p>
-            <ul class="pricing-features">
-              <li v-for="(feature, i) in plan.features" :key="i">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
-                </svg>
-                <span>{{ feature }}</span>
-              </li>
-            </ul>
-            <RouterLink to="/register" class="btn-pricing" :class="{ 'btn-pricing-featured': plan.featured }">
-              {{ plan.cta }}
-            </RouterLink>
+        <div class="tech-grid">
+          <div class="tech-card" v-for="(tech, index) in technologies" :key="index">
+            <div class="tech-icon">{{ tech.icon }}</div>
+            <h3 class="tech-name">{{ tech.name }}</h3>
+            <p class="tech-desc">{{ tech.description }}</p>
           </div>
         </div>
       </div>
@@ -355,56 +341,55 @@ const steps = [
 
 const testimonials = [
   {
-    avatar: '🏀',
+    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
     name: 'Marcus Chen',
     role: 'Basketball Enthusiast',
     text: 'Found my regular pickup game crew through MatchUp. The weather feature alone has saved me from countless rainouts!'
   },
   {
-    avatar: '⚽',
+    avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
     name: 'Sarah Williams',
     role: 'Soccer Organizer',
     text: 'As an organizer, MatchUp makes it so easy to fill games. The payment integration is seamless and the chat keeps everyone on the same page.'
   },
   {
-    avatar: '🎾',
+    avatar: 'https://randomuser.me/api/portraits/men/22.jpg',
     name: 'David Tan',
     role: 'Tennis Player',
     text: 'Love how I can filter by skill level and distance. No more awkward mismatches or long commutes to games!'
   }
 ]
 
-const pricingPlans = [
+const technologies = [
   {
-    icon: '🎮',
-    name: 'Player',
-    price: 'Free',
-    period: '',
-    description: 'Perfect for casual players',
-    features: [
-      'Join unlimited games',
-      'Access to all maps & weather',
-      'Built-in chat rooms',
-      'Payment processing'
-    ],
-    cta: 'Start Playing',
-    featured: false
+    icon: '⚡',
+    name: 'Vue 3',
+    description: 'Progressive JavaScript framework for building modern user interfaces'
   },
   {
-    icon: '⭐',
-    name: 'Organizer',
-    price: '$9',
-    period: '/month',
-    description: 'For serious game creators',
-    features: [
-      'Everything in Player',
-      'Create unlimited games',
-      'Priority support',
-      'Advanced analytics',
-      'Custom branding'
-    ],
-    cta: 'Start Organizing',
-    featured: true
+    icon: '🔐',
+    name: 'Supabase',
+    description: 'Open-source Firebase alternative for authentication and database'
+  },
+  {
+    icon: '🗺️',
+    name: 'Google Maps API',
+    description: 'Interactive maps with real-time location tracking'
+  },
+  {
+    icon: '🌦️',
+    name: 'OpenWeather API',
+    description: 'Accurate weather forecasts for game planning'
+  },
+  {
+    icon: '💳',
+    name: 'Stripe',
+    description: 'Secure payment processing for paid games'
+  },
+  {
+    icon: '🚀',
+    name: 'Vite',
+    description: 'Lightning-fast build tool and dev server'
   }
 ]
 
@@ -1379,12 +1364,16 @@ async function handleLogout() {
 .author-avatar {
   width: 50px;
   height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
   border-radius: 50%;
-  font-size: 1.5rem;
+  overflow: hidden;
+  border: 2px solid rgba(255, 107, 53, 0.5);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.author-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .author-name {
@@ -1395,6 +1384,51 @@ async function handleLogout() {
 .author-role {
   font-size: 0.875rem;
   color: #64748B;
+}
+
+/* Technology Section */
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.tech-card {
+  padding: 2.5rem;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  border-radius: 24px;
+  backdrop-filter: blur(20px);
+  transition: all 0.4s ease;
+  text-align: center;
+}
+
+.tech-card:hover {
+  transform: translateY(-8px);
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 107, 53, 0.5);
+  box-shadow: 0 20px 60px rgba(255, 107, 53, 0.3);
+}
+
+.tech-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  filter: drop-shadow(0 4px 12px rgba(255, 107, 53, 0.3));
+}
+
+.tech-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tech-desc {
+  color: #94A3B8;
+  line-height: 1.6;
 }
 
 /* Pricing */
