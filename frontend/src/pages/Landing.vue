@@ -1,329 +1,274 @@
 <template>
   <div class="landing-page">
-    <!-- Header -->
-    <header class="header">
+    <!-- Scroll Progress Bar -->
+    <div class="scroll-progress-bar" :style="{ width: scrollProgress + '%' }"></div>
+
+    <!-- Floating Particles Background -->
+    <div class="particles-container">
+      <div v-for="i in 30" :key="i" class="particle" :style="getParticleStyle(i)"></div>
+    </div>
+
+    <!-- Header with Glassmorphism -->
+    <header class="header" :class="{ 'scrolled': isScrolled }">
       <div class="container">
         <div class="header-content">
-          <div class="logo">MatchUp</div>
+          <div class="logo-container">
+            <div class="logo">MatchUp</div>
+            <div class="logo-badge">BETA</div>
+          </div>
           <nav class="nav">
             <a href="#features" class="nav-link">Features</a>
             <a href="#how-it-works" class="nav-link">How it works</a>
             <a href="#pricing" class="nav-link">Pricing</a>
-            <a href="#tech" class="nav-link">Tech</a>
-            <RouterLink to="/register" class="btn btn-primary btn-sm">Get Started</RouterLink>
+            <a href="#testimonials" class="nav-link">Reviews</a>
+            <template v-if="isLoggedIn">
+              <RouterLink to="/location-weather" class="btn btn-primary btn-sm">Dashboard</RouterLink>
+              <button @click="handleLogout" class="btn btn-secondary btn-sm">Logout</button>
+            </template>
+            <RouterLink v-else to="/register" class="btn btn-primary btn-sm glow-btn">Get Started</RouterLink>
           </nav>
         </div>
       </div>
     </header>
 
-    <!-- Hero -->
+    <!-- Hero Section with Enhanced Design -->
     <section class="hero">
+      <div class="hero-gradient"></div>
       <div class="container">
         <div class="hero-content">
           <div class="hero-text">
-            <h1 class="hero-title">Pick a game. Show up ready.</h1>
-            <p class="hero-subtitle">Find nearby matches, see the weather at kickoff, and join in seconds — no more messy group chats.</p>
+            <div class="hero-badge">🎮 The Future of Sports Matchmaking</div>
+            <h1 class="hero-title">
+              <span class="gradient-text">Pick a game.</span>
+              <span class="gradient-text-alt">Show up ready.</span>
+            </h1>
+            <p class="hero-subtitle">Find nearby matches, see live weather at kickoff, and join in seconds — no more messy group chats or last-minute cancellations.</p>
+
+            <!-- Live Stats with Glass Effect -->
+            <div class="live-stats">
+              <div class="stat-item" v-for="(stat, index) in stats" :key="index">
+                <div class="stat-icon">{{ stat.icon }}</div>
+                <div class="stat-content">
+                  <div class="stat-number">{{ stat.value }}</div>
+                  <div class="stat-label">{{ stat.label }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CTA Buttons -->
             <div class="hero-cta">
-              <RouterLink to="/register" class="btn btn-primary btn-lg">Get Started Free</RouterLink>
-              <RouterLink to="/login" class="btn btn-secondary btn-lg">Sign In</RouterLink>
+              <RouterLink v-if="isLoggedIn" to="/location-weather" class="btn btn-primary btn-lg btn-hero">
+                <span>Go to Dashboard</span>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"/>
+                </svg>
+              </RouterLink>
+              <template v-else>
+                <RouterLink to="/register" class="btn btn-primary btn-lg btn-hero">
+                  <span>Get Started Free</span>
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"/>
+                  </svg>
+                </RouterLink>
+                <RouterLink to="/login" class="btn btn-secondary btn-lg">
+                  <span>Sign In</span>
+                </RouterLink>
+              </template>
+            </div>
+
+            <!-- Trust Indicators -->
+            <div class="trust-badges">
+              <div class="trust-item">
+                <span class="trust-icon">⚡</span>
+                <span>Instant Join</span>
+              </div>
+              <div class="trust-item">
+                <span class="trust-icon">🔒</span>
+                <span>Secure Payments</span>
+              </div>
+              <div class="trust-item">
+                <span class="trust-icon">🌤️</span>
+                <span>Live Weather</span>
+              </div>
             </div>
           </div>
+
+          <!-- Sporty Visual - Stadium Style -->
           <div class="hero-visual">
-            <!-- Sports Illustration -->
-            <div class="sports-illustration">
-              <!-- Basketball -->
-              <svg class="sport-icon basketball" viewBox="0 0 120 120" fill="none">
-                <circle cx="60" cy="60" r="55" fill="#FF6B35" stroke="#D94E1F" stroke-width="3"/>
-                <path d="M 60 5 Q 80 60 60 115" stroke="#D94E1F" stroke-width="2.5" fill="none"/>
-                <path d="M 60 5 Q 40 60 60 115" stroke="#D94E1F" stroke-width="2.5" fill="none"/>
-                <path d="M 5 60 Q 60 40 115 60" stroke="#D94E1F" stroke-width="2.5" fill="none"/>
-                <path d="M 5 60 Q 60 80 115 60" stroke="#D94E1F" stroke-width="2.5" fill="none"/>
-                <ellipse cx="60" cy="60" rx="55" ry="20" stroke="#D94E1F" stroke-width="2.5" fill="none"/>
-              </svg>
+            <div class="sports-stadium">
+              <!-- Main Sports Circle -->
+              <div class="sports-orbit">
+                <div class="center-ball">⚽</div>
+                <div class="orbit-sport sport-1">🏀</div>
+                <div class="orbit-sport sport-2">🎾</div>
+                <div class="orbit-sport sport-3">🏐</div>
+                <div class="orbit-sport sport-4">🏊</div>
+                <div class="orbit-sport sport-5">🚴</div>
+                <div class="orbit-sport sport-6">🏃</div>
+              </div>
 
-              <!-- Soccer Ball -->
-              <svg class="sport-icon soccer" viewBox="0 0 120 120" fill="none">
-                <circle cx="60" cy="60" r="55" fill="#FFFFFF" stroke="#1E293B" stroke-width="3"/>
-                <path d="M 60 10 L 75 35 L 95 35 L 105 60 L 90 85 L 70 85 L 60 105 L 50 85 L 30 85 L 15 60 L 25 35 L 45 35 Z" fill="#1E293B"/>
-                <polygon points="60,25 70,40 50,40" fill="#FFFFFF"/>
-                <polygon points="85,45 95,60 80,70" fill="#FFFFFF"/>
-                <polygon points="60,95 70,80 50,80" fill="#FFFFFF"/>
-                <polygon points="35,45 25,60 40,70" fill="#FFFFFF"/>
-              </svg>
-
-              <!-- Tennis Ball -->
-              <svg class="sport-icon tennis" viewBox="0 0 120 120" fill="none">
-                <circle cx="60" cy="60" r="55" fill="#BFFF00" stroke="#9CD900" stroke-width="3"/>
-                <path d="M 20 35 Q 40 60 20 85" stroke="#FFFFFF" stroke-width="3" fill="none"/>
-                <path d="M 100 35 Q 80 60 100 85" stroke="#FFFFFF" stroke-width="3" fill="none"/>
-              </svg>
-
-              <!-- Volleyball -->
-              <svg class="sport-icon volleyball" viewBox="0 0 120 120" fill="none">
-                <circle cx="60" cy="60" r="55" fill="#FFD700" stroke="#E5BE00" stroke-width="3"/>
-                <path d="M 15 60 Q 60 30 105 60" stroke="#E5BE00" stroke-width="2.5" fill="none"/>
-                <path d="M 15 60 Q 60 90 105 60" stroke="#E5BE00" stroke-width="2.5" fill="none"/>
-                <path d="M 60 5 L 60 115" stroke="#E5BE00" stroke-width="2.5"/>
-                <path d="M 30 15 Q 60 60 90 105" stroke="#E5BE00" stroke-width="2.5" fill="none"/>
-                <path d="M 90 15 Q 60 60 30 105" stroke="#E5BE00" stroke-width="2.5" fill="none"/>
-              </svg>
+              <!-- Quick Match Cards -->
+              <div class="quick-matches">
+                <div class="match-ticket ticket-1">
+                  <div class="ticket-sport">⚽ Soccer</div>
+                  <div class="ticket-time">Starting Soon</div>
+                </div>
+                <div class="match-ticket ticket-2">
+                  <div class="ticket-sport">🏀 Basketball</div>
+                  <div class="ticket-time">2 spots left</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Features -->
-    <section id="features" class="features">
+    <!-- Features with Enhanced Cards -->
+    <section id="features" class="features section">
       <div class="container">
-        <h2 class="section-title">Everything you need to organize and join games</h2>
+        <div class="section-header">
+          <span class="section-badge">✨ Features</span>
+          <h2 class="section-title">Everything you need to organize and join games</h2>
+          <p class="section-subtitle">Powerful tools designed for both players and organizers</p>
+        </div>
+
         <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" fill="#FF6B35" stroke="#D94E1F" stroke-width="1.5"/>
-                <path d="M 12 3 Q 14 12 12 21" stroke="#D94E1F" stroke-width="1" fill="none"/>
-                <path d="M 12 3 Q 10 12 12 21" stroke="#D94E1F" stroke-width="1" fill="none"/>
-                <path d="M 3 12 Q 12 10 21 12" stroke="#D94E1F" stroke-width="1" fill="none"/>
-                <path d="M 3 12 Q 12 14 21 12" stroke="#D94E1F" stroke-width="1" fill="none"/>
-              </svg>
-            </div>
-            <h3 class="feature-title">Game creation & management</h3>
-            <ul class="feature-list">
-              <li>Create a match with sport, skill, date/time, location, and cost.</li>
-              <li>Live cards show RSVP count and key details.</li>
-              <li>Edits and cancellations update instantly.</li>
-            </ul>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" fill="#3B82F6" stroke="#1E40AF" stroke-width="1.5"/>
-                <circle cx="12" cy="10" r="3" fill="#FFFFFF" stroke="#1E40AF" stroke-width="1.5"/>
-              </svg>
-            </div>
-            <h3 class="feature-title">Location & weather</h3>
-            <ul class="feature-list">
-              <li>Search venues in Singapore and see nearby games on the map.</li>
-              <li>Forecast at kickoff: temperature, rain probability, and icon.</li>
-              <li>Fewer cancellations with early weather advisories.</li>
-            </ul>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="#10B981" stroke="#059669" stroke-width="1.5"/>
-                <circle cx="8" cy="10" r="1" fill="#FFFFFF"/>
-                <circle cx="12" cy="10" r="1" fill="#FFFFFF"/>
-                <circle cx="16" cy="10" r="1" fill="#FFFFFF"/>
-              </svg>
-            </div>
-            <h3 class="feature-title">In-app chatrooms</h3>
-            <ul class="feature-list">
-              <li>Auto-created per game when the first player joins.</li>
-              <li>Instant access for RSVPs; all logistics in one thread.</li>
-              <li>Powered by TalkJS.</li>
-            </ul>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="5" width="18" height="14" rx="2" fill="#F59E0B" stroke="#D97706" stroke-width="1.5"/>
-                <rect x="3" y="8" width="18" height="3" fill="#D97706"/>
-                <circle cx="16" cy="14" r="1.5" fill="#FFFFFF"/>
-              </svg>
-            </div>
-            <h3 class="feature-title">Wallet & payments</h3>
-            <ul class="feature-list">
-              <li>Pay on join for paid games; funds held in a game escrow.</li>
-              <li>Auto-payouts when the game fills; auto-refunds if not by T-12h.</li>
-              <li>Built on Stripe (PaymentIntents, Connect, Refunds, Webhooks).</li>
+          <div class="feature-card-modern" v-for="(feature, index) in features" :key="index">
+            <div class="feature-icon-modern">{{ feature.icon }}</div>
+            <h3 class="feature-title-modern">{{ feature.title }}</h3>
+            <p class="feature-desc">{{ feature.description }}</p>
+            <ul class="feature-list-modern">
+              <li v-for="(item, i) in feature.items" :key="i">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                </svg>
+                <span>{{ item }}</span>
+              </li>
             </ul>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- How it works -->
-    <section id="how-it-works" class="how-it-works">
+    <!-- How It Works with Timeline -->
+    <section id="how-it-works" class="how-it-works section">
       <div class="container">
-        <h2 class="section-title">How it works</h2>
-        <div class="steps">
-          <div class="step">
-            <div class="step-number">1</div>
-            <h3 class="step-title">Search a venue or browse the map</h3>
-            <p class="step-text">Find courts and fields near you or explore what's available across Singapore.</p>
-          </div>
-          <div class="step">
-            <div class="step-number">2</div>
-            <h3 class="step-title">Pick a game that fits your skill & schedule</h3>
-            <p class="step-text">Filter by sport, skill level, time, and cost to find your perfect match.</p>
-          </div>
-          <div class="step">
-            <div class="step-number">3</div>
-            <h3 class="step-title">Join, pay if needed, and get reminders</h3>
-            <p class="step-text">Secure your spot, coordinate via chat, and never miss kickoff.</p>
+        <div class="section-header">
+          <span class="section-badge">🎯 How It Works</span>
+          <h2 class="section-title">Get started in 3 simple steps</h2>
+        </div>
+
+        <div class="timeline">
+          <div class="timeline-item" v-for="(step, index) in steps" :key="index">
+            <div class="timeline-marker">
+              <div class="timeline-number">{{ index + 1 }}</div>
+              <div class="timeline-line" v-if="index < steps.length - 1"></div>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-icon">{{ step.icon }}</div>
+              <h3 class="timeline-title">{{ step.title }}</h3>
+              <p class="timeline-text">{{ step.description }}</p>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Extras -->
-    <section class="extras">
+    <!-- Testimonials Carousel -->
+    <section id="testimonials" class="testimonials section">
       <div class="container">
-        <h2 class="section-title">Profile & Calendar</h2>
-        <div class="extras-grid">
-          <div class="extra-card">
-            <h3 class="extra-title">History</h3>
-            <p class="extra-text">Track past games with date, time, court, and roster details.</p>
-          </div>
-          <div class="extra-card">
-            <h3 class="extra-title">Calendar sync</h3>
-            <p class="extra-text">Joining a game adds it automatically to Google, Outlook, or Apple Calendar.</p>
-          </div>
-          <div class="extra-card">
-            <h3 class="extra-title">Reminders & push</h3>
-            <p class="extra-text">Helpful nudges so you never miss kickoff.</p>
+        <div class="section-header">
+          <span class="section-badge">💬 Testimonials</span>
+          <h2 class="section-title">Loved by players and organizers</h2>
+        </div>
+
+        <div class="testimonials-carousel">
+          <div class="testimonial-card" v-for="(testimonial, index) in testimonials" :key="index">
+            <div class="testimonial-stars">
+              <span v-for="i in 5" :key="i">⭐</span>
+            </div>
+            <p class="testimonial-text">"{{ testimonial.text }}"</p>
+            <div class="testimonial-author">
+              <div class="author-avatar">{{ testimonial.avatar }}</div>
+              <div class="author-info">
+                <div class="author-name">{{ testimonial.name }}</div>
+                <div class="author-role">{{ testimonial.role }}</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Social proof -->
-    <section class="social-proof">
+    <!-- Pricing with Modern Cards -->
+    <section id="pricing" class="pricing section">
       <div class="container">
-        <h2 class="section-title">Loved by players and organisers</h2>
-        <div class="proof-grid">
-          <div class="proof-card">
-            <p class="proof-quote">"Organisers fill games 2× faster with built-in payments and chat."</p>
-          </div>
-          <div class="proof-card">
-            <p class="proof-quote">"92% of players say the weather preview saved them from at least one bad game week."</p>
-          </div>
-          <div class="proof-card">
-            <p class="proof-stat">Used by clubs across Singapore's most popular courts.</p>
+        <div class="section-header">
+          <span class="section-badge">💎 Pricing</span>
+          <h2 class="section-title">Simple, transparent pricing</h2>
+          <p class="section-subtitle">Choose the plan that works for you</p>
+        </div>
+
+        <div class="pricing-grid-modern">
+          <div class="pricing-card-modern" v-for="(plan, index) in pricingPlans" :key="index" :class="{ featured: plan.featured }">
+            <div class="pricing-badge" v-if="plan.featured">Most Popular</div>
+            <div class="pricing-icon">{{ plan.icon }}</div>
+            <h3 class="pricing-tier-modern">{{ plan.name }}</h3>
+            <div class="pricing-price">
+              <span class="price-amount">{{ plan.price }}</span>
+              <span class="price-period" v-if="plan.period">{{ plan.period }}</span>
+            </div>
+            <p class="pricing-desc-modern">{{ plan.description }}</p>
+            <ul class="pricing-features">
+              <li v-for="(feature, i) in plan.features" :key="i">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                </svg>
+                <span>{{ feature }}</span>
+              </li>
+            </ul>
+            <RouterLink to="/register" class="btn-pricing" :class="{ 'btn-pricing-featured': plan.featured }">
+              {{ plan.cta }}
+            </RouterLink>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- TECH / STACK -->
-    <section id="tech" class="section tech">
+    <!-- CTA Section with Gradient -->
+    <section class="cta-section">
+      <div class="cta-gradient"></div>
       <div class="container">
-        <header class="tech-head">
-          <h2 class="tech-title">Powered by modern technology</h2>
-          <p class="tech-sub">
-            Built with fast, secure web tech so you can discover games,
-            see the forecast, and join with confidence.
-          </p>
-        </header>
-
-        <ul class="tech-grid" role="list">
-          <!-- Vue -->
-          <li class="tech-card" aria-label="Vue">
-            <div class="tech-icon" aria-hidden="true">
-              <!-- simple V glyph -->
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#10B981" stroke-width="1.6">
-                <path d="M3 4h6l3 5 3-5h6l-9 16L3 4z"/>
-              </svg>
-            </div>
-            <span class="tech-label">Vue</span>
-          </li>
-
-          <!-- Vite -->
-          <li class="tech-card" aria-label="Vite">
-            <div class="tech-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#06B6D4" stroke-width="1.6">
-                <path d="M3 5l9-3 9 3-9 15L3 5z"/>
-              </svg>
-            </div>
-            <span class="tech-label">Vite</span>
-          </li>
-
-          <!-- Google Maps -->
-          <li class="tech-card" aria-label="Google Maps">
-            <div class="tech-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#10B981" stroke-width="1.6">
-                <circle cx="12" cy="10" r="4"/>
-                <path d="M12 14c-3 0-6 2-6 5v2h12v-2c0-3-3-5-6-5z"/>
-              </svg>
-            </div>
-            <span class="tech-label">Google&nbsp;Maps</span>
-          </li>
-
-          <!-- OpenWeather -->
-          <li class="tech-card" aria-label="OpenWeather">
-            <div class="tech-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#06B6D4" stroke-width="1.6">
-                <path d="M7 15h8a4 4 0 0 0 0-8 5 5 0 0 0-9.7 1.6A3.5 3.5 0 0 0 7 15z"/>
-              </svg>
-            </div>
-            <span class="tech-label">OpenWeather</span>
-          </li>
-
-          <!-- Stripe -->
-          <li class="tech-card" aria-label="Stripe">
-            <div class="tech-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#A78BFA" stroke-width="1.6">
-                <path d="M4 12a6 6 0 0 1 6-6h7v4h-7a2 2 0 0 0 0 4h5a4 4 0 1 1 0 8H7v-4h8a2 2 0 0 0 0-4H10a6 6 0 0 1-6-6z"/>
-              </svg>
-            </div>
-            <span class="tech-label">Stripe</span>
-          </li>
-
-          <!-- TalkJS -->
-          <li class="tech-card" aria-label="TalkJS">
-            <div class="tech-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#F59E0B" stroke-width="1.6">
-                <path d="M4 5h16v10H7l-3 3V5z"/>
-                <circle cx="9" cy="10" r="1.5"/><circle cx="12" cy="10" r="1.5"/><circle cx="15" cy="10" r="1.5"/>
-              </svg>
-            </div>
-            <span class="tech-label">TalkJS</span>
-          </li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- Pricing -->
-    <section id="pricing" class="pricing">
-      <div class="container">
-        <h2 class="section-title">Pricing</h2>
-        <p class="pricing-note">MVP — subject to change</p>
-        <div class="pricing-grid">
-          <div class="pricing-card">
-            <h3 class="pricing-tier">Free</h3>
-            <p class="pricing-audience">Players</p>
-            <p class="pricing-description">Join games, chat with teammates, and stay updated on weather and logistics.</p>
-          </div>
-          <div class="pricing-card pricing-card-featured">
-            <h3 class="pricing-tier">Pro</h3>
-            <p class="pricing-audience">Organisers</p>
-            <p class="pricing-description">Advanced features for creating and managing games, payments, and analytics.</p>
-          </div>
+        <div class="cta-content">
+          <h2 class="cta-title">Ready to level up your game?</h2>
+          <p class="cta-subtitle">Join thousands of players finding their perfect match</p>
+          <RouterLink to="/register" class="btn btn-primary btn-lg btn-hero btn-cta">
+            <span>Get Started Now</span>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"/>
+            </svg>
+          </RouterLink>
         </div>
-      </div>
-    </section>
-
-    <!-- CTA Band -->
-    <section class="cta-band">
-      <div class="container">
-        <h2 class="cta-title">Ready to play?</h2>
-        <RouterLink to="/register" class="btn btn-primary btn-lg">Join MatchUp Today</RouterLink>
       </div>
     </section>
 
     <!-- Footer -->
     <footer class="footer">
       <div class="container">
-        <p class="footer-text">© {{ currentYear }} MatchUp</p>
-        <div class="footer-links">
-          <a href="#" class="footer-link">Privacy</a>
-          <span class="footer-separator">·</span>
-          <a href="#" class="footer-link">Terms</a>
+        <div class="footer-content">
+          <div class="footer-brand">
+            <div class="logo">MatchUp</div>
+            <p class="footer-tagline">Find your game. Play your way.</p>
+          </div>
+          <div class="footer-links">
+            <a href="#" class="footer-link">Privacy</a>
+            <a href="#" class="footer-link">Terms</a>
+            <a href="#" class="footer-link">Contact</a>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>© {{ currentYear }} MatchUp. All rights reserved.</p>
         </div>
       </div>
     </footer>
@@ -331,56 +276,300 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
+import { supabase } from '@/lib/supabase'
 
 const currentYear = computed(() => new Date().getFullYear())
+const isLoggedIn = ref(false)
+const isScrolled = ref(false)
+const scrollProgress = ref(0)
 
-// Smooth scroll for anchor links
-if (typeof window !== 'undefined') {
-  document.addEventListener('click', (e) => {
-    const target = e.target.closest('a[href^="#"]')
-    if (target) {
-      e.preventDefault()
-      const id = target.getAttribute('href').slice(1)
-      const element = document.getElementById(id)
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' })
-      }
-    }
+// Stats with animation
+const stats = ref([
+  { icon: '🎮', value: '0+', target: 1247, label: 'Games Played', current: 0 },
+  { icon: '👥', value: '0+', target: 523, label: 'Active Players', current: 0 },
+  { icon: '📅', value: '0', target: 89, label: 'This Week', current: 0 }
+])
+
+const features = [
+  {
+    icon: '⚽',
+    title: 'Game Creation & Management',
+    description: 'Create and manage games with ease',
+    items: [
+      'Set sport, skill level, time & location',
+      'Live RSVP tracking with capacity limits',
+      'Instant updates on changes or cancellations'
+    ]
+  },
+  {
+    icon: '🗺️',
+    title: 'Interactive Map & Weather',
+    description: 'See everything at a glance',
+    items: [
+      'Discover games on an interactive map',
+      'Real-time weather forecasts at game time',
+      'Distance calculations from your location'
+    ]
+  },
+  {
+    icon: '💬',
+    title: 'Built-in Chat',
+    description: 'Coordinate seamlessly',
+    items: [
+      'Auto-created chatrooms for each game',
+      'Instant messaging with all players',
+      'Share updates and logistics easily'
+    ]
+  },
+  {
+    icon: '💳',
+    title: 'Secure Payments',
+    description: 'Handle paid games safely',
+    items: [
+      'Integrated Stripe payment processing',
+      'Automatic refunds for cancelled games',
+      'Track your payment history'
+    ]
+  }
+]
+
+const steps = [
+  {
+    icon: '🔍',
+    title: 'Search & Discover',
+    description: 'Browse games on the map or search by location, sport, and skill level.'
+  },
+  {
+    icon: '🎯',
+    title: 'Pick Your Game',
+    description: 'Check the weather, see who\'s joined, and find the perfect match for your schedule.'
+  },
+  {
+    icon: '⚡',
+    title: 'Join & Play',
+    description: 'RSVP instantly, pay if needed, coordinate via chat, and show up ready!'
+  }
+]
+
+const testimonials = [
+  {
+    avatar: '🏀',
+    name: 'Marcus Chen',
+    role: 'Basketball Enthusiast',
+    text: 'Found my regular pickup game crew through MatchUp. The weather feature alone has saved me from countless rainouts!'
+  },
+  {
+    avatar: '⚽',
+    name: 'Sarah Williams',
+    role: 'Soccer Organizer',
+    text: 'As an organizer, MatchUp makes it so easy to fill games. The payment integration is seamless and the chat keeps everyone on the same page.'
+  },
+  {
+    avatar: '🎾',
+    name: 'David Tan',
+    role: 'Tennis Player',
+    text: 'Love how I can filter by skill level and distance. No more awkward mismatches or long commutes to games!'
+  }
+]
+
+const pricingPlans = [
+  {
+    icon: '🎮',
+    name: 'Player',
+    price: 'Free',
+    period: '',
+    description: 'Perfect for casual players',
+    features: [
+      'Join unlimited games',
+      'Access to all maps & weather',
+      'Built-in chat rooms',
+      'Payment processing'
+    ],
+    cta: 'Start Playing',
+    featured: false
+  },
+  {
+    icon: '⭐',
+    name: 'Organizer',
+    price: '$9',
+    period: '/month',
+    description: 'For serious game creators',
+    features: [
+      'Everything in Player',
+      'Create unlimited games',
+      'Priority support',
+      'Advanced analytics',
+      'Custom branding'
+    ],
+    cta: 'Start Organizing',
+    featured: true
+  }
+]
+
+onMounted(async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+  isLoggedIn.value = !!session
+
+  // Animate stats
+  stats.value.forEach((stat, index) => {
+    setTimeout(() => {
+      animateValue(stat, stat.target, 2000)
+    }, index * 200)
   })
+
+  setupScrollAnimations()
+  window.addEventListener('scroll', handleScroll)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
+
+function handleScroll() {
+  isScrolled.value = window.scrollY > 50
+  const windowHeight = window.innerHeight
+  const documentHeight = document.documentElement.scrollHeight - windowHeight
+  const scrolled = window.scrollY
+  scrollProgress.value = (scrolled / documentHeight) * 100
+}
+
+function animateValue(stat, target, duration) {
+  const start = 0
+  const increment = target / (duration / 16)
+  const timer = setInterval(() => {
+    stat.current += increment
+    if (stat.current >= target) {
+      stat.current = target
+      stat.value = target.toLocaleString() + (target > 100 ? '+' : '')
+      clearInterval(timer)
+    } else {
+      stat.value = Math.floor(stat.current).toLocaleString() + (target > 100 ? '+' : '')
+    }
+  }, 16)
+}
+
+function setupScrollAnimations() {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in')
+        }
+      })
+    },
+    { threshold: 0.1 }
+  )
+
+  setTimeout(() => {
+    const elements = document.querySelectorAll('.section, .feature-card-modern, .timeline-item, .testimonial-card, .pricing-card-modern')
+    elements.forEach((el) => observer.observe(el))
+  }, 100)
+}
+
+function getParticleStyle(index) {
+  return {
+    left: Math.random() * 100 + '%',
+    animationDelay: Math.random() * 5 + 's',
+    animationDuration: (Math.random() * 10 + 10) + 's'
+  }
+}
+
+async function handleLogout() {
+  await supabase.auth.signOut()
+  isLoggedIn.value = false
 }
 </script>
 
 <style scoped>
-/* Reset & Base */
+/* Modern Reset & Base */
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 .landing-page {
-  background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+  background: #0a0f1e;
   color: #F1F5F9;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.6;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 3rem;
 }
 
-/* Header */
-.header {
-  position: sticky;
+/* Scroll Progress Bar */
+.scroll-progress-bar {
+  position: fixed;
   top: 0;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 107, 53, 0.2);
-  z-index: 100;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #FF6B35, #F59E0B, #10B981);
+  z-index: 10000;
+  transition: width 0.1s ease;
+  box-shadow: 0 0 20px rgba(255, 107, 53, 0.8);
+}
+
+/* Floating Particles */
+.particles-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, rgba(255, 107, 53, 0.8), transparent);
+  border-radius: 50%;
+  animation: float-particle linear infinite;
+}
+
+@keyframes float-particle {
+  0% {
+    transform: translateY(100vh) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) scale(1);
+    opacity: 0;
+  }
+}
+
+/* Header with Glassmorphism */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
   padding: 1rem 0;
+  transition: all 0.3s ease;
+}
+
+.header.scrolled {
+  background: rgba(10, 15, 30, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 107, 53, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 }
 
 .header-content {
@@ -389,31 +578,64 @@ if (typeof window !== 'undefined') {
   align-items: center;
 }
 
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .logo {
-  font-size: 2rem;
-  font-weight: 800;
+  font-size: 1.75rem;
+  font-weight: 900;
   background: linear-gradient(135deg, #FF6B35 0%, #F59E0B 50%, #10B981 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  letter-spacing: -0.5px;
+  letter-spacing: -1px;
+}
+
+.logo-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 107, 53, 0.2);
+  color: #FF6B35;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 107, 53, 0.3);
 }
 
 .nav {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .nav-link {
   color: #94A3B8;
   text-decoration: none;
   font-size: 0.9375rem;
-  transition: color 0.2s;
+  font-weight: 500;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #FF6B35, #F59E0B);
+  transition: width 0.3s ease;
 }
 
 .nav-link:hover {
   color: #FF6B35;
+}
+
+.nav-link:hover::after {
+  width: 100%;
 }
 
 /* Buttons */
@@ -421,156 +643,452 @@ if (typeof window !== 'undefined') {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: 12px;
   font-weight: 600;
   text-decoration: none;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
   cursor: pointer;
-  min-height: 44px;
-  font-size: 1rem;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #FF6B35 0%, #F59E0B 100%);
-  color: #FFFFFF;
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
-}
-
-.btn-primary:hover {
-  background: linear-gradient(135deg, #D94E1F 0%, #D97706 100%);
-  box-shadow: 0 6px 16px rgba(255, 107, 53, 0.4);
-  transform: translateY(-2px);
-}
-
-.btn-primary:focus {
-  outline: 2px solid #FF6B35;
-  outline-offset: 2px;
-}
-
-.btn-secondary {
-  background: transparent;
-  color: #FFFFFF;
-  border: 2px solid #475569;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-.btn-secondary:hover {
-  background: rgba(255, 107, 53, 0.1);
-  border-color: #FF6B35;
-  transform: translateY(-2px);
-}
-
-.btn-secondary:focus {
-  outline: 2px solid #64748B;
-  outline-offset: 2px;
+  font-size: 0.9375rem;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-sm {
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
-  min-height: 36px;
 }
 
 .btn-lg {
   padding: 1rem 2rem;
   font-size: 1.0625rem;
-  min-height: 50px;
 }
 
-/* Hero */
+.btn-primary {
+  background: linear-gradient(135deg, #FF6B35 0%, #F59E0B 100%);
+  color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.6);
+}
+
+.btn-secondary {
+  background: rgba(30, 41, 59, 0.8);
+  color: #FFFFFF;
+  border: 2px solid rgba(71, 85, 105, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+  background: rgba(30, 41, 59, 1);
+  border-color: #FF6B35;
+  transform: translateY(-2px);
+}
+
+.btn-hero {
+  padding: 1.125rem 2.5rem;
+  font-size: 1.125rem;
+  border-radius: 16px;
+}
+
+.btn-hero svg {
+  transition: transform 0.3s ease;
+}
+
+.btn-hero:hover svg {
+  transform: translateX(4px);
+}
+
+.glow-btn {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 32px rgba(255, 107, 53, 0.8);
+  }
+}
+
+/* Hero Section */
 .hero {
-  padding: 4rem 0;
-  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
   position: relative;
+  padding: 10rem 0 6rem;
   overflow: hidden;
 }
 
-.hero::before {
-  content: '';
+.hero-gradient {
   position: absolute;
   top: 0;
+  left: 0;
   right: 0;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(255, 107, 53, 0.2) 0%, transparent 70%);
+  height: 100%;
+  background: radial-gradient(ellipse at top, rgba(255, 107, 53, 0.15), transparent 50%),
+              radial-gradient(ellipse at bottom right, rgba(16, 185, 129, 0.1), transparent 50%);
   pointer-events: none;
 }
 
 .hero-content {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 3rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
   align-items: center;
   position: relative;
   z-index: 1;
 }
 
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 107, 53, 0.1);
+  border: 1px solid rgba(255, 107, 53, 0.2);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #FF6B35;
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 0.6s ease;
+}
+
 .hero-title {
-  font-size: 2.5rem;
-  font-weight: 800;
+  font-size: 4rem;
+  font-weight: 900;
   line-height: 1.1;
-  margin: 0 0 1rem;
-  color: #FFFFFF;
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 0.6s ease 0.1s backwards;
+}
+
+.gradient-text {
+  display: block;
+  background: linear-gradient(135deg, #FFFFFF 0%, #CBD5E1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-alt {
+  display: block;
+  background: linear-gradient(135deg, #FF6B35 0%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .hero-subtitle {
   font-size: 1.25rem;
-  color: #CBD5E1;
-  margin: 0 0 2rem;
-  line-height: 1.6;
+  color: #94A3B8;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.6s ease 0.2s backwards;
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Live Stats */
+.live-stats {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+  animation: fadeInUp 0.6s ease 0.3s backwards;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.75rem;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
+  transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-4px);
+  background: rgba(30, 41, 59, 0.7);
+  border-color: rgba(255, 107, 53, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.stat-icon {
+  font-size: 2rem;
+  filter: drop-shadow(0 2px 8px rgba(255, 107, 53, 0.3));
+}
+
+.stat-number {
+  font-size: 1.75rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #64748B;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Hero CTA */
 .hero-cta {
   display: flex;
   gap: 1rem;
-  flex-wrap: wrap;
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.6s ease 0.4s backwards;
 }
 
-.hero-visual {
+/* Trust Badges */
+.trust-badges {
   display: flex;
-  justify-content: center;
+  gap: 2rem;
+  animation: fadeInUp 0.6s ease 0.5s backwards;
+}
+
+.trust-item {
+  display: flex;
   align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #94A3B8;
 }
 
-/* Sports Illustration */
-.sports-illustration {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+.trust-icon {
+  font-size: 1.25rem;
+}
+
+/* Sports Stadium Visual */
+.hero-visual {
+  position: relative;
+  height: 550px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeInScale 0.8s ease 0.6s backwards;
+}
+
+.sports-stadium {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+}
+
+/* Sports Orbit */
+.sports-orbit {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.center-ball {
+  font-size: 5rem;
+  animation: spin-ball 4s linear infinite, bounce-ball 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 30px rgba(255, 107, 53, 0.8));
+  z-index: 2;
+}
+
+@keyframes spin-ball {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bounce-ball {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-20px) scale(1.1);
+  }
+}
+
+.orbit-sport {
+  position: absolute;
+  font-size: 2.5rem;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 41, 59, 0.8);
+  border: 2px solid rgba(255, 107, 53, 0.5);
+  border-radius: 50%;
+  box-shadow: 0 8px 32px rgba(255, 107, 53, 0.4);
+  animation: orbit 8s linear infinite;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.orbit-sport:hover {
+  transform: scale(1.3);
+  background: rgba(30, 41, 59, 1);
+  border-color: rgba(255, 107, 53, 0.8);
+  box-shadow: 0 12px 48px rgba(255, 107, 53, 0.6);
+  z-index: 3;
+}
+
+.sport-1 {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  animation-delay: 0s;
+}
+
+.sport-2 {
+  top: 25%;
+  right: 0;
+  animation-delay: -1.3s;
+}
+
+.sport-3 {
+  bottom: 25%;
+  right: 0;
+  animation-delay: -2.6s;
+}
+
+.sport-4 {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  animation-delay: -4s;
+}
+
+.sport-5 {
+  bottom: 25%;
+  left: 0;
+  animation-delay: -5.3s;
+}
+
+.sport-6 {
+  top: 25%;
+  left: 0;
+  animation-delay: -6.6s;
+}
+
+@keyframes orbit {
+  from {
+    transform: rotate(0deg) translateX(150px) rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg) translateX(150px) rotate(-360deg);
+  }
+}
+
+/* Stadium Stats */
+.stadium-stats {
+  display: flex;
+  gap: 3rem;
+}
+
+.stat-display {
+  text-align: center;
+  padding: 1.5rem 2.5rem;
+  background: rgba(30, 41, 59, 0.6);
+  border: 2px solid rgba(255, 107, 53, 0.3);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+}
+
+.stat-display:hover {
+  transform: translateY(-8px);
+  border-color: rgba(255, 107, 53, 0.6);
+  box-shadow: 0 16px 48px rgba(255, 107, 53, 0.4);
+}
+
+.stat-number {
+  font-size: 3rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.stat-number.pulse {
+  animation: stat-pulse 2s ease-in-out infinite;
+}
+
+@keyframes stat-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.stat-text {
+  font-size: 0.875rem;
+  color: #94A3B8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Quick Match Tickets */
+.quick-matches {
+  display: flex;
   gap: 1.5rem;
-  max-width: 400px;
-  width: 100%;
 }
 
-.sport-icon {
-  width: 100%;
-  height: auto;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
-  transition: transform 0.3s ease;
+.match-ticket {
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(245, 158, 11, 0.2));
+  border: 2px solid rgba(255, 107, 53, 0.4);
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(255, 107, 53, 0.3);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  animation: ticket-float 3s ease-in-out infinite;
 }
 
-.sport-icon:hover {
-  transform: scale(1.1) rotate(5deg);
+.ticket-1 {
+  animation-delay: 0s;
 }
 
-.basketball {
-  animation: bounce 2s ease-in-out infinite;
+.ticket-2 {
+  animation-delay: 1.5s;
 }
 
-.soccer {
-  animation: bounce 2s ease-in-out 0.5s infinite;
-}
-
-.tennis {
-  animation: bounce 2s ease-in-out 1s infinite;
-}
-
-.volleyball {
-  animation: bounce 2s ease-in-out 1.5s infinite;
-}
-
-@keyframes bounce {
+@keyframes ticket-float {
   0%, 100% {
     transform: translateY(0);
   }
@@ -579,325 +1097,525 @@ if (typeof window !== 'undefined') {
   }
 }
 
-/* Sections */
-.section-title {
-  font-size: 2rem;
-  font-weight: 700;
+.match-ticket:hover {
+  transform: translateY(-12px) scale(1.05);
+  border-color: rgba(255, 107, 53, 0.8);
+  box-shadow: 0 16px 48px rgba(255, 107, 53, 0.6);
+}
+
+.ticket-sport {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #F1F5F9;
+  margin-bottom: 0.5rem;
+}
+
+.ticket-time {
+  font-size: 0.875rem;
+  color: #FBBF24;
+  font-weight: 600;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Section Styles */
+.section {
+  padding: 6rem 0;
+  position: relative;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.section.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.section-header {
   text-align: center;
-  margin: 0 0 3rem;
-  color: #FFFFFF;
+  margin-bottom: 4rem;
 }
 
-/* Features */
-.features {
-  padding: 5rem 0;
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-.feature-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 2px solid rgba(71, 85, 105, 0.5);
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-  backdrop-filter: blur(8px);
-}
-
-.feature-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.3);
-  border-color: #FF6B35;
-  background: rgba(30, 41, 59, 0.7);
-}
-
-.feature-icon {
+.section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 107, 53, 0.1);
+  border: 1px solid rgba(255, 107, 53, 0.2);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #FF6B35;
   margin-bottom: 1rem;
 }
 
-.feature-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0 0 1rem;
-  color: #FFFFFF;
+.section-title {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #FFFFFF 0%, #94A3B8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.feature-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.section-subtitle {
+  font-size: 1.125rem;
+  color: #64748B;
 }
 
-.feature-list li {
-  padding-left: 1.5rem;
-  position: relative;
-  margin-bottom: 0.5rem;
-  color: #CBD5E1;
-  font-size: 0.9375rem;
-}
-
-.feature-list li::before {
-  content: '✓';
-  position: absolute;
-  left: 0;
-  color: #FF6B35;
-  font-weight: 700;
-}
-
-/* How it works */
-.how-it-works {
-  padding: 5rem 0;
-  background: rgba(15, 23, 42, 0.5);
-}
-
-.steps {
+/* Features Grid */
+.features-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
 }
 
-.step {
-  text-align: center;
+.feature-card-modern {
+  padding: 2.5rem;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  border-radius: 24px;
+  backdrop-filter: blur(20px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  transform: translateY(30px);
 }
 
-.step-number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 3.5rem;
-  height: 3.5rem;
-  background: linear-gradient(135deg, #FF6B35 0%, #F59E0B 100%);
-  color: #FFFFFF;
-  border-radius: 50%;
+.feature-card-modern.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.feature-card-modern:hover {
+  transform: translateY(-8px);
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 107, 53, 0.5);
+  box-shadow: 0 20px 60px rgba(255, 107, 53, 0.3);
+}
+
+.feature-icon-modern {
+  font-size: 3rem;
+  margin-bottom: 1.5rem;
+  filter: drop-shadow(0 4px 12px rgba(255, 107, 53, 0.3));
+}
+
+.feature-title-modern {
   font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 1rem;
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  margin-bottom: 0.75rem;
 }
 
-.step-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem;
-  color: #FFFFFF;
-}
-
-.step-text {
-  color: #CBD5E1;
-  font-size: 0.9375rem;
-  margin: 0;
-}
-
-/* Extras */
-.extras {
-  padding: 5rem 0;
-}
-
-.extras-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-.extra-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(71, 85, 105, 0.5);
-  border-radius: 14px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(8px);
-}
-
-.extra-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem;
-  color: #FFFFFF;
-}
-
-.extra-text {
-  color: #CBD5E1;
-  font-size: 0.9375rem;
-  margin: 0;
-}
-
-/* Social proof */
-.social-proof {
-  padding: 5rem 0;
-  background: rgba(15, 23, 42, 0.5);
-}
-
-.proof-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-.proof-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(71, 85, 105, 0.5);
-  border-radius: 14px;
-  padding: 2rem;
-  text-align: center;
-  backdrop-filter: blur(8px);
-}
-
-.proof-quote, .proof-stat {
-  font-size: 1.0625rem;
-  color: #F1F5F9;
-  margin: 0;
-  font-style: italic;
-}
-
-.proof-stat {
-  font-weight: 600;
-  font-style: normal;
-}
-
-/* Pricing */
-.pricing {
-  padding: 5rem 0;
-}
-
-.pricing-note {
-  text-align: center;
+.feature-desc {
   color: #94A3B8;
-  font-size: 0.875rem;
-  margin: -1.5rem 0 2rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
 }
 
-.pricing-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
+.feature-list-modern {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.feature-list-modern li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #CBD5E1;
+  font-size: 0.9375rem;
+}
+
+.feature-list-modern svg {
+  color: #10B981;
+  flex-shrink: 0;
+}
+
+/* Timeline */
+.timeline {
   max-width: 800px;
   margin: 0 auto;
 }
 
-.pricing-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(71, 85, 105, 0.5);
-  border-radius: 14px;
+.timeline-item {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 3rem;
+  margin-bottom: 4rem;
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: all 0.6s ease;
+}
+
+.timeline-item.animate-in {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.timeline-marker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.timeline-number {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  border-radius: 50%;
+  font-size: 2rem;
+  font-weight: 800;
+  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.4);
+  transition: all 0.3s ease;
+}
+
+.timeline-item:hover .timeline-number {
+  transform: scale(1.1) rotate(360deg);
+  box-shadow: 0 12px 32px rgba(255, 107, 53, 0.6);
+}
+
+.timeline-line {
+  width: 2px;
+  flex: 1;
+  background: linear-gradient(to bottom, rgba(255, 107, 53, 0.5), transparent);
+  margin-top: 1rem;
+}
+
+.timeline-content {
   padding: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  text-align: center;
-  backdrop-filter: blur(8px);
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  transition: all 0.3s ease;
 }
 
-.pricing-card-featured {
-  border-color: #FF6B35;
-  border-width: 2px;
-  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.2);
+.timeline-content:hover {
+  transform: translateX(8px);
+  background: rgba(30, 41, 59, 0.7);
+  border-color: rgba(255, 107, 53, 0.5);
 }
 
-.pricing-tier {
+.timeline-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.timeline-title {
   font-size: 1.5rem;
   font-weight: 700;
-  margin: 0 0 0.5rem;
-  color: #FFFFFF;
+  margin-bottom: 0.75rem;
 }
 
-.pricing-audience {
-  font-size: 1rem;
-  color: #FF6B35;
-  font-weight: 600;
-  margin: 0 0 1rem;
+.timeline-text {
+  color: #94A3B8;
+  line-height: 1.7;
 }
 
-.pricing-description {
+/* Testimonials */
+.testimonials-carousel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.testimonial-card {
+  padding: 2.5rem;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  border-radius: 24px;
+  backdrop-filter: blur(20px);
+  transition: all 0.4s ease;
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.testimonial-card.animate-in {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.testimonial-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 107, 53, 0.5);
+  box-shadow: 0 20px 60px rgba(255, 107, 53, 0.3);
+}
+
+.testimonial-stars {
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.testimonial-text {
+  font-size: 1.0625rem;
+  line-height: 1.7;
   color: #CBD5E1;
-  font-size: 0.9375rem;
-  margin: 0;
+  margin-bottom: 2rem;
 }
 
-/* CTA Band */
-.cta-band {
-  padding: 4rem 0;
-  background: linear-gradient(135deg, #FF6B35 0%, #F59E0B 50%, #10B981 100%);
-  text-align: center;
+.testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.author-avatar {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  border-radius: 50%;
+  font-size: 1.5rem;
+}
+
+.author-name {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.author-role {
+  font-size: 0.875rem;
+  color: #64748B;
+}
+
+/* Pricing */
+.pricing-grid-modern {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.pricing-card-modern {
   position: relative;
+  padding: 3rem 2.5rem;
+  background: rgba(30, 41, 59, 0.5);
+  border: 2px solid rgba(71, 85, 105, 0.3);
+  border-radius: 24px;
+  backdrop-filter: blur(20px);
+  transition: all 0.4s ease;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.pricing-card-modern.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pricing-card-modern.featured {
+  border-color: rgba(255, 107, 53, 0.5);
+  background: rgba(30, 41, 59, 0.7);
+  box-shadow: 0 20px 60px rgba(255, 107, 53, 0.3);
+  transform: scale(1.05);
+}
+
+.pricing-card-modern:hover {
+  transform: translateY(-8px) scale(1.05);
+  border-color: rgba(255, 107, 53, 0.7);
+  box-shadow: 0 24px 70px rgba(255, 107, 53, 0.4);
+}
+
+.pricing-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  color: white;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pricing-icon {
+  font-size: 3rem;
+  margin-bottom: 1.5rem;
+}
+
+.pricing-tier-modern {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.pricing-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.price-amount {
+  font-size: 3.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.price-period {
+  font-size: 1.125rem;
+  color: #64748B;
+}
+
+.pricing-desc-modern {
+  color: #94A3B8;
+  margin-bottom: 2rem;
+}
+
+.pricing-features {
+  list-style: none;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pricing-features li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #CBD5E1;
+}
+
+.pricing-features svg {
+  color: #10B981;
+  flex-shrink: 0;
+}
+
+.btn-pricing {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  text-align: center;
+  background: rgba(255, 107, 53, 0.1);
+  color: #FF6B35;
+  border: 2px solid rgba(255, 107, 53, 0.3);
+  border-radius: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.btn-pricing:hover {
+  background: rgba(255, 107, 53, 0.2);
+  border-color: rgba(255, 107, 53, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-pricing-featured {
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  color: white;
+  border-color: transparent;
+}
+
+.btn-pricing-featured:hover {
+  background: linear-gradient(135deg, #F59E0B, #FF6B35);
+  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.5);
+}
+
+/* CTA Section */
+.cta-section {
+  position: relative;
+  padding: 8rem 0;
   overflow: hidden;
 }
 
-.cta-band::before {
-  content: '';
+.cta-gradient {
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-  animation: pulse 4s ease-in-out infinite;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(16, 185, 129, 0.1));
+  pointer-events: none;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.5;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.8;
-  }
+.cta-content {
+  text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .cta-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #FFFFFF;
-  margin: 0 0 1.5rem;
-  position: relative;
-  z-index: 1;
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #FFFFFF 0%, #94A3B8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.cta-band .btn-primary {
-  background: #FFFFFF;
-  color: #FF6B35;
-  position: relative;
-  z-index: 1;
+.cta-subtitle {
+  font-size: 1.25rem;
+  color: #94A3B8;
+  margin-bottom: 2.5rem;
 }
 
-.cta-band .btn-primary:hover {
-  background: #F7F8FA;
-  color: #D94E1F;
+.btn-cta {
+  font-size: 1.25rem;
+  padding: 1.25rem 3rem;
 }
 
 /* Footer */
 .footer {
-  padding: 2rem 0;
-  background: rgba(15, 23, 42, 0.95);
-  border-top: 1px solid rgba(71, 85, 105, 0.5);
+  padding: 4rem 0 2rem;
+  border-top: 1px solid rgba(71, 85, 105, 0.3);
+  background: rgba(10, 15, 30, 0.8);
 }
 
-.footer .container {
+.footer-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-.footer-text {
-  color: #94A3B8;
-  font-size: 0.875rem;
-  margin: 0;
+.footer-brand .logo {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.footer-tagline {
+  color: #64748B;
+  font-size: 0.9375rem;
 }
 
 .footer-links {
   display: flex;
-  gap: 0.5rem;
-  align-items: center;
+  gap: 2rem;
 }
 
 .footer-link {
   color: #94A3B8;
   text-decoration: none;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   transition: color 0.2s;
 }
 
@@ -905,224 +1623,73 @@ if (typeof window !== 'undefined') {
   color: #FF6B35;
 }
 
-.footer-link:focus {
-  outline: 2px solid #64748B;
-  outline-offset: 2px;
-  border-radius: 2px;
+.footer-bottom {
+  text-align: center;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(71, 85, 105, 0.2);
+  color: #64748B;
+  font-size: 0.875rem;
 }
 
-.footer-separator {
-  color: #475569;
-}
-
-/* Responsive - Desktop */
-@media (min-width: 768px) {
-  .hero-content {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .features-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .steps {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .extras-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .proof-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .pricing-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 767px) {
-  .nav-link {
+/* Responsive Design */
+@media (max-width: 768px) {
+  .nav {
     display: none;
   }
 
+  .hero-content {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
   .hero-title {
-    font-size: 2rem;
+    font-size: 2.5rem;
   }
 
-  .hero-subtitle {
-    font-size: 1.0625rem;
+  .hero-visual {
+    height: 400px;
   }
 
-  .section-title {
-    font-size: 1.5rem;
+  .live-stats {
+    flex-direction: column;
   }
 
   .hero-cta {
     flex-direction: column;
   }
 
-  .hero-cta .btn {
-    width: 100%;
+  .trust-badges {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .timeline-item {
+    grid-template-columns: 80px 1fr;
+    gap: 1.5rem;
+  }
+
+  .timeline-number {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+  }
+
+  .cta-title {
+    font-size: 2rem;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    gap: 2rem;
+    text-align: center;
   }
 }
 
-/* Focus styles for accessibility */
-a:focus, button:focus {
-  outline: 2px solid #FF6B35;
-  outline-offset: 2px;
-}
-
-/* Tech Section */
-.tech {
-  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-  padding: 6rem 0;
-  position: relative;
-  overflow: hidden;
-}
-
-.tech::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.tech::after {
-  content: '';
-  position: absolute;
-  bottom: -50%;
-  left: -20%;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.tech .container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-  position: relative;
-  z-index: 1;
-}
-
-.tech-head {
-  text-align: center;
-  margin-bottom: 3.5rem;
-}
-
-.tech-title {
-  color: #FFFFFF;
-  font-size: clamp(2rem, 4vw, 2.5rem);
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  margin: 0 0 1rem;
-  background: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.tech-sub {
-  color: #CBD5E1;
-  margin: 0;
-  font-size: 1.25rem;
-  max-width: 600px;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
-.tech-grid {
-  display: grid;
-  gap: 1.25rem;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-@media (min-width: 540px) {
-  .tech-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 900px) {
-  .tech-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.tech-card {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
-  border-radius: 16px;
-  background: rgba(15, 23, 42, 0.8);
-  border: 2px solid rgba(71, 85, 105, 0.5);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-  cursor: default;
-  backdrop-filter: blur(12px);
-}
-
-.tech-card:hover {
-  transform: translateY(-4px);
-  border-color: #10B981;
-  box-shadow: 0 12px 32px rgba(16, 185, 129, 0.4);
-  background: rgba(15, 23, 42, 0.95);
-}
-
-.tech-card:focus-visible {
-  outline: 3px solid #06B6D4;
-  outline-offset: 2px;
-}
-
-.tech-icon {
-  width: 56px;
-  height: 56px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
-  border-radius: 12px;
-  border: 2px solid rgba(16, 185, 129, 0.2);
-  flex-shrink: 0;
-  transition: all 0.3s ease;
-}
-
-.tech-card:hover .tech-icon {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
-  border-color: #10B981;
-  transform: scale(1.05);
-}
-
-.tech-icon svg {
-  width: 32px;
-  height: 32px;
-}
-
-.tech-label {
-  color: #F1F5F9;
-  font-weight: 700;
-  font-size: 1.0625rem;
-  letter-spacing: -0.01em;
-}
-
-/* Scroll margin for sticky header offset */
-#tech,
-#features,
-#how-it-works,
-#pricing {
-  scroll-margin-top: 80px;
-}
-
+/* Smooth Scroll */
 html {
   scroll-behavior: smooth;
 }

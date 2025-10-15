@@ -3,7 +3,7 @@ import Landing from '@/pages/Landing.vue'
 import LocationWeather from '@/pages/LocationWeather.vue'
 import Login from '@/pages/Login.vue'
 import Register from '@/pages/Register.vue'
-import http from '@/lib/http'
+import { supabase } from '@/lib/supabase'
 
 const routes = [
   { path: '/', name: 'Landing', component: Landing },
@@ -22,11 +22,12 @@ const router = createRouter({ history: createWebHistory(), routes })
 // Navigation guard to check authentication
 router.beforeEach(async (to, _from, next) => {
   if (to.meta.requiresAuth) {
-    try {
-      // Check if user is authenticated by calling /me
-      await http.get('/auth/me')
+    // Check if user is authenticated with Supabase
+    const { data: { session } } = await supabase.auth.getSession()
+
+    if (session) {
       next()
-    } catch (error) {
+    } else {
       // Not authenticated, redirect to login with return URL
       next({
         path: '/login',

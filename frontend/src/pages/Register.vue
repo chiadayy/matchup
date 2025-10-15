@@ -87,7 +87,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { RouterLink } from 'vue-router'
-import http, { setAccessToken } from '@/lib/http'
+import { supabase } from '@/lib/supabase'
 
 const router = useRouter()
 
@@ -102,28 +102,30 @@ async function handleRegister() {
   loading.value = true
 
   try {
-    // Register user - default role is 'player' (users can do both activities)
-    await http.post('/auth/register', {
+    // Register user with Supabase
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email: email.value,
       password: password.value,
-      name: name.value || undefined,
-      role: 'player'
+      options: {
+        data: {
+          name: name.value || null,
+          role: 'user'
+        }
+      }
     })
 
-    // Auto-login after registration
-    const loginResponse = await http.post('/auth/login', {
-      email: email.value,
-      password: password.value
-    })
+    if (signUpError) {
+      throw signUpError
+    }
 
-    // Store access token
-    setAccessToken(loginResponse.data.accessToken)
+    // The trigger function will auto-create profile
+    // User is automatically logged in after signup
 
     // Redirect to app
     router.push('/location-weather')
   } catch (err: any) {
     console.error('Register error:', err)
-    error.value = err.response?.data?.message || 'Failed to create account. Please try again.'
+    error.value = err.message || 'Failed to create account. Please try again.'
   } finally {
     loading.value = false
   }

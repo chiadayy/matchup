@@ -72,7 +72,7 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { RouterLink } from 'vue-router'
-import http, { setAccessToken } from '@/lib/http'
+import { supabase } from '@/lib/supabase'
 
 const router = useRouter()
 const route = useRoute()
@@ -87,20 +87,21 @@ async function handleLogin() {
   loading.value = true
 
   try {
-    const response = await http.post('/auth/login', {
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email: email.value,
       password: password.value
     })
 
-    // Store access token
-    setAccessToken(response.data.accessToken)
+    if (signInError) {
+      throw signInError
+    }
 
     // Redirect to next page or default to app
     const next = route.query.next as string || '/location-weather'
     router.push(next)
   } catch (err: any) {
     console.error('Login error:', err)
-    error.value = err.response?.data?.message || 'Failed to sign in. Please try again.'
+    error.value = err.message || 'Failed to sign in. Please try again.'
   } finally {
     loading.value = false
   }
