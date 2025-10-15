@@ -1,453 +1,234 @@
 <template>
-  <div class="login-wrapper">
+  <div class="login-page">
     <div class="login-container">
-      <!-- Left Side - Login Form -->
-      <div class="login-left">
-        <div class="brand-logo">
-          <span>🏆</span>
-          <h2>MatchUp</h2>
-        </div>
-
-        <h3 class="fw-bold mb-2">Welcome Back!</h3>
-        <p class="text-muted mb-4">Sign in to continue to your account</p>
-
-        <form @submit.prevent="handleLogin">
-          <div class="mb-3">
-            <label for="email" class="form-label">Email Address</label>
-            <input 
-              type="email" 
-              class="form-control" 
-              id="email" 
-              v-model="email"
-              placeholder="your@email.com" 
-              required
-            >
-          </div>
-
-          <div class="mb-3 position-relative">
-            <label for="password" class="form-label">Password</label>
-            <input 
-              :type="showPassword ? 'text' : 'password'" 
-              class="form-control" 
-              id="password" 
-              v-model="password"
-              placeholder="Enter your password" 
-              required
-            >
-            <span class="password-toggle" @click="togglePasswordVisibility">
-              {{ showPassword ? '🙈' : '👁️' }}
-            </span>
-          </div>
-
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <div class="form-check">
-              <input 
-                class="form-check-input" 
-                type="checkbox" 
-                id="rememberMe"
-                v-model="rememberMe"
-              >
-              <label class="form-check-label" for="rememberMe">
-                Remember me
-              </label>
+      <div class="login-card">
+            <div class="login-header">
+              <h1 class="login-title">Welcome Back</h1>
+              <p class="login-subtitle">Sign in to MatchUp</p>
             </div>
-            <a href="#" class="link-primary" @click.prevent="openForgotPasswordModal">
-              Forgot Password?
-            </a>
-          </div>
 
-          <button type="submit" class="btn btn-login">Sign In</button>
-        </form>
+            <form @submit.prevent="handleLogin" class="login-form">
+              <!-- Email -->
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input
+                  id="email"
+                  v-model="email"
+                  type="email"
+                  class="form-control"
+                  :class="{ 'is-invalid': error }"
+                  placeholder="you@example.com"
+                  required
+                  autocomplete="email"
+                />
+              </div>
 
-        <div class="divider">
-          <span>OR</span>
-        </div>
+              <!-- Password -->
+              <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input
+                  id="password"
+                  v-model="password"
+                  type="password"
+                  class="form-control"
+                  :class="{ 'is-invalid': error }"
+                  placeholder="••••••••"
+                  required
+                  autocomplete="current-password"
+                />
+              </div>
 
-        <p class="text-center mb-0">
-          Don't have an account? <router-link to="/register" class="link-primary">Create Account</router-link>
-        </p>
-      </div>
+              <!-- Error message -->
+              <div v-if="error" class="alert alert-danger" role="alert">
+                {{ error }}
+              </div>
 
-      <!-- Right Side - Marketing -->
-      <div class="login-right">
-        <h3 class="fw-bold mb-3">Find Your Perfect Match</h3>
-        <p class="mb-4">Join thousands of players connecting and competing in local sports matches.</p>
-        
-        <ul class="feature-list">
-          <li>🏀 Browse matches near you</li>
-          <li>📅 Easy scheduling and calendar</li>
-          <li>👥 Connect with local players</li>
-          <li>🎯 Find your skill level</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Forgot Password Modal -->
-    <div v-if="showForgotPasswordModal" class="modal-overlay" @click="showForgotPasswordModal = false">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h5 class="modal-title fw-bold">Reset Password</h5>
-          <button class="btn-close" @click="showForgotPasswordModal = false">✕</button>
-        </div>
-        <div class="modal-body">
-          <p class="text-muted mb-4">Enter your email address and we'll send you a link to reset your password.</p>
-          <form @submit.prevent="handleForgotPassword">
-            <div class="mb-3">
-              <label for="resetEmail" class="form-label">Email Address</label>
-              <input 
-                type="email" 
-                class="form-control" 
-                id="resetEmail" 
-                v-model="resetEmail"
-                placeholder="your@email.com" 
-                required
+              <!-- Submit button -->
+              <button
+                type="submit"
+                class="btn btn-primary w-100 mb-3"
+                :disabled="loading"
               >
-            </div>
-            <button type="submit" class="btn btn-login">Send Reset Link</button>
-          </form>
-        </div>
+                <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
+                {{ loading ? 'Signing in...' : 'Sign In' }}
+              </button>
+
+              <!-- Register link -->
+              <div class="text-center">
+                <p class="mb-0 text-muted">
+                  Don't have an account?
+                  <RouterLink to="/register" class="text-decoration-none">
+                    Create one
+                  </RouterLink>
+                </p>
+              </div>
+            </form>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'Login',
-  data() {
-    return {
-      email: '',
-      password: '',
-      rememberMe: false,
-      showPassword: false,
-      showForgotPasswordModal: false,
-      resetEmail: ''
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { RouterLink } from 'vue-router'
+import { supabase } from '@/lib/supabase'
+
+const router = useRouter()
+const route = useRoute()
+
+const email = ref('')
+const password = ref('')
+const loading = ref(false)
+const error = ref('')
+
+async function handleLogin() {
+  error.value = ''
+  loading.value = true
+
+  try {
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      email: email.value,
+      password: password.value
+    })
+
+    if (signInError) {
+      throw signInError
     }
-  },
-  methods: {
-    togglePasswordVisibility() {
-      this.showPassword = !this.showPassword
-    },
-    openForgotPasswordModal() {
-      this.showForgotPasswordModal = true
-    },
-    handleLogin() {
-      const loginData = {
-        email: this.email,
-        password: this.password,
-        rememberMe: this.rememberMe
-      }
-      
-      console.log('Login attempt:', loginData)
-      alert('Login successful! Redirecting to dashboard...')
-      
-      // TODO: Make API call to backend
-      this.$router.push('/')
-    },
-    handleForgotPassword() {
-      console.log('Password reset for:', this.resetEmail)
-      alert('Password reset link sent to ' + this.resetEmail)
-      this.showForgotPasswordModal = false
-      this.resetEmail = ''
-    }
+
+    // Redirect to next page or default to app
+    const next = route.query.next as string || '/location-weather'
+    router.push(next)
+  } catch (err: any) {
+    console.error('Login error:', err)
+    error.value = err.message || 'Failed to sign in. Please try again.'
+  } finally {
+    loading.value = false
   }
 }
 </script>
 
 <style scoped>
-:root {
-  --primary-color: #FF6B35;
-  --back-color: #F7F9FC;
-  --secondary-color: #2C3E50;
-}
-
-body {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.login-page {
   min-height: 100vh;
-}
-
-.login-wrapper {
+  background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 76px);
-  padding: 40px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .login-container {
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  overflow: hidden;
-  max-width: 1000px;
   width: 100%;
-  display: flex;
-  animation: slideUp 0.6s ease;
+  max-width: 600px;
+  padding: 2rem;
 }
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
+.login-card {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  border-radius: 16px;
+  padding: 3rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+}
+
+@media (min-width: 768px) {
+  .login-card {
+    padding: 4rem;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin-bottom: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .login-title {
+    font-size: 3rem;
   }
 }
 
-.login-left {
-  flex: 1;
-  padding: 60px 50px;
-  background: white;
-}
-
-.login-right {
-  flex: 1;
-  background: linear-gradient(135deg, var(--primary-color) 0%, #FF5722 100%);
-  padding: 60px 50px;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.login-right::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-  animation: pulse 4s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-}
-
-.brand-logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 32px;
-}
-
-.brand-logo span {
-  font-size: 2rem;
-  background: var(--secondary-color);
-  padding: 8px 12px;
-  border-radius: 12px;
-}
-
-.brand-logo h2 {
-  font-weight: 700;
-  color: var(--secondary-color);
+.login-subtitle {
+  color: #CBD5E1;
   margin: 0;
-}
-
-.form-control {
-  padding: 14px 18px;
-  border-radius: 12px;
-  border: 2px solid #e8ecef;
-  transition: all 0.3s ease;
-}
-
-.form-control:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
 }
 
 .form-label {
+  color: #E5E7EB;
   font-weight: 600;
-  color: var(--secondary-color);
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
+  display: block;
+  text-align: left;
 }
 
-.btn-login {
-  background: linear-gradient(135deg, var(--primary-color) 0%, #FF5722 100%);
-  color: white;
-  padding: 14px;
-  border-radius: 12px;
-  border: none;
-  font-weight: 600;
-  transition: all 0.3s ease;
+.form-control {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  color: #F1F5F9;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
   width: 100%;
-  cursor: pointer;
+  display: block;
 }
 
-.btn-login:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(255, 107, 53, 0.3);
+.form-control:focus {
+  background: rgba(15, 23, 42, 0.7);
+  border-color: #10B981;
+  color: #F1F5F9;
+  box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25);
 }
 
-.divider {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  margin: 24px 0;
-  color: #999;
+.form-control::placeholder {
+  color: #64748B;
 }
 
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid #e8ecef;
-}
-
-.divider span {
-  padding: 0 16px;
-  font-size: 0.875rem;
-}
-
-.link-primary {
-  color: var(--primary-color);
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.link-primary:hover {
-  color: #FF5722;
-  text-decoration: underline;
-}
-
-.password-toggle {
-  position: absolute;
-  right: 18px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  color: #999;
-  user-select: none;
-  font-size: 1.2rem;
-}
-
-.password-toggle:hover {
-  color: var(--primary-color);
-}
-
-.feature-list {
-  list-style: none;
-  padding: 0;
-  margin: 24px 0;
-  position: relative;
-  z-index: 1;
-}
-
-.feature-list li {
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.feature-list li::before {
-  content: '✓';
-  background: rgba(255,255,255,0.2);
-  padding: 4px 8px;
-  border-radius: 50%;
-  font-weight: bold;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 16px;
-  min-width: 400px;
-  max-width: 500px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-  animation: modalSlideIn 0.3s ease;
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #e8ecef;
-}
-
-.modal-header h5 {
-  margin: 0;
-}
-
-.btn-close {
-  background: none;
+.btn-primary {
+  background: linear-gradient(135deg, #FF6B35 0%, #F59E0B 100%);
   border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #999;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  transition: all 0.2s ease;
 }
 
-.modal-body {
-  padding: 20px;
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #D94E1F 0%, #D97706 100%);
+  box-shadow: 0 6px 16px rgba(255, 107, 53, 0.4);
+  transform: translateY(-2px);
 }
 
-.position-relative {
-  position: relative;
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.form-check {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.alert-danger {
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  color: #FCA5A5;
+  border-radius: 8px;
 }
 
-.form-check-input {
-  cursor: pointer;
+.text-muted {
+  color: #94A3B8 !important;
 }
 
-.form-check-label {
-  cursor: pointer;
-  margin: 0;
+a {
+  color: #10B981;
+  transition: color 0.2s;
 }
 
-@media (max-width: 768px) {
-  .login-container {
-    flex-direction: column;
-  }
-
-  .login-left,
-  .login-right {
-    padding: 40px 30px;
-  }
-
-  .login-right {
-    order: -1;
-  }
+a:hover {
+  color: #34D399;
 }
 </style>
