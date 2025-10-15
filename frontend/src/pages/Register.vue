@@ -121,8 +121,8 @@ async function handleRegister() {
     // The trigger function will auto-create profile
     // User is automatically logged in after signup
 
-    // Redirect to app
-    router.push('/location-weather')
+    // Redirect to home
+    router.push('/home')
   } catch (err: any) {
     console.error('Register error:', err)
     error.value = err.message || 'Failed to create account. Please try again.'

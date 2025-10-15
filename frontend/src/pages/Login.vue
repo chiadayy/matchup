@@ -96,8 +96,8 @@ async function handleLogin() {
       throw signInError
     }
 
-    // Redirect to next page or default to app
-    const next = route.query.next as string || '/location-weather'
+    // Redirect to next page or default to home
+    const next = route.query.next as string || '/home'
     router.push(next)
   } catch (err: any) {
     console.error('Login error:', err)
