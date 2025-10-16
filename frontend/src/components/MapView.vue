@@ -69,29 +69,39 @@ let infoWindow = null
 let userLocationMarker = null
 
 onMounted(async () => {
-  // Suppress Google Maps error dialog
-  window.gm_authFailure = () => {
-    console.log('Google Maps auth check - map is still functional')
+  try {
+    // Check if Google Maps is available
+    if (typeof google === 'undefined' || !google.maps) {
+      console.error('Google Maps API not loaded. Please check your API key configuration.');
+      return;
+    }
+
+    // Suppress Google Maps error dialog
+    window.gm_authFailure = () => {
+      console.warn('Google Maps authentication issue detected');
+    }
+
+    const { Map, InfoWindow } = await google.maps.importLibrary('maps')
+    const { AdvancedMarkerElement } = await google.maps.importLibrary('marker')
+
+    const initialCenter = props.center || { lat: 1.3521, lng: 103.8198 }
+
+    map = new Map(mapEl.value, {
+      center: initialCenter,
+      zoom: props.zoom,
+      mapId: '1d85aa34bdd69f6c32c5d842'
+    })
+
+    // Create InfoWindow instance
+    infoWindow = new InfoWindow()
+
+    // Get and show user's current location
+    getUserLocation()
+
+    updateMarkers(AdvancedMarkerElement)
+  } catch (error) {
+    console.error('Failed to initialize Google Maps:', error);
   }
-
-  const { Map, InfoWindow } = await google.maps.importLibrary('maps')
-  const { AdvancedMarkerElement } = await google.maps.importLibrary('marker')
-
-  const initialCenter = props.center || { lat: 1.3521, lng: 103.8198 }
-
-  map = new Map(mapEl.value, {
-    center: initialCenter,
-    zoom: props.zoom,
-    mapId: '1d85aa34bdd69f6c32c5d842'
-  })
-
-  // Create InfoWindow instance
-  infoWindow = new InfoWindow()
-
-  // Get and show user's current location
-  getUserLocation()
-
-  updateMarkers(AdvancedMarkerElement)
 })
 
 // Get user's current location and add red marker
@@ -99,12 +109,18 @@ async function getUserLocation() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const userPosition = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        }
+        try {
+          const userPosition = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          }
 
-        const { PinElement, AdvancedMarkerElement } = await google.maps.importLibrary('marker')
+          if (typeof google === 'undefined' || !google.maps) {
+            console.error('Google Maps not available for user location marker');
+            return;
+          }
+
+          const { PinElement, AdvancedMarkerElement } = await google.maps.importLibrary('marker')
 
         // Create a pulsing red marker for user location
         const userPin = document.createElement('div')
@@ -121,11 +137,14 @@ async function getUserLocation() {
           content: userPin
         })
 
-        // Optionally pan to user location
-        // map.panTo(userPosition)
+          // Optionally pan to user location
+          // map.panTo(userPosition)
+        } catch (error) {
+          console.error('Failed to create user location marker:', error);
+        }
       },
       (error) => {
-        console.log('Could not get user location:', error)
+        console.warn('Could not get user location:', error);
       }
     )
   }

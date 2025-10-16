@@ -37,8 +37,14 @@ export default {
         photoUrl: 'https://via.placeholder.com/150'
       });
       
+      const appId = import.meta.env.VITE_TALKJS_APP_ID;
+      if (!appId) {
+        console.error('TalkJS App ID not configured. Please set VITE_TALKJS_APP_ID in your .env file');
+        return;
+      }
+
       const session = new Talk.Session({
-        appId: 'YOUR_APP_ID_HERE', // Get this from TalkJS dashboard
+        appId: appId,
         me: me
       });
       

@@ -8,7 +8,7 @@
       <div class="card mb-3">
         <div class="card-header">
           <h4 class="card-title">Booking Details</h4>
-          <CardDescription>Your court reservation information</CardDescription>
+          <p class="text-muted small mb-0">Your court reservation information</p>
         </div>
         <div class="card-body" v-if="match">
           <div class="row g-3">
@@ -71,7 +71,7 @@
       <div class="card mb-3">
         <div class="card-header">
           <h4 class="card-title">Payment Details</h4>
-          <CardDescription>Input your payment details to complete</CardDescription>
+          <p class="text-muted small mb-0">Input your payment details to complete</p>
         </div>
         <div class="card-body">
           <form id="payment-form" @submit.prevent="handlePayment">
