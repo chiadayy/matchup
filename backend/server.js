@@ -19,16 +19,7 @@ app.use(cors({
 
 app.use(cookieParser());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Middleware
-app.use(cors({
-  origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
-  credentials: true,
-}));
-app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true })); 
 
 // Routes
 app.use("/users", userRouter);
@@ -96,4 +87,4 @@ app.listen(PORT, () => {
 //   console.log(` Health check: http://localhost:${PORT}/health\n`);
 // });
 
-module.exports = app;
+export default app;
