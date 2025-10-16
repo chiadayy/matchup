@@ -37,29 +37,39 @@ const inputEl = ref(null)
 const searchValue = ref('')
 
 onMounted(async () => {
-  const { Autocomplete } = await google.maps.importLibrary('places')
-
-  const autocomplete = new Autocomplete(inputEl.value, {
-    fields: ['geometry', 'formatted_address', 'name'],
-    componentRestrictions: { country: ['SG'] }
-  })
-
-  autocomplete.addListener('place_changed', () => {
-    const place = autocomplete.getPlace()
-
-    if (!place.geometry || !place.geometry.location) {
-      return
+  try {
+    // Check if Google Maps is available
+    if (typeof google === 'undefined' || !google.maps) {
+      console.error('Google Maps API not loaded. Please check your API key configuration.');
+      return;
     }
 
-    searchValue.value = place.name || place.formatted_address
+    const { Autocomplete } = await google.maps.importLibrary('places')
 
-    emit('select', {
-      lat: place.geometry.location.lat(),
-      lng: place.geometry.location.lng(),
-      address: place.formatted_address,
-      name: place.name || place.formatted_address
+    const autocomplete = new Autocomplete(inputEl.value, {
+      fields: ['geometry', 'formatted_address', 'name'],
+      componentRestrictions: { country: ['SG'] }
     })
-  })
+
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace()
+
+      if (!place.geometry || !place.geometry.location) {
+        return
+      }
+
+      searchValue.value = place.name || place.formatted_address
+
+      emit('select', {
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng(),
+        address: place.formatted_address,
+        name: place.name || place.formatted_address
+      })
+    })
+  } catch (error) {
+    console.error('Failed to initialize Google Maps Autocomplete:', error);
+  }
 })
 
 function handleSearch() {

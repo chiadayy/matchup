@@ -135,19 +135,21 @@ const error = ref(null)
 const weather = ref(null)
 
 watch(() => [props.lat, props.lon, props.eventTimeISO], async () => {
-  console.log('OWM fetch', props.lat, props.lon, new Date(props.eventTimeISO).toISOString())
-  console.log('OWM key len', import.meta.env.VITE_OPENWEATHER_API_KEY?.length)
-
   loading.value = true
   error.value = null
   weather.value = null
 
   try {
+    const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+    if (!apiKey) {
+      throw new Error('OpenWeather API key not configured');
+    }
+
     const url = new URL('https://api.openweathermap.org/data/2.5/forecast')
     url.searchParams.set('lat', String(props.lat))
     url.searchParams.set('lon', String(props.lon))
     url.searchParams.set('units', 'metric')
-    url.searchParams.set('appid', import.meta.env.VITE_OPENWEATHER_API_KEY)
+    url.searchParams.set('appid', apiKey)
 
     const response = await fetch(url)
 
@@ -201,8 +203,6 @@ watch(() => [props.lat, props.lon, props.eventTimeISO], async () => {
       description,
       message
     }
-
-    console.log('Weather loaded:', weather.value)
   } catch (err) {
     console.error('Weather error:', err)
     error.value = err.message
