@@ -2,7 +2,7 @@
 
 Find nearby sports matches, check the weather, and join games in your area.
 
-## 🚀 Tech Stack
+## 🚀 Tech stack
 
 **Frontend:**
 - Vue 3 + TypeScript
