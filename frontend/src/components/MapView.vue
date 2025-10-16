@@ -69,6 +69,11 @@ let infoWindow = null
 let userLocationMarker = null
 
 onMounted(async () => {
+  // Suppress Google Maps error dialog
+  window.gm_authFailure = () => {
+    console.log('Google Maps auth check - map is still functional')
+  }
+
   const { Map, InfoWindow } = await google.maps.importLibrary('maps')
   const { AdvancedMarkerElement } = await google.maps.importLibrary('marker')
 
@@ -77,7 +82,7 @@ onMounted(async () => {
   map = new Map(mapEl.value, {
     center: initialCenter,
     zoom: props.zoom,
-    mapId: 'DEMO_MAP_ID'
+    mapId: '1d85aa34bdd69f6c32c5d842'
   })
 
   // Create InfoWindow instance

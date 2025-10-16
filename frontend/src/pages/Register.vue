@@ -109,7 +109,7 @@ async function handleRegister() {
       options: {
         data: {
           name: name.value || null,
-          role: 'user'
+          role: 'player'
         }
       }
     })
