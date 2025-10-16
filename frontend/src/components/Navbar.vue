@@ -206,6 +206,8 @@
 </template>
 
 <script>
+import { supabase } from '@/lib/supabase'
+
 export default {
   name: 'Navbar',
   props: {
@@ -264,8 +266,9 @@ export default {
         }
       }
     },
-    logout() {
+    async logout() {
       if (confirm('Are you sure you want to logout?')) {
+        await supabase.auth.signOut()
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         this.$emit('logout');

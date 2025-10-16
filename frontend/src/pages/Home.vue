@@ -1,6 +1,13 @@
 <template>
   <div class="min-h-screen" style="background-color: #F7F9FC">
-    
+    <!-- Logout Button -->
+    <div class="container-fluid px-5 pt-3">
+      <div class="d-flex justify-content-end">
+        <button class="btn-logout-custom" @click="logout">
+          Logout
+        </button>
+      </div>
+    </div>
 
     <!-- Hero Section -->
     <div class="container-fluid px-5">
@@ -78,6 +85,7 @@
 </template>
 
 <script>
+import { supabase } from '@/lib/supabase'
 
 export default {
   name: 'Home',
@@ -115,8 +123,9 @@ export default {
       alert(`Joining Match ${matchId}!`);
       // this.$router.push(`/match/${matchId}`);
     },
-    logout() {
+    async logout() {
       if (confirm('Are you sure you want to logout?')) {
+        await supabase.auth.signOut()
         this.isLoggedIn = false;
         this.$router.push('/');
       }
@@ -311,5 +320,24 @@ body {
     50% {
         transform: translateY(-20px);
     }
+}
+
+/* ========== LOGOUT BUTTON ========== */
+.btn-logout-custom {
+    background-color: #FF6B35;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.btn-logout-custom:hover {
+    background-color: #E55A2B;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
 }
 </style>
