@@ -4,6 +4,7 @@ import Home from '@/pages/Home.vue'
 import LocationWeather from '@/pages/LocationWeather.vue'
 import Login from '@/pages/Login.vue'
 import Register from '@/pages/Register.vue'
+import Pay from '@/pages/Pay.vue'
 import { supabase } from '@/lib/supabase'
 
 const routes = [
@@ -35,6 +36,12 @@ const routes = [
     path: '/location-weather',
     name: 'LocationWeather',
     component: LocationWeather,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/pay',
+    name: 'Pay',
+    component: Pay,
     meta: { requiresAuth: true }
   }
 ]
