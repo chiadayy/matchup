@@ -18,7 +18,7 @@
     <Footer
       v-if="showFooter"
       :isLoggedIn="true"
-      :userRole="regular"
+      userRole="regular"
     />
   </div>
 </template>
