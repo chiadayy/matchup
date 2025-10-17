@@ -59,7 +59,6 @@ export default {
       const conversation = session.getOrCreateConversation(this.conversationId);
 
       const chatbox = session.createChatbox();
-      // REMOVE the setTheme line - theme applies automatically from dashboard
       chatbox.select(conversation);
       chatbox.mount(document.getElementById("talkjs-container"));
     },
@@ -76,10 +75,10 @@ export default {
 }
 
 .chat-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   color: white;
   border-bottom: none;
-  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -173,7 +172,7 @@ export default {
   width: 40px;
   height: 40px;
   border: 4px solid #e2e8f0;
-  border-top: 4px solid #667eea;
+  border-top: 4px solid #1a1a1a;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 16px;
@@ -194,7 +193,6 @@ export default {
   font-weight: 500;
 }
 
-/* Custom TalkJS styling */
 :global(#talkjs-container iframe) {
   border: none !important;
 }

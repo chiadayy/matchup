@@ -8,10 +8,16 @@
       <span>⚠️</span>
       <p>{{ error }}</p>
     </div>
+
     <div v-else-if="conversationId" class="match-layout">
       <!-- Sidebar -->
       <div class="sidebar">
+        <!-- Move back button here, inside match-header -->
         <div class="match-header">
+          <router-link to="/home" class="back-button-inline">
+            <span class="back-icon">←</span>
+            <span>Back</span>
+          </router-link>
           <div class="header-content">
             <h2>{{ matchData.name }}</h2>
             <div class="price-badge">
@@ -19,7 +25,7 @@
             </div>
           </div>
         </div>
-        
+
         <div class="match-section">
           <h3><span class="icon">📍</span> Location & Time</h3>
           <div class="info-grid">
@@ -37,7 +43,9 @@
             </div>
             <div class="info-item">
               <span class="label">Players</span>
-              <span class="value">{{ matchData.total_player_count }} spots</span>
+              <span class="value"
+                >{{ matchData.total_player_count }} spots</span
+              >
             </div>
           </div>
         </div>
@@ -59,7 +67,15 @@
           <h3><span class="icon">👥</span> Match Players</h3>
           <div class="players-list">
             <div class="player" v-if="hostProfile">
-              <img :src="hostProfile.profile_image || 'https://ui-avatars.com/api/?name=' + hostProfile.name + '&background=667eea&color=fff'" alt="host" />
+              <img
+                :src="
+                  hostProfile.profile_image ||
+                  'https://ui-avatars.com/api/?name=' +
+                    hostProfile.name +
+                    '&background=1a1a1a&color=fff'
+                "
+                alt="host"
+              />
               <div class="player-info">
                 <p class="player-name">
                   {{ hostProfile.name }}
@@ -69,7 +85,15 @@
               </div>
             </div>
             <div class="player" v-if="playerProfile">
-              <img :src="playerProfile.profile_image || 'https://ui-avatars.com/api/?name=' + playerProfile.name + '&background=764ba2&color=fff'" alt="player" />
+              <img
+                :src="
+                  playerProfile.profile_image ||
+                  'https://ui-avatars.com/api/?name=' +
+                    playerProfile.name +
+                    '&background=2d2d2d&color=fff'
+                "
+                alt="player"
+              />
               <div class="player-info">
                 <p class="player-name">{{ playerProfile.name }}</p>
                 <p class="player-role">{{ playerProfile.role }}</p>
@@ -81,7 +105,11 @@
 
       <!-- Chat Area -->
       <div class="chat-area">
-        <ChatRoom :matchId="1" :conversationId="conversationId" :currentUserId="currentUserId" />
+        <ChatRoom
+          :matchId="1"
+          :conversationId="conversationId"
+          :currentUserId="currentUserId"
+        />
       </div>
     </div>
     <div v-else class="no-chat">
@@ -93,47 +121,61 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
-import ChatRoom from '../components/ChatRoom.vue';
+import { ref, onMounted } from "vue";
+import ChatRoom from "../components/ChatRoom.vue";
 
 export default {
-  name: 'MyMatches',
+  name: "MyMatches",
   components: { ChatRoom },
-  
+
   setup() {
     const loading = ref(true);
     const error = ref(null);
     const conversationId = ref(null);
-    // const currentUserId = ref('17c26d43-eba7-445e-af45-84e34dac8ece');
-    const currentUserId = ref('77995803-7951-4f0e-9797-f84a6fecec1e'); // User 2
-    
+    const currentUserId = ref("17c26d43-eba7-445e-af45-84e34dac8ece");
     const matchData = ref({});
     const weather = ref(null);
     const hostProfile = ref(null);
     const playerProfile = ref(null);
-    
+
     const formatDate = (dateStr) => {
-      return new Date(dateStr).toLocaleDateString('en-US', { 
-        weekday: 'short', 
-        month: 'short', 
-        day: 'numeric',
-        year: 'numeric'
+      return new Date(dateStr).toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
       });
     };
 
     const fetchWeather = async (location) => {
       try {
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+        if (!apiKey) {
+          console.log("No weather API key");
+          return;
+        }
+
         const response = await fetch(
           `https://api.openweathermap.org/data/2.5/weather?q=${location}&units=metric&appid=${apiKey}`
         );
+
+        if (!response.ok) {
+          console.log("Weather API failed:", response.status);
+          return;
+        }
+
         const data = await response.json();
-        weather.value = {
-          temp: Math.round(data.main.temp),
-          description: data.weather[0].description.charAt(0).toUpperCase() + data.weather[0].description.slice(1)
-        };
+
+        if (data.main && data.main.temp && data.weather && data.weather[0]) {
+          weather.value = {
+            temp: Math.round(data.main.temp),
+            description:
+              data.weather[0].description.charAt(0).toUpperCase() +
+              data.weather[0].description.slice(1),
+          };
+        }
       } catch (err) {
-        console.error('Weather fetch failed:', err);
+        console.log("Weather fetch skipped:", err.message);
       }
     };
 
@@ -142,14 +184,14 @@ export default {
         const response = await fetch(`http://localhost:3000/users/${userId}`);
         return await response.json();
       } catch (err) {
-        console.error('Profile fetch failed:', err);
+        console.error("Profile fetch failed:", err);
         return null;
       }
     };
-    
+
     onMounted(async () => {
       try {
-        const matchResponse = await fetch('http://localhost:3000/matches/1');
+        const matchResponse = await fetch("http://localhost:3000/matches/1");
         matchData.value = await matchResponse.json();
         conversationId.value = matchData.value.conversation_id;
 
@@ -161,34 +203,35 @@ export default {
           hostProfile.value = await fetchProfile(matchData.value.host);
         }
 
-        const usersResponse = await fetch(`http://localhost:3000/matches/1/users`);
+        const usersResponse = await fetch(
+          `http://localhost:3000/matches/1/users`
+        );
         const users = await usersResponse.json();
         if (Array.isArray(users)) {
-          const player = users.find(u => u.user_id !== matchData.value.host);
+          const player = users.find((u) => u.user_id !== matchData.value.host);
           if (player) {
             playerProfile.value = await fetchProfile(player.user_id);
           }
         }
-
       } catch (err) {
         error.value = err.message;
       } finally {
         loading.value = false;
       }
     });
-    
-    return { 
-      loading, 
-      error, 
-      conversationId, 
-      currentUserId, 
-      matchData, 
+
+    return {
+      loading,
+      error,
+      conversationId,
+      currentUserId,
+      matchData,
       weather,
       hostProfile,
       playerProfile,
-      formatDate 
+      formatDate,
     };
-  }
+  },
 };
 </script>
 
@@ -204,6 +247,37 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
+}
+
+.back-button-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.back-button-inline:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.back-icon {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.back-button:hover {
+  background: rgba(0, 0, 0, 0.95);
+  transform: translateX(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .loading {
@@ -218,14 +292,18 @@ export default {
   width: 50px;
   height: 50px;
   border: 4px solid #e2e8f0;
-  border-top: 4px solid #667eea;
+  border-top: 4px solid #1a1a1a;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loading p {
@@ -268,8 +346,15 @@ export default {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.1); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
 }
 
 .no-chat h3 {
@@ -298,8 +383,14 @@ export default {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .sidebar {
@@ -329,26 +420,35 @@ export default {
 
 .match-header {
   padding: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   color: white;
   position: relative;
   overflow: hidden;
 }
 
 .match-header::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -50%;
   right: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 70%
+  );
   animation: shimmer 3s ease-in-out infinite;
 }
 
 @keyframes shimmer {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(-20%, -20%); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-20%, -20%);
+  }
 }
 
 .header-content {
@@ -362,21 +462,21 @@ export default {
   font-size: 32px;
   font-weight: 700;
   color: white;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .price-badge {
   display: inline-flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
   color: white;
   padding: 10px 20px;
   border-radius: 24px;
   font-weight: 700;
   font-size: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .dollar {
@@ -464,7 +564,7 @@ export default {
   font-size: 48px;
   font-weight: 700;
   color: #2d3748;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .weather-desc {
@@ -495,8 +595,8 @@ export default {
 
 .player:hover {
   transform: translateX(8px) scale(1.02);
-  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.2);
-  border-color: #667eea;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  border-color: #1a1a1a;
 }
 
 .player img {
@@ -504,8 +604,8 @@ export default {
   height: 56px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #667eea;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  border: 3px solid #1a1a1a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
 }
 
@@ -535,7 +635,7 @@ export default {
 }
 
 .badge {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   color: white;
   padding: 4px 12px;
   border-radius: 12px;
@@ -543,7 +643,7 @@ export default {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .chat-area {
