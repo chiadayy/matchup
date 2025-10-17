@@ -50,15 +50,16 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/create-game',
+    name: 'GameCreation',
+    component: GameCreation,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/match-chat',
     name: 'MyMatches',
     component: MyMatches,
     meta: { requiresAuth: true }
-  },
-  { 
-    path: '/game-creation',
-    name: 'GameCreation',
-    component: GameCreation
   },
   {
     path: '/profile',

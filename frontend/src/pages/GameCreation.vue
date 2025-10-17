@@ -34,14 +34,14 @@
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Sport Type</label>
-                <select class="form-control" v-model="formData.sport" required>
-                  <option value="">Select a sport</option>
-                  <option v-for="sport in sports" :key="sport" :value="sport">
-                    {{ sportEmojis[sport] }} {{ sport }}
-                  </option>
-                </select>
+                <input 
+                      type="text" 
+                      class="form-control" 
+                      v-model="formData.sport"
+                      placeholder="e.g., Basketball, Tennis, Football, Badminton"
+                      required
+                    >              
               </div>
-
               <div class="form-group">
                 <label class="form-label">Skill Level</label>
                 <select class="form-control" v-model="formData.skillLevel" required>
@@ -271,13 +271,13 @@
             </div>
           </div>
 
-          <!-- Navigation Buttons -->
           <div class="form-navigation">
             <button 
               v-if="currentStep > 1"
               type="button" 
               class="btn btn-secondary"
               @click="previousStep"
+              :disabled="isSubmitting"
             >
               Back
             </button>
@@ -287,6 +287,7 @@
               type="button" 
               class="btn btn-primary"
               @click="nextStep"
+              :disabled="isSubmitting"
             >
               Next
             </button>
@@ -295,15 +296,16 @@
               v-if="currentStep === 4"
               type="submit" 
               class="btn btn-success"
+              :disabled="isSubmitting"
             >
-              Create Match
+              <span v-if="isSubmitting">Creating Match...</span>
+              <span v-else>Create Match</span>
             </button>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Success Notification -->
     <div v-if="showSuccessMessage" class="success-notification">
       <div class="notification-content">
         <span class="icon">✓</span>
@@ -318,20 +320,17 @@
 </template>
 
 <script>
+import { supabase } from '@/lib/supabase'
+
 export default {
   name: 'GameCreation',
   data() {
     return {
       currentStep: 1,
       showSuccessMessage: false,
-      sports: ['Basketball', 'Tennis', 'Football', 'Badminton', 'Volleyball'],
-      sportEmojis: {
-        'Basketball': '🏀',
-        'Tennis': '🎾',
-        'Football': '⚽',
-        'Badminton': '🏸',
-        'Volleyball': '🏐'
-      },
+      isSubmitting: false,    
+      submitError: null,
+      
       formData: {
         matchName: '',
         sport: '',
@@ -358,14 +357,17 @@ export default {
       const labels = ['Details', 'Schedule', 'Pricing', 'Description'];
       return labels[step - 1];
     },
+    
     nextStep() {
       if (this.validateCurrentStep()) {
         this.currentStep++;
       }
     },
+    
     previousStep() {
       this.currentStep--;
     },
+    
     validateCurrentStep() {
       switch (this.currentStep) {
         case 1:
@@ -383,22 +385,83 @@ export default {
           return true;
       }
     },
-    createMatch() {
-      if (this.validateCurrentStep()) {
-        // TODO: Send data to backend API
-        console.log('Match Data:', this.formData);
-        console.log('Payment Details:', this.paymentDetails);
+
+    async createMatch() {
+      if (!this.validateCurrentStep()) {
+        return;
+      }
+
+      // Only allow free matches for now
+      if (this.formData.isPaid) {
+        alert('Paid matches are coming soon! Please select "Free Match" for now.');
+        this.currentStep = 3;
+        return;
+      }
+
+      this.isSubmitting = true;
+      this.submitError = null;
+
+      try {
+        // Get current user for authentication
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
         
+        if (userError || !user) {
+          throw new Error('You must be logged in to create a match');
+        }
+
+        // send this to backend
+        const matchData = {
+          name: this.formData.matchName,
+          sport_type: this.formData.sport,
+          skill_level: this.formData.skillLevel,
+          location: this.formData.location,
+          total_player_count: this.formData.maxPlayers,
+          date: this.formData.date,
+          time: this.formData.time,
+          duration: this.formData.duration,
+          // is_paid: false,
+          total_price: 0,
+          description: this.formData.description,
+          host: user.id,
+          current_player_count: 0,
+          conversation_id: 0,
+          latitude: 1.3811339716891793,
+          longitude: 103.75191378557123
+        };
+
+        const response = await fetch('http://localhost:3000/matches', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+          },
+          body: JSON.stringify(matchData)
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to create match');
+        }
+
+        const data = await response.json();
+
         // Show success message
         this.showSuccessMessage = true;
         
-        // Reset form
+        // Reset form and redirect after delay
         setTimeout(() => {
           this.resetForm();
-          this.$router.push('/browser');
+          this.$router.push('/home');
         }, 2000);
+
+      } catch (error) {
+        this.submitError = error.message || 'Failed to create match. Please try again.';
+        alert(`Error: ${error.message}`);
+      } finally {
+        this.isSubmitting = false;
       }
-    },
+    },    
+    
     resetForm() {
       this.currentStep = 1;
       this.formData = {
@@ -421,14 +484,17 @@ export default {
         cardName: ''
       };
     },
+    
     closeSuccessMessage() {
       this.showSuccessMessage = false;
     },
+    
     formatCardNumber(event) {
       let value = this.paymentDetails.cardNumber.replace(/\s/g, '');
       let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
       this.paymentDetails.cardNumber = formattedValue;
     },
+    
     formatExpiryDate(event) {
       let value = this.paymentDetails.expiryDate.replace(/\D/g, '');
       if (value.length >= 2) {
@@ -436,9 +502,11 @@ export default {
       }
       this.paymentDetails.expiryDate = value;
     },
+    
     formatCVV(event) {
       this.paymentDetails.cvv = this.paymentDetails.cvv.replace(/\D/g, '');
     },
+    
     formatDateDisplay(dateStr) {
       const date = new Date(dateStr);
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -853,6 +921,35 @@ export default {
 .btn-close-notification:hover {
   color: var(--secondary-color);
   transform: rotate(90deg);
+}
+
+.btn-success {
+  background: #28a745 !important;
+  color: white !important;
+  min-width: 150px;
+}
+
+.btn-success:hover {
+  background: #28a745 !important;
+  color: white !important;
+  transform: none !important;
+}
+
+.btn-success:disabled {
+  background: #28a745 !important;
+  color: white !important;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-success:disabled:hover {
+  background: #28a745 !important;
+  color: white !important;
+  transform: none !important;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
 }
 
 @media (max-width: 768px) {
