@@ -35,8 +35,8 @@ async function syncUserWithTalkJS(userId) {
       body: JSON.stringify({
         name: profile.name || 'User',
         email: [userId],
-        photoUrl: profile.profile_image || 'https://via.placeholder.com/150',
-        role: profile.role || 'player'
+        photoUrl: profile.profile_image || 'https://ui-avatars.com/api/?name=' + (profile.name || 'User'),
+        role: 'default'
       })
     }
   );
@@ -48,6 +48,45 @@ async function syncUserWithTalkJS(userId) {
 
   return profile;
 }
+
+// Force re-sync users for a match
+router.post("/sync-users/:match_id", async (req, res) => {
+  try {
+    const { match_id } = req.params;
+
+    // Get the match
+    const { data: match, error: matchError } = await supabase
+      .from("matches")
+      .select("*")
+      .eq("id", match_id)
+      .single();
+
+    if (matchError) throw matchError;
+
+    // Get all confirmed users
+    const { data: confirmedUsers, error: usersError } = await supabase
+      .from("users_matches")
+      .select("user_id")
+      .eq("match_id", match_id)
+      .eq("payment_success", true);
+
+    if (usersError) throw usersError;
+
+    // Sync all users
+    for (const user of confirmedUsers) {
+      await syncUserWithTalkJS(user.user_id);
+    }
+
+    res.json({ 
+      message: "Users synced successfully",
+      synced_users: confirmedUsers.length
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Check if both users confirmed and create chat
 router.post("/check-and-create", async (req, res) => {

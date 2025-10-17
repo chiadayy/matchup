@@ -21,51 +21,49 @@
 </template>
 
 <script>
-import Talk from 'talkjs';
+import Talk from "talkjs";
 
 export default {
-  name: 'ChatRoom',
+  name: "ChatRoom",
   props: {
     matchId: Number,
     conversationId: String,
-    currentUserId: String
+    currentUserId: String,
   },
-  
+
   mounted() {
     this.initializeTalkJS();
   },
-  
+
   methods: {
     async initializeTalkJS() {
       await Talk.ready;
-      
+
       const me = new Talk.User({
         id: this.currentUserId,
-        name: 'Me',
-        email: `${this.currentUserId}@test.com`
+        name: "Me",
+        email: `${this.currentUserId}@test.com`,
       });
-      
+
       const appId = import.meta.env.VITE_TALKJS_APP_ID;
       if (!appId) {
-        console.error('TalkJS App ID not configured');
+        console.error("TalkJS App ID not configured");
         return;
       }
 
       const session = new Talk.Session({
         appId: appId,
-        me: me
+        me: me,
       });
-      
+
       const conversation = session.getOrCreateConversation(this.conversationId);
-      
-      const chatbox = session.createChatbox({ theme: 'purple' });
+
+      const chatbox = session.createChatbox();
+      // REMOVE the setTheme line - theme applies automatically from dashboard
       chatbox.select(conversation);
-
-      // Set the theme (use the name of your theme from TalkJS dashboard)
-
-      chatbox.mount(document.getElementById('talkjs-container'));
-    }
-  }
+      chatbox.mount(document.getElementById("talkjs-container"));
+    },
+  },
 };
 </script>
 
@@ -87,19 +85,28 @@ export default {
 }
 
 .chat-header::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -50%;
   right: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 70%
+  );
   animation: shimmer 3s ease-in-out infinite;
 }
 
 @keyframes shimmer {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(-20%, -20%); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-20%, -20%);
+  }
 }
 
 .header-content {
@@ -124,10 +131,11 @@ export default {
 }
 
 @keyframes pulse {
-  0%, 100% { 
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.7);
   }
-  50% { 
+  50% {
     box-shadow: 0 0 0 8px rgba(72, 187, 120, 0);
   }
 }
@@ -172,8 +180,12 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .chat-loading p {

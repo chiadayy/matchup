@@ -198,10 +198,12 @@ export default {
 }
 
 .match-container {
-  height: 100vh;
-  padding: 0;
-  margin: 0;
+  min-height: 100vh;
+  padding: 32px;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .loading {
@@ -209,7 +211,6 @@ export default {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100vh;
   gap: 20px;
 }
 
@@ -238,7 +239,6 @@ export default {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100vh;
   gap: 12px;
 }
 
@@ -257,7 +257,6 @@ export default {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100vh;
   text-align: center;
   padding: 40px;
 }
@@ -287,22 +286,28 @@ export default {
 
 .match-layout {
   display: flex;
-  height: 100vh;
+  width: 100%;
+  max-width: 1400px;
+  height: 85vh;
+  max-height: 900px;
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   animation: fadeIn 0.5s ease-in;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .sidebar {
-  width: 400px;
+  width: 380px;
   background: #ffffff;
-  padding: 0;
   overflow-y: auto;
   border-right: 1px solid #e2e8f0;
-  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
 }
 
 .sidebar::-webkit-scrollbar {
@@ -545,8 +550,6 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: white;
   overflow: hidden;
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
 }
 </style>
