@@ -193,365 +193,338 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div style="min-height: 100vh; background: #0f172a;">
-    <!-- Header -->
-    <div style="background: #1e293b; border-bottom: 1px solid #334155; padding: 20px 32px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-      <div style="display: flex; align-items: center; gap: 16px; max-width: 2000px; margin: 0 auto;">
-        <!-- Logo SVG with glow effect -->
-        <svg width="100" height="100" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 12px rgba(23, 195, 212, 0.7));">
-          <!-- Cloud -->
-          <circle cx="70" cy="80" r="32" fill="#3B82F6"/>
-          <circle cx="95" cy="75" r="27" fill="#3B82F6"/>
-          <!-- Sun with glow -->
-          <circle cx="130" cy="60" r="22" fill="#17C3D4"/>
-          <line x1="130" y1="33" x2="130" y2="20" stroke="#17C3D4" stroke-width="5" stroke-linecap="round"/>
-          <line x1="152" y1="48" x2="162" y2="38" stroke="#17C3D4" stroke-width="5" stroke-linecap="round"/>
-          <line x1="160" y1="70" x2="172" y2="70" stroke="#17C3D4" stroke-width="5" stroke-linecap="round"/>
-          <line x1="152" y1="92" x2="162" y2="102" stroke="#17C3D4" stroke-width="5" stroke-linecap="round"/>
-          <!-- Location Pin -->
-          <path d="M100 110 C100 110, 78 138, 78 155 C78 172, 88 182, 100 182 C112 182, 122 172, 122 155 C122 138, 100 110, 100 110 Z" fill="#10B981"/>
-          <circle cx="100" cy="148" r="12" fill="white"/>
-          <!-- Grid/Building -->
-          <rect x="48" y="128" width="38" height="48" rx="4" fill="#3B82F6" stroke="#3B82F6" stroke-width="2"/>
-          <line x1="67" y1="128" x2="67" y2="176" stroke="white" stroke-width="3"/>
-          <line x1="48" y1="152" x2="86" y2="152" stroke="white" stroke-width="3"/>
-        </svg>
+<!-- Main Content -->
+<div style="padding: 32px;">
+  <PlaceSearch @select="onPlaceSelect" @clear="onClearSearch" style="margin-bottom: 24px; max-width: 600px;" />
+
+  <!-- Filters -->
+  <div style="
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 2px solid #334155;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  ">
+    <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 8px;">
+      <span style="font-size: 24px;">🎯</span> Filter Games
+    </h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+      <!-- Sport Filter -->
+      <div>
+        <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #cbd5e1;">
+          Sport Type
+        </label>
+        <select
+          v-model="selectedSport"
+          style="
+            width: 100%;
+            padding: 12px 16px;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            color: #f1f5f9;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          "
+          @focus="e => e.target.style.borderColor = '#3b82f6'"
+          @blur="e => e.target.style.borderColor = '#334155'"
+        >
+          <option v-for="sport in sports" :key="sport" :value="sport">
+            {{ sport }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Skill Level Filter -->
+      <div>
+        <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #cbd5e1;">
+          Skill Level
+        </label>
+        <select
+          v-model="selectedSkillLevel"
+          style="
+            width: 100%;
+            padding: 12px 16px;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            color: #f1f5f9;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          "
+          @focus="e => e.target.style.borderColor = '#3b82f6'"
+          @blur="e => e.target.style.borderColor = '#334155'"
+        >
+          <option v-for="level in skillLevels" :key="level" :value="level">
+            {{ level }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Distance Filter -->
+      <div>
+        <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #cbd5e1;">
+          Max Distance: {{ maxDistance }}km
+        </label>
+        <input
+          v-model.number="maxDistance"
+          type="range"
+          min="1"
+          max="50"
+          step="1"
+          style="
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(to right, #3b82f6 0%, #3b82f6 var(--value), #334155 var(--value), #334155 100%);
+            border-radius: 10px;
+            outline: none;
+            cursor: pointer;
+            -webkit-appearance: none;
+          "
+          :style="{ '--value': (maxDistance / 50 * 100) + '%' }"
+        />
       </div>
     </div>
 
-    <!-- Main Content -->
-    <div style="padding: 32px;">
-      <PlaceSearch @select="onPlaceSelect" @clear="onClearSearch" style="margin-bottom: 24px; max-width: 600px;" />
+    <!-- Results Count -->
+    <div style="
+      margin-top: 20px;
+      padding: 12px 16px;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      animation: fadeIn 0.3s ease;
+    ">
+      <span style="font-size: 20px;">🎮</span>
+      <span style="color: #f1f5f9; font-weight: 600; font-size: 14px;">
+        {{ games.length }} {{ games.length === 1 ? 'game' : 'games' }} in list
+      </span>
+      <span v-if="mapGames.length !== games.length" style="color: #94a3b8; font-weight: 400; font-size: 13px; margin-left: 4px;">
+        ({{ mapGames.length }} on map)
+      </span>
+    </div>
+  </div>
 
-      <!-- Filters -->
-      <div style="
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        border: 2px solid #334155;
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 24px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-      ">
-        <h3 style="margin: 0 0 20px; font-size: 18px; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 24px;">🎯</span> Filter Games
-        </h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-          <!-- Sport Filter -->
-          <div>
-            <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #cbd5e1;">
-              Sport Type
-            </label>
-            <select
-              v-model="selectedSport"
-              style="
-                width: 100%;
-                padding: 12px 16px;
-                background: #0f172a;
-                border: 2px solid #334155;
-                border-radius: 10px;
-                color: #f1f5f9;
-                font-size: 14px;
-                font-weight: 500;
-                cursor: pointer;
-                transition: all 0.2s ease;
-              "
-              @focus="e => e.target.style.borderColor = '#3b82f6'"
-              @blur="e => e.target.style.borderColor = '#334155'"
-            >
-              <option v-for="sport in sports" :key="sport" :value="sport">
-                {{ sport }}
-              </option>
-            </select>
-          </div>
+  <div style="display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start;">
+    <!-- Left column: Game list (Sticky) -->
+    <div style="position: sticky; top: 24px;">
+      <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+        <h2 style="margin: 0 0 18px; font-size: 18px; font-weight: 600; color: #f1f5f9;">Upcoming Games</h2>
+        <div style="display: flex; flex-direction: column; gap: 10px; max-height: calc(100vh - 220px); overflow-y: auto; padding-right: 6px;">
+          <div
+            v-for="game in games"
+            :key="game.id"
+            @click="selectGame(game)"
+            :style="{
+              padding: '16px',
+              border: selectedGame?.id === game.id ? '2px solid #3b82f6' : '2px solid transparent',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              background: selectedGame?.id === game.id
+                ? 'linear-gradient(135deg, #1e3a5f 0%, #1e293b 100%)'
+                : 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+              color: '#fff',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              boxShadow: selectedGame?.id === game.id
+                ? '0 8px 24px rgba(59, 130, 246, 0.3)'
+                : '0 2px 8px rgba(0, 0, 0, 0.2)',
+              transform: selectedGame?.id === game.id ? 'translateY(-2px)' : 'translateY(0)',
+            }"
+            @mouseenter="e => {
+              if (selectedGame?.id !== game.id) {
+                e.currentTarget.style.borderColor = '#3b82f6'
+                e.currentTarget.style.transform = 'translateY(-4px)'
+                e.currentTarget.style.boxShadow = '0 12px 32px rgba(59, 130, 246, 0.2)'
+              }
+            }"
+            @mouseleave="e => {
+              if (selectedGame?.id !== game.id) {
+                e.currentTarget.style.borderColor = 'transparent'
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)'
+              }
+            }"
+          >
+            <!-- Top Section: Icon + Info -->
+            <div style="display: flex; gap: 12px; align-items: flex-start;">
+              <!-- Sport Icon -->
+              <div :style="{
+                fontSize: '40px',
+                lineHeight: '1',
+                flexShrink: 0,
+                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))',
+                animation: selectedGame?.id === game.id ? 'bounce 1s ease' : 'none'
+              }">
+                {{ game.icon }}
+              </div>
 
-          <!-- Skill Level Filter -->
-          <div>
-            <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #cbd5e1;">
-              Skill Level
-            </label>
-            <select
-              v-model="selectedSkillLevel"
-              style="
-                width: 100%;
-                padding: 12px 16px;
-                background: #0f172a;
-                border: 2px solid #334155;
-                border-radius: 10px;
-                color: #f1f5f9;
-                font-size: 14px;
-                font-weight: 500;
-                cursor: pointer;
-                transition: all 0.2s ease;
-              "
-              @focus="e => e.target.style.borderColor = '#3b82f6'"
-              @blur="e => e.target.style.borderColor = '#334155'"
-            >
-              <option v-for="level in skillLevels" :key="level" :value="level">
-                {{ level }}
-              </option>
-            </select>
-          </div>
+              <!-- Game Info -->
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: 700; margin-bottom: 6px; color: #f8fafc; font-size: 15px; line-height: 1.3;">
+                  {{ game.title }}
+                </div>
+                <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">
+                  🕒 {{ new Date(game.startTimeISO).toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  }) }}
+                </div>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px;">
+                  <!-- Skill Level Badge -->
+                  <span :style="{
+                    fontSize: '11px',
+                    padding: '3px 8px',
+                    borderRadius: '12px',
+                    background: game.skillLevel === 'Beginner' ? 'rgba(34, 197, 94, 0.2)' :
+                                game.skillLevel === 'Intermediate' ? 'rgba(59, 130, 246, 0.2)' :
+                                game.skillLevel === 'Advanced' ? 'rgba(239, 68, 68, 0.2)' :
+                                'rgba(168, 85, 247, 0.2)',
+                    color: game.skillLevel === 'Beginner' ? '#4ade80' :
+                            game.skillLevel === 'Intermediate' ? '#60a5fa' :
+                            game.skillLevel === 'Advanced' ? '#f87171' :
+                            '#c084fc',
+                    border: '1px solid',
+                    borderColor: game.skillLevel === 'Beginner' ? 'rgba(34, 197, 94, 0.3)' :
+                                game.skillLevel === 'Intermediate' ? 'rgba(59, 130, 246, 0.3)' :
+                                game.skillLevel === 'Advanced' ? 'rgba(239, 68, 68, 0.3)' :
+                                'rgba(168, 85, 247, 0.3)',
+                    fontWeight: '600'
+                  }">
+                    {{ game.skillLevel }}
+                  </span>
+                  <!-- Sport Type Badge -->
+                  <span style="
+                    fontSize: 11px;
+                    padding: 3px 8px;
+                    borderRadius: 12px;
+                    background: rgba(99, 102, 241, 0.2);
+                    color: #a5b4fc;
+                    border: 1px solid rgba(99, 102, 241, 0.3);
+                    fontWeight: 600;
+                  ">
+                    {{ game.sport }}
+                  </span>
+                  <!-- Price Badge -->
+                  <span :style="{
+                    fontSize: '11px',
+                    padding: '3px 8px',
+                    borderRadius: '12px',
+                    background: game.price === 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(251, 191, 36, 0.2)',
+                    color: game.price === 0 ? '#10b981' : '#fbbf24',
+                    border: '1px solid',
+                    borderColor: game.price === 0 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(251, 191, 36, 0.3)',
+                    fontWeight: '700'
+                  }">
+                    {{ game.price === 0 ? 'FREE' : `$${game.price}` }}
+                  </span>
+                </div>
+                <div v-if="userLocation" style="font-size: 11px; color: #60a5fa; display: flex; align-items: center; gap: 4px;">
+                  <span>📍</span>
+                  <span style="font-weight: 600;">{{ getDistanceText(game) }}</span>
+                </div>
+              </div>
+            </div>
 
-          <!-- Distance Filter -->
-          <div>
-            <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #cbd5e1;">
-              Max Distance: {{ maxDistance }}km
-            </label>
-            <input
-              v-model.number="maxDistance"
-              type="range"
-              min="1"
-              max="50"
-              step="1"
-              style="
+            <!-- Capacity Bar -->
+            <div style="width: 100%;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 11px; color: #cbd5e1; font-weight: 600;">
+                  {{ game.joined }}/{{ game.capacity }} joined
+                </span>
+                <span :style="{
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  color: game.joined >= game.capacity ? '#f87171' :
+                          game.joined / game.capacity >= 0.8 ? '#fbbf24' : '#4ade80'
+                }">
+                  {{ game.joined >= game.capacity ? 'FULL' :
+                      game.capacity - game.joined === 1 ? '1 spot left' :
+                      `${game.capacity - game.joined} spots left` }}
+                </span>
+              </div>
+              <!-- Animated Progress Bar -->
+              <div style="
                 width: 100%;
                 height: 8px;
-                background: linear-gradient(to right, #3b82f6 0%, #3b82f6 var(--value), #334155 var(--value), #334155 100%);
-                border-radius: 10px;
-                outline: none;
-                cursor: pointer;
-                -webkit-appearance: none;
-              "
-              :style="{ '--value': (maxDistance / 50 * 100) + '%' }"
-            />
+                background: rgba(30, 41, 59, 0.8);
+                borderRadius: 8px;
+                overflow: hidden;
+                border: 1px solid rgba(71, 85, 105, 0.5);
+              ">
+                <div :style="{
+                  width: (game.joined / game.capacity * 100) + '%',
+                  height: '100%',
+                  background: game.joined >= game.capacity
+                    ? 'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)'
+                    : game.joined / game.capacity >= 0.8
+                    ? 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)'
+                    : 'linear-gradient(90deg, #10b981 0%, #059669 100%)',
+                  transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: game.joined >= game.capacity
+                    ? '0 0 12px rgba(239, 68, 68, 0.6)'
+                    : game.joined / game.capacity >= 0.8
+                    ? '0 0 12px rgba(245, 158, 11, 0.6)'
+                    : '0 0 12px rgba(16, 185, 129, 0.6)',
+                }"></div>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <!-- Results Count -->
-        <div style="
-          margin-top: 20px;
-          padding: 12px 16px;
-          background: rgba(59, 130, 246, 0.1);
-          border: 1px solid rgba(59, 130, 246, 0.3);
-          border-radius: 10px;
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          animation: fadeIn 0.3s ease;
-        ">
-          <span style="font-size: 20px;">🎮</span>
-          <span style="color: #f1f5f9; font-weight: 600; font-size: 14px;">
-            {{ games.length }} {{ games.length === 1 ? 'game' : 'games' }} in list
-          </span>
-          <span v-if="mapGames.length !== games.length" style="color: #94a3b8; font-weight: 400; font-size: 13px; margin-left: 4px;">
-            ({{ mapGames.length }} on map)
-          </span>
         </div>
       </div>
+    </div>
 
-      <div style="display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start;">
-        <!-- Left column: Game list (Sticky) -->
-        <div style="position: sticky; top: 24px;">
-          <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-            <h2 style="margin: 0 0 18px; font-size: 18px; font-weight: 600; color: #f1f5f9;">Upcoming Games</h2>
-            <div style="display: flex; flex-direction: column; gap: 10px; max-height: calc(100vh - 220px); overflow-y: auto; padding-right: 6px;">
-              <div
-                v-for="game in games"
-                :key="game.id"
-                @click="selectGame(game)"
-                :style="{
-                  padding: '16px',
-                  border: selectedGame?.id === game.id ? '2px solid #3b82f6' : '2px solid transparent',
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  background: selectedGame?.id === game.id
-                    ? 'linear-gradient(135deg, #1e3a5f 0%, #1e293b 100%)'
-                    : 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-                  color: '#fff',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                  boxShadow: selectedGame?.id === game.id
-                    ? '0 8px 24px rgba(59, 130, 246, 0.3)'
-                    : '0 2px 8px rgba(0, 0, 0, 0.2)',
-                  transform: selectedGame?.id === game.id ? 'translateY(-2px)' : 'translateY(0)',
-                }"
-                @mouseenter="e => {
-                  if (selectedGame?.id !== game.id) {
-                    e.currentTarget.style.borderColor = '#3b82f6'
-                    e.currentTarget.style.transform = 'translateY(-4px)'
-                    e.currentTarget.style.boxShadow = '0 12px 32px rgba(59, 130, 246, 0.2)'
-                  }
-                }"
-                @mouseleave="e => {
-                  if (selectedGame?.id !== game.id) {
-                    e.currentTarget.style.borderColor = 'transparent'
-                    e.currentTarget.style.transform = 'translateY(0)'
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)'
-                  }
-                }"
-              >
-                <!-- Top Section: Icon + Info -->
-                <div style="display: flex; gap: 12px; align-items: flex-start;">
-                  <!-- Sport Icon -->
-                  <div :style="{
-                    fontSize: '40px',
-                    lineHeight: '1',
-                    flexShrink: 0,
-                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))',
-                    animation: selectedGame?.id === game.id ? 'bounce 1s ease' : 'none'
-                  }">
-                    {{ game.icon }}
-                  </div>
-
-                  <!-- Game Info -->
-                  <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: 700; margin-bottom: 6px; color: #f8fafc; font-size: 15px; line-height: 1.3;">
-                      {{ game.title }}
-                    </div>
-                    <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">
-                      🕒 {{ new Date(game.startTimeISO).toLocaleString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      }) }}
-                    </div>
-                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px;">
-                      <!-- Skill Level Badge -->
-                      <span :style="{
-                        fontSize: '11px',
-                        padding: '3px 8px',
-                        borderRadius: '12px',
-                        background: game.skillLevel === 'Beginner' ? 'rgba(34, 197, 94, 0.2)' :
-                                   game.skillLevel === 'Intermediate' ? 'rgba(59, 130, 246, 0.2)' :
-                                   game.skillLevel === 'Advanced' ? 'rgba(239, 68, 68, 0.2)' :
-                                   'rgba(168, 85, 247, 0.2)',
-                        color: game.skillLevel === 'Beginner' ? '#4ade80' :
-                               game.skillLevel === 'Intermediate' ? '#60a5fa' :
-                               game.skillLevel === 'Advanced' ? '#f87171' :
-                               '#c084fc',
-                        border: '1px solid',
-                        borderColor: game.skillLevel === 'Beginner' ? 'rgba(34, 197, 94, 0.3)' :
-                                    game.skillLevel === 'Intermediate' ? 'rgba(59, 130, 246, 0.3)' :
-                                    game.skillLevel === 'Advanced' ? 'rgba(239, 68, 68, 0.3)' :
-                                    'rgba(168, 85, 247, 0.3)',
-                        fontWeight: '600'
-                      }">
-                        {{ game.skillLevel }}
-                      </span>
-                      <!-- Sport Type Badge -->
-                      <span style="
-                        fontSize: 11px;
-                        padding: 3px 8px;
-                        borderRadius: 12px;
-                        background: rgba(99, 102, 241, 0.2);
-                        color: #a5b4fc;
-                        border: 1px solid rgba(99, 102, 241, 0.3);
-                        fontWeight: 600;
-                      ">
-                        {{ game.sport }}
-                      </span>
-                      <!-- Price Badge -->
-                      <span :style="{
-                        fontSize: '11px',
-                        padding: '3px 8px',
-                        borderRadius: '12px',
-                        background: game.price === 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(251, 191, 36, 0.2)',
-                        color: game.price === 0 ? '#10b981' : '#fbbf24',
-                        border: '1px solid',
-                        borderColor: game.price === 0 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(251, 191, 36, 0.3)',
-                        fontWeight: '700'
-                      }">
-                        {{ game.price === 0 ? 'FREE' : `$${game.price}` }}
-                      </span>
-                    </div>
-                    <div v-if="userLocation" style="font-size: 11px; color: #60a5fa; display: flex; align-items: center; gap: 4px;">
-                      <span>📍</span>
-                      <span style="font-weight: 600;">{{ getDistanceText(game) }}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Capacity Bar -->
-                <div style="width: 100%;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <span style="font-size: 11px; color: #cbd5e1; font-weight: 600;">
-                      {{ game.joined }}/{{ game.capacity }} joined
-                    </span>
-                    <span :style="{
-                      fontSize: '11px',
-                      fontWeight: '700',
-                      color: game.joined >= game.capacity ? '#f87171' :
-                             game.joined / game.capacity >= 0.8 ? '#fbbf24' : '#4ade80'
-                    }">
-                      {{ game.joined >= game.capacity ? 'FULL' :
-                         game.capacity - game.joined === 1 ? '1 spot left' :
-                         `${game.capacity - game.joined} spots left` }}
-                    </span>
-                  </div>
-                  <!-- Animated Progress Bar -->
-                  <div style="
-                    width: 100%;
-                    height: 8px;
-                    background: rgba(30, 41, 59, 0.8);
-                    borderRadius: 8px;
-                    overflow: hidden;
-                    border: 1px solid rgba(71, 85, 105, 0.5);
-                  ">
-                    <div :style="{
-                      width: (game.joined / game.capacity * 100) + '%',
-                      height: '100%',
-                      background: game.joined >= game.capacity
-                        ? 'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)'
-                        : game.joined / game.capacity >= 0.8
-                        ? 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)'
-                        : 'linear-gradient(90deg, #10b981 0%, #059669 100%)',
-                      transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-                      boxShadow: game.joined >= game.capacity
-                        ? '0 0 12px rgba(239, 68, 68, 0.6)'
-                        : game.joined / game.capacity >= 0.8
-                        ? '0 0 12px rgba(245, 158, 11, 0.6)'
-                        : '0 0 12px rgba(16, 185, 129, 0.6)',
-                    }"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+    <!-- Right column: Weather & Map -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      <!-- Show searched location weather -->
+      <div v-if="searchedLocation" style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+          <div style="font-size: 32px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+            📍
           </div>
+          <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #f1f5f9;">{{ searchedLocation.name }}</h3>
         </div>
+        <WeatherBadge :lat="searchedLocation.lat" :lon="searchedLocation.lng" :eventTimeISO="searchedLocation.eventTimeISO" :locationName="searchedLocation.name" />
+      </div>
 
-        <!-- Right column: Weather & Map -->
-        <div style="display: flex; flex-direction: column; gap: 24px;">
-          <!-- Show searched location weather -->
-          <div v-if="searchedLocation" style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-              <div style="font-size: 32px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
-                📍
-              </div>
-              <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #f1f5f9;">{{ searchedLocation.name }}</h3>
-            </div>
-            <WeatherBadge :lat="searchedLocation.lat" :lon="searchedLocation.lng" :eventTimeISO="searchedLocation.eventTimeISO" :locationName="searchedLocation.name" />
+      <!-- Show selected game weather -->
+      <div v-if="selectedGame" style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+          <div style="font-size: 32px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+            {{ selectedGame.icon }}
           </div>
+          <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #f1f5f9;">{{ selectedGame.title }}</h3>
+        </div>
+        <WeatherBadge :lat="selectedGame.lat" :lon="selectedGame.lng" :eventTimeISO="selectedGame.startTimeISO" :locationName="selectedGame.title" />
+      </div>
 
-          <!-- Show selected game weather -->
-          <div v-if="selectedGame" style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-              <div style="font-size: 32px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
-                {{ selectedGame.icon }}
-              </div>
-              <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #f1f5f9;">{{ selectedGame.title }}</h3>
-            </div>
-            <WeatherBadge :lat="selectedGame.lat" :lon="selectedGame.lng" :eventTimeISO="selectedGame.startTimeISO" :locationName="selectedGame.title" />
-          </div>
-
-          <!-- Map -->
-          <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); height: 650px;">
-            <h2 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #f1f5f9;">
-              Map View
-              <span v-if="selectedSport !== 'All'" style="font-size: 14px; color: #94a3b8; font-weight: 400; margin-left: 8px;">
-                (Showing all {{ selectedSport }} games)
-              </span>
-            </h2>
-            <div style="height: calc(100% - 40px); border-radius: 6px; overflow: hidden; border: 1px solid #334155;">
-              <MapView :games="mapGames" :center="center" :searchedLocation="searchedLocation" :shouldZoom="shouldZoomMap" :zoomLevel="mapZoomLevel" />
-            </div>
-          </div>
+      <!-- Map -->
+      <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); height: 650px;">
+        <h2 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #f1f5f9;">
+          Map View
+          <span v-if="selectedSport !== 'All'" style="font-size: 14px; color: #94a3b8; font-weight: 400; margin-left: 8px;">
+            (Showing all {{ selectedSport }} games)
+          </span>
+        </h2>
+        <div style="height: calc(100% - 40px); border-radius: 6px; overflow: hidden; border: 1px solid #334155;">
+          <MapView :games="mapGames" :center="center" :searchedLocation="searchedLocation" :shouldZoom="shouldZoomMap" :zoomLevel="mapZoomLevel" />
         </div>
       </div>
     </div>
   </div>
+</div>
 </template>
 
 <style scoped>
