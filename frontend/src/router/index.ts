@@ -5,6 +5,7 @@ import LocationWeather from '@/pages/LocationWeather.vue'
 import Login from '@/pages/Login.vue'
 import Register from '@/pages/Register.vue'
 import Pay from '@/pages/Pay.vue'
+import MyMatches from '@/pages/MyMatches.vue'
 import { supabase } from '@/lib/supabase'
 
 const routes = [
@@ -43,10 +44,19 @@ const routes = [
     name: 'Pay',
     component: Pay,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/match-chat',
+    name: 'MyMatches',
+    component: MyMatches,
+    meta: { requiresAuth: true }
   }
 ]
 
-const router = createRouter({ history: createWebHistory(), routes })
+const router = createRouter({ 
+  history: createWebHistory(), 
+  routes 
+})
 
 // Navigation guard to check authentication
 router.beforeEach(async (to, _from, next) => {
