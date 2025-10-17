@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "@stripe/stripe-js": "^8.0.0",
+    "@talkjs/react": "^0.1.11",
     "stripe": "^19.1.0",
-    "talkjs": "^0.42.0"
+    "talkjs": "^0.42.1"
   }
 }

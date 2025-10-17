@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import userRouter from "./routes/users.js";
 import matchRouter from "./routes/matches.js";
 import paymentRouter from "./routes/payments.js"; 
+import chatRouter from "./routes/chatroom.js";
 
 dotenv.config();
 
@@ -13,7 +14,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+  origin: true,
   credentials: true
 }));
 
@@ -25,6 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/users", userRouter);
 app.use("/matches", matchRouter);
 app.use("/payments", paymentRouter);
+app.use("/chat", chatRouter);
 
 app.get("/", (req, res) => {
   res.send("MatchUp backend is running");
@@ -51,40 +53,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
-
-// // Request logging
-// app.use((req, res, next) => {
-//   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-//   next();
-// });
-
-// // Routes
-// app.use('/auth', require('./routes/auth'));
-
-// // Health check
-// app.get('/health', (req, res) => {
-//   res.json({
-//     status: 'ok',
-//     timestamp: new Date().toISOString(),
-//     uptime: process.uptime()
-//   });
-
-// app.get("/", (req, res) => {
-//   res.send("Its working!");
-// });
-
-// app.listen(3000, () => {
-//   console.log(`Server + Supabase is running at http://localhost:3000`);
-// });
-
-// // Start server
-// app.listen(PORT, () => {
-//   console.log(`\n🚀 MatchUp API Server`);
-//   console.log(`   Port: ${PORT}`);
-//   console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
-//   console.log(`   CORS Origin: ${process.env.CLIENT_ORIGIN || 'http://localhost:5173'}`);
-//   console.log(`\n Server is running at http://localhost:${PORT}`);
-//   console.log(` Health check: http://localhost:${PORT}/health\n`);
-// });
 
 export default app;
