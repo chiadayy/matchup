@@ -6,6 +6,10 @@ import Login from '@/pages/Login.vue'
 import Register from '@/pages/Register.vue'
 import Pay from '@/pages/Pay.vue'
 import MyMatches from '@/pages/MyMatches.vue'
+import Browser from '@/pages/Browser.vue'
+import Calendar from '@/pages/Calendar.vue'
+import GameCreation from '@/pages/GameCreation.vue'
+import Profile from '@/pages/Profile.vue'
 import { supabase } from '@/lib/supabase'
 
 const routes = [
@@ -50,6 +54,26 @@ const routes = [
     name: 'MyMatches',
     component: MyMatches,
     meta: { requiresAuth: true }
+  },
+  { 
+    path: '/game-creation',
+    name: 'GameCreation',
+    component: GameCreation
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile
+  },
+  {
+    path: '/browser',
+    name: 'Browser',
+    component: Browser
+  },
+  {
+    path: '/calendar',
+    name: 'Calendar',
+    component: Calendar
   }
 ]
 
