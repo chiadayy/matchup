@@ -32,7 +32,7 @@
 
           <!-- My Matches - visible to regular users and organizers -->
           <router-link 
-            v-if="isLoggedIn && (userRole === 'regular' || userRole === 'organizer')"
+            v-if="isLoggedIn && userRole === 'regular'"
             to="/my-matches" 
             class="nav-link-custom"
           >
@@ -41,8 +41,8 @@
 
           <!-- Game Creation - visible to organizers only -->
           <router-link 
-            v-if="isLoggedIn && userRole === 'organizer'"
-            to="/game-creation" 
+            v-if="isLoggedIn && userRole === 'regular'"
+            to="/create-game" 
             class="nav-link-custom"
           >
             Game Creation
@@ -91,7 +91,7 @@
           </router-link>
 
           <router-link 
-            v-if="isLoggedIn && (userRole === 'regular' || userRole === 'organizer')"
+            v-if="isLoggedIn && (userRole === 'regular')"
             to="/my-matches" 
             class="mobile-nav-link"
             @click="closeMobileMenu"
@@ -100,8 +100,8 @@
           </router-link>
 
           <router-link 
-            v-if="isLoggedIn && userRole === 'organizer'"
-            to="/game-creation" 
+            v-if="isLoggedIn && userRole === 'regular'"
+            to="/create-game" 
             class="mobile-nav-link"
             @click="closeMobileMenu"
           >

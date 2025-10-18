@@ -29,7 +29,7 @@
         
         <div class="row g-3">
           <div v-for="(match, index) in featuredMatches" :key="match.id" class="col-xl-3 col-lg-6 col-md-6 col-sm-12">
-            <div class="match-card">
+            <div class="match-card" @click="openMatchDetail(match)">
               <div class="d-flex justify-content-between mb-2">
                 <h5 class="fw-bold m-0">Match {{ match.id }}</h5>
                 <span :class="['fw-bold', match.price === 0 ? 'text-success' : 'text-danger']">
@@ -80,17 +80,34 @@
         </div>
       </div>
     </div>
-
+   <MatchDetailModal
+      :isOpen="showMatchDetail"
+      :match="selectedMatch"
+      :currentUser="{ 
+        id: '1', 
+        name: 'Current User', 
+        profilePic: userProfilePic 
+      }"
+      @close="closeMatchDetail"
+      @join="handleModalJoin"
+      @leave="handleModalLeave"
+    />
   </div>
 </template>
 
 <script>
 import { supabase } from '@/lib/supabase'
+import MatchDetailModal from '@/components/MatchDetailModal.vue';
 
 export default {
   name: 'Home',
+  components: {
+    MatchDetailModal
+  },
   data() {
     return {
+      showMatchDetail: false,
+      selectedMatch: null,
       isScrolled: false,
       isLoggedIn: false, // Change to true to simulate logged-in state
       userProfilePic: 'https://i.pravatar.cc/150?img=12',
@@ -116,6 +133,33 @@ export default {
     window.removeEventListener('scroll', this.handleScroll);
   },
   methods: {
+       openMatchDetail(match) {
+      this.selectedMatch = match;
+      this.showMatchDetail = true;
+      document.body.style.overflow = 'hidden'; // Prevent body scroll
+    },
+
+    // NEW: Close match detail modal
+    closeMatchDetail() {
+      this.showMatchDetail = false;
+      this.selectedMatch = null;
+      document.body.style.overflow = 'auto'; // Restore body scroll
+    },
+
+    // NEW: Handle join from modal
+    handleModalJoin(matchId) {
+      alert(`Joining Match ${matchId} from modal!`);
+      this.closeMatchDetail();
+      // Add your join logic here
+    },
+
+    // NEW: Handle leave from modal  
+    handleModalLeave(matchId) {
+      alert(`Left Match ${matchId} from modal!`);
+      this.closeMatchDetail();
+      // Add your leave logic here
+    },
+
     handleScroll() {
       this.isScrolled = window.scrollY > 50;
     },

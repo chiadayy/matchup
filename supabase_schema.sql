@@ -143,3 +143,4 @@ CREATE TRIGGER on_auth_user_created
 -- ============================================
 -- DONE! Your schema is ready.
 -- ============================================
+-- Insert dummy payment confirmations for both users
