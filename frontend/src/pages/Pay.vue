@@ -10,7 +10,7 @@
           <h4 class="card-title">Booking Details</h4>
           <p class="text-muted small mb-0">Your court reservation information</p>
         </div>
-        <div class="card-body" v-if="match">
+        <div class="card-body">
           <div class="row g-3">
             <!-- location -->
             <div class="col-6">
@@ -20,7 +20,7 @@
                 </div>
                 <div>
                   <div class="text-muted fw-medium small">Location</div>
-                  <div class="fw-semibold">{{ match.location }}</div>
+                  <div class="fw-semibold">Serangoon CC</div>
                 </div>
               </div>
             </div>
@@ -33,7 +33,7 @@
                 </div>
                 <div>
                   <div class="text-muted fw-medium small">Date</div>
-                  <div class="fw-semibold">{{ match.date }}</div>
+                  <div class="fw-semibold">21 October 2025</div>
                 </div>
               </div>
             </div>
@@ -46,7 +46,7 @@
                 </div>
                 <div>
                   <div class="text-muted fw-medium small">Time</div>
-                  <div class="fw-semibold">{{ match.time }}</div>
+                  <div class="fw-semibold">2:00PM - 4:00PM</div>
                 </div>
               </div>
             </div>
@@ -59,7 +59,7 @@
                 </div>
                 <div>
                   <div class="text-muted fw-medium small">Players</div>
-                  <div class="fw-semibold">{{ match.pax }} Players</div>
+                  <div class="fw-semibold">4 Players</div>
                 </div>
               </div>
             </div>
@@ -99,26 +99,26 @@
         <div class="card-header">
           <h4 class="card-title">Payment Summary</h4>
         </div>
-        <div class="card-body" v-if="match">
+        <div class="card-body">
           <div class="d-flex justify-content-between mb-3">
             <div class="text-muted fw-medium">Court Rental</div>
-            <div class="fw-medium">{{ match.price }}</div>
+            <div class="fw-medium">$200</div>
           </div>
 
           <div class="d-flex justify-content-between mb-3">
             <div class="text-muted fw-medium">Number of Players</div>
-            <div class="fw-medium">{{ match.pax }}</div>
+            <div class="fw-medium">4</div>
           </div>
 
           <div class="d-flex justify-content-between mb-3">
             <div class="text-muted fw-medium">Amount Per Pax (SGD)</div>
-            <div class="fw-medium">{{ (match.price / match.pax).toFixed(2) }}</div>
+            <div class="fw-medium">50</div>
           </div>
 
           <hr>
           <div class="d-flex justify-content-between mb-3">
             <div class="text-muted fw-medium">Subtotal</div>
-            <div class="fw-medium">${{ (match.price / match.pax).toFixed(2) }}</div>
+            <div class="fw-medium">$50</div>
           </div>
 
           <div class="d-flex justify-content-between mb-3">
@@ -128,7 +128,7 @@
 
           <div class="d-flex justify-content-between">
             <h4 class="text-muted fw-medium">Total</h4>
-            <h4 class="fw-medium">${{ (match.price / match.pax).toFixed(2) }}</h4>
+            <h4 class="fw-medium">$50.00</h4>
           </div>
         </div>
       </div>
@@ -195,7 +195,7 @@ export default {
         const res = await fetch("http://localhost:3000/payments/create-payment-intent", { 
           method: "POST", 
           headers: { "Content-Type": "application/json" }, 
-          body: JSON.stringify({ amount: this.amountPerPax, currency: "sgd" })
+          body: JSON.stringify({ amount: 5000, currency: "sgd" })
         });
 
         const { clientSecret } = await res.json();
