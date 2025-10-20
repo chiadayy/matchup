@@ -138,86 +138,24 @@
             </div>
 
             <div v-if="formData.isPaid" class="paid-details">
-              <div class="form-group">
-                <label class="form-label">Price per Player ($)</label>
-                <input 
-                  type="number" 
-                  class="form-control" 
-                  v-model.number="formData.pricePerPlayer"
-                  placeholder="e.g., 5, 10, 15"
-                  min="0"
-                  step="0.01"
-                  required
-                >
-              </div>
+                  <div class="form-group">
+                        <label class="form-label">Total Match Price ($)</label>
+                        <input 
+                          type="number" 
+                          class="form-control" 
+                          v-model.number="formData.totalPrice"
+                          placeholder="e.g., 50"
+                          min="0"
+                          step="0.01"
+                          required
+                        >
+                  </div>
 
-              <div class="price-info">
-                <p class="info-text">
-                  <strong>Total Revenue:</strong> ${{ (formData.pricePerPlayer * formData.maxPlayers).toFixed(2) }}
-                </p>
-                <p class="info-text small">
-                  Each of {{ formData.maxPlayers }} players will pay ${{ formData.pricePerPlayer.toFixed(2) }}
-                </p>
-              </div>
-
-              <!-- Payment Details -->
-              <h3 class="payment-title">Your Payment Details</h3>
-              
-              <div class="form-group">
-                <label class="form-label">Card Number</label>
-                <input 
-                  type="text" 
-                  class="form-control" 
-                  v-model="paymentDetails.cardNumber"
-                  placeholder="1234 5678 9012 3456"
-                  maxlength="19"
-                  @input="formatCardNumber"
-                  required
-                >
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label">Expiry Date</label>
-                  <input 
-                    type="text" 
-                    class="form-control" 
-                    v-model="paymentDetails.expiryDate"
-                    placeholder="MM/YY"
-                    maxlength="5"
-                    @input="formatExpiryDate"
-                    required
-                  >
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">CVV</label>
-                  <input 
-                    type="text" 
-                    class="form-control" 
-                    v-model="paymentDetails.cvv"
-                    placeholder="123"
-                    maxlength="3"
-                    @input="formatCVV"
-                    required
-                  >
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Name on Card</label>
-                <input 
-                  type="text" 
-                  class="form-control" 
-                  v-model="paymentDetails.cardName"
-                  placeholder="John Doe"
-                  required
-                >
-              </div>
-
-              <div class="security-notice">
-                <p>🔐 Your payment information is secure and encrypted</p>
-              </div>
+                  <div class="price-info">
+                    <p class="info-text">
+                      <strong>Total Price:</strong> ${{ formData.totalPrice.toFixed(2) }}
+                    </p>
+                  </div>
             </div>
           </div>
 
@@ -264,7 +202,7 @@
                 <div class="summary-item">
                   <span class="label">Entry Fee</span>
                   <span class="value" :class="formData.isPaid ? 'text-danger' : 'text-success'">
-                    {{ formData.isPaid ? `$${formData.pricePerPlayer}` : 'Free' }}
+                    {{ formData.isPaid ? `$${formData.totalPrice}` : 'Free' }}
                   </span>
                 </div>
               </div>
@@ -341,15 +279,9 @@ export default {
         time: '',
         duration: 60,
         isPaid: false,
-        pricePerPlayer: 0,
+        totalPrice: 0,
         description: ''
       },
-      paymentDetails: {
-        cardNumber: '',
-        expiryDate: '',
-        cvv: '',
-        cardName: ''
-      }
     }
   },
   methods: {
@@ -376,7 +308,7 @@ export default {
           return this.formData.date && this.formData.time && this.formData.duration;
         case 3:
           if (this.formData.isPaid) {
-            return this.formData.pricePerPlayer > 0 && this.paymentDetails.cardNumber && this.paymentDetails.expiryDate && this.paymentDetails.cvv && this.paymentDetails.cardName;
+            return this.formData.totalPrice > 0;
           }
           return true;
         case 4:
@@ -388,13 +320,6 @@ export default {
 
     async createMatch() {
       if (!this.validateCurrentStep()) {
-        return;
-      }
-
-      // Only allow free matches for now
-      if (this.formData.isPaid) {
-        alert('Paid matches are coming soon! Please select "Free Match" for now.');
-        this.currentStep = 3;
         return;
       }
 
@@ -419,8 +344,7 @@ export default {
           date: this.formData.date,
           time: this.formData.time,
           duration: this.formData.duration,
-          // is_paid: false,
-          total_price: 0,
+          total_price: this.formData.isPaid ? this.formData.totalPrice : 0,
           description: this.formData.description,
           host: user.id,
           current_player_count: 0,
@@ -474,39 +398,15 @@ export default {
         time: '',
         duration: 60,
         isPaid: false,
-        pricePerPlayer: 0,
+        totalPrice: 0,
         description: ''
-      };
-      this.paymentDetails = {
-        cardNumber: '',
-        expiryDate: '',
-        cvv: '',
-        cardName: ''
       };
     },
     
     closeSuccessMessage() {
       this.showSuccessMessage = false;
     },
-    
-    formatCardNumber(event) {
-      let value = this.paymentDetails.cardNumber.replace(/\s/g, '');
-      let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-      this.paymentDetails.cardNumber = formattedValue;
-    },
-    
-    formatExpiryDate(event) {
-      let value = this.paymentDetails.expiryDate.replace(/\D/g, '');
-      if (value.length >= 2) {
-        value = value.slice(0, 2) + '/' + value.slice(2, 4);
-      }
-      this.paymentDetails.expiryDate = value;
-    },
-    
-    formatCVV(event) {
-      this.paymentDetails.cvv = this.paymentDetails.cvv.replace(/\D/g, '');
-    },
-    
+        
     formatDateDisplay(dateStr) {
       const date = new Date(dateStr);
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });

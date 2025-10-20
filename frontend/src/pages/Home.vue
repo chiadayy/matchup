@@ -45,7 +45,6 @@
               <div class="text-end mb-2">
                 <span class="fw-semibold">{{ match.players }} players</span>
               </div>
-              <button class="btn-dark-custom w-100" @click="joinMatch(match.id)">Join Match</button>
             </div>
           </div>
         </div>
@@ -83,9 +82,9 @@
    <MatchDetailModal
       :isOpen="showMatchDetail"
       :match="selectedMatch"
-      :currentUser="{ 
-        id: '1', 
-        name: 'Current User', 
+      :currentUser="currentUser || { 
+        id: 'guest', 
+        name: 'Guest User', 
         profilePic: userProfilePic 
       }"
       @close="closeMatchDetail"
@@ -111,12 +110,8 @@ export default {
       isScrolled: false,
       isLoggedIn: false, // Change to true to simulate logged-in state
       userProfilePic: 'https://i.pravatar.cc/150?img=12',
-      featuredMatches: [
-        { id: 1, sport: 'Basketball', skill: 'Beginner', location: 'Hougang', date: '8/10/25 6pm', price: 0, players: '7/8' },
-        { id: 2, sport: 'Tennis', skill: 'Beginner', location: 'Sengkang', date: '8/10/25 7pm', price: 15, players: '2/4' },
-        { id: 3, sport: 'Basketball', skill: 'Beginner', location: 'Hougang', date: '8/10/25 6pm', price: 0, players: '7/8' },
-        { id: 4, sport: 'Football', skill: 'Intermediate', location: 'Bedok', date: '9/10/25 5pm', price: 0, players: '18/22' }
-      ],
+      currentUser: null,
+      featuredMatches: [],
       nearbyMatches: [
         { sport: 'Basketball', skill: 'Beginner', date: '8/10/25 6pm', distance: '2.3km', price: 'Free', isFree: true },
         { sport: 'Tennis', skill: 'Intermediate', date: '8/10/25 7pm', distance: '3.5km', price: '$15', isFree: false },
@@ -126,47 +121,112 @@ export default {
       ]
     };
   },
-  mounted() {
+  async mounted() {
     window.addEventListener('scroll', this.handleScroll);
+    const { data: { user } } = await supabase.auth.getUser();
+    this.currentUser = user;
+    await this.fetchMatchesFromDB();
   },
+  
   beforeUnmount() {
     window.removeEventListener('scroll', this.handleScroll);
   },
+  
   methods: {
-       openMatchDetail(match) {
-      this.selectedMatch = match;
-      this.showMatchDetail = true;
-      document.body.style.overflow = 'hidden'; // Prevent body scroll
+    // ✅ NEW: Fetch matches from Supabase and combine with dummy data
+    async fetchMatchesFromDB() {
+      try {
+        console.log('🎯 Fetching matches from backend...');
+        
+        const response = await fetch('http://localhost:3000/matches');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch matches');
+        }
+        
+        const data = await response.json();
+        console.log('✅ Received matches from DB:', data);
+        
+        if (data.success && data.matches && data.matches.length > 0) {
+          // Transform Supabase data to match your UI format
+          const dbMatches = data.matches.map(match => ({
+            id: match.id,
+            sport: match.sport_type,
+            skill: match.skill_level,
+            location: match.location,
+            date: this.formatDateTime(match.date, match.time),
+            price: match.total_price,
+            players: `${match.current_player_count}/${match.total_player_count}`,
+            // Add extra data for modal
+            name: match.name,
+            description: match.description,
+            duration: match.duration,
+            host: match.host
+          }));
+          
+          // ✅ Combine DB matches with existing dummy data
+          this.featuredMatches = dbMatches;
+          
+          console.log('🎯 Combined matches:', this.featuredMatches);
+        } else {
+          console.log('📝 No matches found in DB, keeping dummy data');
+          this.featuredMatches = [];
+        }
+        
+      } catch (error) {
+        console.error('❌ Error fetching matches:', error);
+        console.log('📝 Using dummy data as fallback');
+        // Keep existing dummy data if API fails
+      }
+    },
+    
+    // ✅ NEW: Format date and time for display
+    formatDateTime(date, time) {
+      try {
+        // Handle date format
+        const dateObj = new Date(date);
+        const day = dateObj.getDate();
+        const month = dateObj.getMonth() + 1;
+        const year = dateObj.getFullYear().toString().slice(-2);
+        
+        // Handle time format (remove seconds if present)
+        const timeStr = time.split(':').slice(0, 2).join(':');
+        
+        return `${day}/${month}/${year} ${timeStr}`;
+      } catch (error) {
+        console.error('Error formatting date/time:', error);
+        return 'TBD';
+      }
     },
 
-    // NEW: Close match detail modal
+    openMatchDetail(match) {
+      this.selectedMatch = match;
+      this.showMatchDetail = true;
+      document.body.style.overflow = 'hidden';
+    },
+
     closeMatchDetail() {
       this.showMatchDetail = false;
       this.selectedMatch = null;
-      document.body.style.overflow = 'auto'; // Restore body scroll
+      document.body.style.overflow = 'auto';
     },
 
-    // NEW: Handle join from modal
-    handleModalJoin(matchId) {
-      alert(`Joining Match ${matchId} from modal!`);
+    async handleModalJoin(matchId) {
+      await this.fetchMatchesFromDB();
       this.closeMatchDetail();
-      // Add your join logic here
     },
 
-    // NEW: Handle leave from modal  
-    handleModalLeave(matchId) {
-      alert(`Left Match ${matchId} from modal!`);
+    async handleModalLeave(matchId) {
+      await this.fetchMatchesFromDB();
       this.closeMatchDetail();
-      // Add your leave logic here
     },
 
     handleScroll() {
       this.isScrolled = window.scrollY > 50;
     },
-    joinMatch(matchId) {
-      alert(`Joining Match ${matchId}!`);
-      // this.$router.push(`/match/${matchId}`);
-    },
+    
+
+    
     async logout() {
       if (confirm('Are you sure you want to logout?')) {
         await supabase.auth.signOut()

@@ -12,7 +12,7 @@
           <span class="sport-icon">{{ getSportIcon(match.sport) }}</span>
           <div>
             <h2 class="modal-title">{{ match.sport }} Match</h2>
-            <p class="modal-subtitle">Match #{{ match.id }}</p>
+            <!-- <p class="modal-subtitle">Match #{{ match.id }}</p> -->
           </div>
         </div>
         <button class="close-btn" @click="closeModal">×</button>
@@ -30,7 +30,7 @@
             </div>
             <div class="info-item">
               <span class="info-label">📅 Date & Time</span>
-              <span class="info-value">{{ match.date }} at {{ match.time }}</span>
+              <span class="info-value">{{ match.date.split(" ")[0] }} at {{ match.date.split(" ")[1] }}</span>
             </div>
             <div class="info-item">
               <span class="info-label">🎯 Skill Level</span>
@@ -88,7 +88,7 @@
                 </div>
               </div>
               <button 
-                v-if="!player.isCurrentUser"
+                v-if="player.id !== currentUser.id"
                 class="btn-message" 
                 @click="messagePlayer(player)"
                 title="Send message"
@@ -162,45 +162,7 @@ export default {
   },
   data() {
     return {
-      // FAKE PLAYERS DATA - Replace with API call
-      matchPlayers: [
-        {
-          id: '1',
-          name: 'John Doe',
-          profilePic: 'https://i.pravatar.cc/150?img=12',
-          attendance: 95,
-          skillLevel: 'Intermediate',
-          isOrganizer: true,
-          isCurrentUser: true
-        },
-        {
-          id: '2',
-          name: 'Sarah Tan',
-          profilePic: 'https://i.pravatar.cc/150?img=20',
-          attendance: 88,
-          skillLevel: 'Beginner',
-          isOrganizer: false,
-          isCurrentUser: false
-        },
-        {
-          id: '3',
-          name: 'Mike Wong',
-          profilePic: 'https://i.pravatar.cc/150?img=33',
-          attendance: 92,
-          skillLevel: 'Advanced',
-          isOrganizer: false,
-          isCurrentUser: false
-        },
-        {
-          id: '4',
-          name: 'Emma Lim',
-          profilePic: 'https://i.pravatar.cc/150?img=45',
-          attendance: 78,
-          skillLevel: 'Intermediate',
-          isOrganizer: false,
-          isCurrentUser: false
-        }
-      ]
+      matchPlayers: []
     };
   },
   computed: {
@@ -222,7 +184,7 @@ export default {
       return Math.max(0, this.spotsRemaining);
     },
     isUserJoined() {
-      return this.matchPlayers.some(p => p.isCurrentUser);
+      return this.matchPlayers.some(p => p.id === this.currentUser.id);
     }
   },
   methods: {
@@ -245,38 +207,95 @@ export default {
       if (attendance >= 50) return 'fair';
       return 'poor';
     },
-    joinMatch() {
-      // FAKE: Add current user to players list
+    async joinMatch() {
       if (!this.isUserJoined && this.spotsRemaining > 0) {
-        this.matchPlayers.push({
-          ...this.currentUser,
-          attendance: 95,
-          skillLevel: 'Intermediate',
-          isOrganizer: false,
-          isCurrentUser: true
-        });
-        
-        this.$emit('join', this.match.id);
+        // If free game, payment_success is true
+        if (this.match.price !== 0) {
+          alert('got to handle payment logic first.');
+          return;
+        }
+        const paymentSuccess = true;
+        try {
+          const response = await fetch(`http://localhost:3000/matches/${this.match.id}/join`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: this.currentUser.id,
+              payment_success: paymentSuccess
+            })
+          });
+          const result = await response.json();
+          if (result.success) {
+            this.matchPlayers.push({
+              ...this.currentUser,
+              attendance: 95,
+              skillLevel: 'Intermediate',
+              isOrganizer: false
+            });
+            this.$emit('join', this.match.id);
+          } else {
+            alert('Failed to join match: ' + result.error);
+          }
+        } catch (err) {
+          alert('Error joining match: ' + err.message);
+        }
       }
-      
-      // REAL API: Uncomment when ready
-      // this.$emit('join', this.match.id);
     },
-    leaveMatch() {
+    async leaveMatch() {
       if (confirm('Are you sure you want to leave this match?')) {
-        // FAKE: Remove current user from players list
-        this.matchPlayers = this.matchPlayers.filter(p => !p.isCurrentUser);
-        
-        this.$emit('leave', this.match.id);
-        
-        // REAL API: Uncomment when ready
-        // this.$emit('leave', this.match.id);
+        try {
+          const response = await fetch(`http://localhost:3000/matches/${this.match.id}/leave`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: this.currentUser.id
+            })
+          });
+          const result = await response.json();
+          if (result.success) {
+            // Remove current user from matchPlayers list
+            this.matchPlayers = this.matchPlayers.filter(p => p.id !== this.currentUser.id);
+            this.$emit('leave', this.match.id);
+          } else {
+            alert('Failed to leave match: ' + (result.error || 'Unknown error'));
+          }
+        } catch (err) {
+          alert('Error leaving match: ' + err.message);
+        }
+      }
+    },
+    async fetchMatchPlayers() {
+      try {
+        const response = await fetch(`http://localhost:3000/matches/${this.match.id}/users`);
+        const result = await response.json();
+        this.matchPlayers = Array.isArray(result)
+          ? result.map(u => ({
+              id: u.user_id,
+              name: `User ${u.user_id.substring(0, 6)}`, 
+              profilePic: 'https://i.pravatar.cc/150?u=' + u.user_id, 
+              attendance: 100, 
+              skillLevel: 'Unknown', 
+              isOrganizer: false 
+            }))
+          : [];
+      } catch (err) {
+        console.error('Failed to fetch match players:', err);
       }
     },
     messagePlayer(player) {
       this.$emit('message', player);
       // Or open chat directly
       // this.$router.push(`/messages/${player.id}`);
+    }
+  },
+  watch: {
+    'match.id': {
+      handler(newId) {
+        if (newId) {
+          this.fetchMatchPlayers();
+        }
+      },
+      immediate: true
     }
   }
 };
