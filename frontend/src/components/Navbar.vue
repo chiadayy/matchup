@@ -77,6 +77,7 @@
             to="/browser" 
             class="mobile-nav-link"
             @click="closeMobileMenu"
+            
           >
             Browser
           </router-link>
@@ -164,6 +165,31 @@
 
       <!-- Desktop User Actions (Right side) -->
       <div class="navbar-actions desktop-actions">
+
+        <!-- Notification Bell -->
+        <div class="notification-bell" ref="bellContainer">
+          <button @click="toggleNotifications" class="bell-btn">
+            <i class="fas fa-bell"></i>
+            <span v-if="unreadCount" class="notif-count">
+              {{ unreadCount }}
+            </span>
+          </button>
+
+          <!-- Notification Popup -->
+          <div v-if="showNotifications" class="dropdown-menu-custom" ref="dropdownMenu">
+            <i class="fas fa-x notif-close" @click="closeNotifications"></i>
+            <div class="notif-header">Notifications</div>
+            <ul class="notif-list">
+              <li v-for="notif in notifications" :key="notif.id" class="notif-item">
+                <div class="notif-msg">{{ notif.message }}</div>
+                <!-- <div class="notif-time">{{ notif.created_at }}</div> -->
+              </li>
+              <li v-if="!notifications.length" class="notif-empty">No new notifications</li>
+            </ul>
+          </div>
+        </div>
+
+
         <!-- Logged in user (regular or organizer) - show profile dropdown -->
         <div v-if="isLoggedIn && userRole !== 'admin'" class="profile-dropdown">
           <button 
@@ -210,6 +236,7 @@ import { supabase } from '@/lib/supabase'
 
 export default {
   name: 'Navbar',
+  
   props: {
     isLoggedIn: {
       type: Boolean,
@@ -230,14 +257,23 @@ export default {
   },
   data() {
     return {
+      currentUser: null,
       isScrolled: false,
       showDropdown: false,
-      showMobileMenu: false
+      showMobileMenu: false,
+      showNotifications: false,
+      notifications: []
     };
   },
-  mounted() {
+  computed: {
+    unreadCount() {
+      return this.notifications.filter(n => !n.read).length;
+    }
+  },
+  async mounted() {
     window.addEventListener('scroll', this.handleScroll);
     document.addEventListener('click', this.handleClickOutside);
+    this.loadNotifications();
   },
   beforeUnmount() {
     window.removeEventListener('scroll', this.handleScroll);
@@ -274,8 +310,44 @@ export default {
         this.$emit('logout');
         this.closeDropdown();
         this.closeMobileMenu();
+        this.closeNotifications();
         this.$router.push('/');
       }
+    },
+    async loadNotifications() {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq("read", false)
+        .order('created_at', { ascending: false });
+
+      if (error) console.error('Error loading notifications:', error);
+      else this.notifications = data;
+    },
+    async toggleNotifications() {
+      this.showNotifications = !this.showNotifications;
+    },
+    async markAllAsRead() {
+      const { data: { user } } = await supabase.auth.getUser();
+      this.currentUser = user;
+
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', this.currentUser.id)
+        .eq('read', false);
+
+      if (error) {
+        console.error('Error marking notifications as read:', error);
+        return;
+      }
+
+      // Update locally
+      this.notifications = this.notifications.map(n => ({ ...n, read: true })).filter(n => !n.read);
+    },
+    async closeNotifications() {
+      await this.markAllAsRead();
+      this.showNotifications = false;
     }
   }
 };
@@ -684,4 +756,78 @@ export default {
 .d-flex {
   display: flex !important;
 }
+
+.notification-bell {
+  position: relative;
+}
+
+.bell-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: #2C3E50;
+  position: relative;
+  padding: 10px;
+}
+
+.bell-btn:hover {
+  color: #FF6B35;
+}
+
+.notif-count {
+  position: absolute;
+  top: 5px;
+  right: 2px;
+  background: red;
+  color: white;
+  border-radius: 50%;
+  font-size: 10px;
+  padding: 3px 6px;
+}
+
+.notif-header {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #eee;
+  font-weight: 600;
+}
+
+.notif-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.notif-item {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.notif-item:hover {
+  background: rgba(255, 107, 53, 0.05);
+}
+
+.notif-msg {
+  font-size: 0.9rem;
+}
+
+.notif-time {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.notif-empty {
+  text-align: center;
+  padding: 1rem;
+  color: #777;
+}
+
+.notif-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 0.75rem;
+  color: #2C3E50;
+  cursor: pointer;
+}
+
 </style>
