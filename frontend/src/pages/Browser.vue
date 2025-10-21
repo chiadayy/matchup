@@ -1,5 +1,5 @@
 <template>
-  <div style="background-color: #f8f9fa; min-height: 100vh;">
+  <div class="browser-page">
 
     <div class="container mt-4">
       <div class="page-header">
@@ -8,8 +8,8 @@
       </div>
 
       <div class="row py-4">
-        <div class="map-placeholder">
-          <span class="fs-4 fw-bold text-muted">🗺️ Interactive Map</span>
+        <div class="map-wrapper">
+          <MapView :games="mapGames" :center="{ lat: 1.3521, lng: 103.8198 }" :zoom="11" />
         </div>
       </div>
 
@@ -92,29 +92,57 @@
         <!-- Match Cards -->
         <div class="col-lg-9 col-md-8">
           <div id="matchContainer" class="match-container">
-            <div 
-              v-for="match in paginatedMatches" 
-              :key="match.id" 
+            <div
+              v-for="match in paginatedMatches"
+              :key="match.id"
               class="match-card"
+              :class="['sport-' + match.sport.toLowerCase()]"
               @click="openMatchDetail(match)"
             >
+              <!-- Sport Icon Badge -->
+              <div class="sport-icon-badge" :style="{ backgroundColor: getSportColor(match.sport) }">
+                {{ getSportIcon(match.sport) }}
+              </div>
+
               <div class="match-header">
                 <div>
-                  <h3 class="match-title">Match {{ match.id }}</h3>
-                  <p class="sport-type">{{ match.sport }}</p>
+                  <h3 class="match-title">{{ match.sport }} Match</h3>
+                  <p class="sport-type">{{ match.location }}</p>
                 </div>
                 <span :class="['match-price', match.price === 0 ? 'price-free' : 'price-paid']">
                   {{ match.price === 0 ? 'Free' : `$${match.price}` }}
                 </span>
               </div>
+
+              <!-- Weather Badge -->
+              <div class="weather-section" @click.stop>
+                <WeatherBadge
+                  :lat="getMatchCoords(match.location).lat"
+                  :lon="getMatchCoords(match.location).lng"
+                  :eventTimeISO="getMatchISO(match)"
+                  :locationName="match.location"
+                />
+              </div>
+
               <div class="match-details">
                 <p><strong>Skill level:</strong> {{ match.skill }}</p>
-                <p><strong>Location:</strong> {{ match.location }}</p>
                 <p><strong>Date and Time:</strong> {{ match.date }} {{ match.time }}</p>
-                <span class="player-count">{{ match.players }} players</span>
+                <div class="player-progress">
+                  <span class="player-count">{{ match.players }} players</span>
+                  <div class="progress-bar">
+                    <div
+                      class="progress-fill"
+                      :style="{ width: getPlayerPercentage(match.players) + '%', backgroundColor: getSportColor(match.sport) }"
+                    ></div>
+                  </div>
+                </div>
               </div>
-              <button class="btn-view-details" @click.stop="openMatchDetail(match)">
-                View Details
+              <button
+                class="btn-join-match"
+                :class="{ 'pulse-btn': getAvailableSpots(match.players) < 3 }"
+                @click.stop="openMatchDetail(match)"
+              >
+                {{ getAvailableSpots(match.players) === 0 ? 'Full' : 'Join Match' }}
               </button>
             </div>
           </div>
@@ -159,11 +187,15 @@
 
 <script>
 import MatchDetailModal from '@/components/MatchDetailModal.vue';
+import MapView from '@/components/MapView.vue';
+import WeatherBadge from '@/components/WeatherBadge.vue';
 
 export default {
   name: 'Browser',
   components: {
-    MatchDetailModal
+    MatchDetailModal,
+    MapView,
+    WeatherBadge
   },
   data() {
     return {
@@ -219,6 +251,57 @@ export default {
       const startIndex = (this.currentPage - 1) * this.itemsPerPage
       const endIndex = startIndex + this.itemsPerPage
       return this.filteredMatches.slice(startIndex, endIndex)
+    },
+    mapGames() {
+      // Map coordinates for Singapore locations
+      const locationCoords = {
+        'Hougang': { lat: 1.3712, lng: 103.8863 },
+        'Sengkang': { lat: 1.3917, lng: 103.8951 },
+        'Punggol': { lat: 1.4043, lng: 103.9021 },
+        'Tampines': { lat: 1.3529, lng: 103.9446 },
+        'Bedok': { lat: 1.3236, lng: 103.9273 }
+      };
+
+      // Sport icons and colors
+      const sportConfig = {
+        'Basketball': { icon: '🏀', color: '#f97316' },
+        'Tennis': { icon: '🎾', color: '#84cc16' },
+        'Football': { icon: '⚽', color: '#10b981' },
+        'Badminton': { icon: '🏸', color: '#ec4899' }
+      };
+
+      return this.filteredMatches.map(match => {
+        const coords = locationCoords[match.location] || { lat: 1.3521, lng: 103.8198 };
+        const config = sportConfig[match.sport] || { icon: '🏃', color: '#3b82f6' };
+
+        // Parse players "7/8" to joined and capacity
+        const [joined, capacity] = match.players.split('/').map(Number);
+
+        // Create ISO timestamp from date and time
+        const dateStr = match.date; // "8/10/25"
+        const timeStr = match.time; // "6pm"
+        const [month, day, year] = dateStr.split('/').map(Number);
+        const hour = timeStr.includes('pm') && !timeStr.startsWith('12')
+          ? parseInt(timeStr) + 12
+          : parseInt(timeStr);
+        const startTimeISO = new Date(2000 + year, month - 1, day, hour, 0).toISOString();
+
+        return {
+          id: match.id,
+          title: `${match.sport} Match ${match.id}`,
+          venue: match.location,
+          lat: coords.lat,
+          lng: coords.lng,
+          startTimeISO,
+          icon: config.icon,
+          color: config.color,
+          sport: match.sport,
+          skillLevel: match.skill,
+          capacity,
+          joined,
+          price: match.price
+        };
+      });
     }
   },
   mounted() {
@@ -304,6 +387,58 @@ export default {
       // Open chat or navigate to messages
       // this.$router.push(`/messages/${player.id}`)
       alert(`Opening chat with ${player.name}`)
+    },
+
+    // Helper methods for enhanced features
+    getSportIcon(sport) {
+      const icons = {
+        'Basketball': '🏀',
+        'Tennis': '🎾',
+        'Football': '⚽',
+        'Badminton': '🏸'
+      };
+      return icons[sport] || '🏃';
+    },
+
+    getSportColor(sport) {
+      const colors = {
+        'Basketball': '#f97316',
+        'Tennis': '#84cc16',
+        'Football': '#10b981',
+        'Badminton': '#ec4899'
+      };
+      return colors[sport] || '#3b82f6';
+    },
+
+    getMatchCoords(location) {
+      const locationCoords = {
+        'Hougang': { lat: 1.3712, lng: 103.8863 },
+        'Sengkang': { lat: 1.3917, lng: 103.8951 },
+        'Punggol': { lat: 1.4043, lng: 103.9021 },
+        'Tampines': { lat: 1.3529, lng: 103.9446 },
+        'Bedok': { lat: 1.3236, lng: 103.9273 }
+      };
+      return locationCoords[location] || { lat: 1.3521, lng: 103.8198 };
+    },
+
+    getMatchISO(match) {
+      const dateStr = match.date;
+      const timeStr = match.time;
+      const [month, day, year] = dateStr.split('/').map(Number);
+      const hour = timeStr.includes('pm') && !timeStr.startsWith('12')
+        ? parseInt(timeStr) + 12
+        : parseInt(timeStr);
+      return new Date(2000 + year, month - 1, day, hour, 0).toISOString();
+    },
+
+    getPlayerPercentage(players) {
+      const [joined, capacity] = players.split('/').map(Number);
+      return (joined / capacity) * 100;
+    },
+
+    getAvailableSpots(players) {
+      const [joined, capacity] = players.split('/').map(Number);
+      return capacity - joined;
     }
   },
   beforeUnmount() {
@@ -319,13 +454,36 @@ export default {
   --dark-bg: #2b2d42;
 }
 
+.browser-page {
+  min-height: 100vh;
+  background: #f7f9fc;
+}
+
+.container {
+  position: relative;
+}
+
+.map-wrapper {
+  height: 400px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  background: #ffffff;
+}
+
 .sidebar {
-  background: white;
-  border-radius: 10px;
-  padding: 25px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: #f9f9f9;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border: none;
   position: sticky;
   top: 20px;
+  transition: box-shadow 0.3s ease;
+}
+
+.sidebar:hover {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
 }
 
 .sidebar h5 {
@@ -347,12 +505,91 @@ export default {
 
 .form-select, .form-control {
   border-radius: 8px;
-  border: 1px solid #dee2e6;
+  border: 2px solid #dee2e6;
+  padding: 10px 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: white;
 }
 
-.form-check-input:checked {
-  background-color: var(--primary-orange);
+.form-select:hover, .form-control:hover {
   border-color: var(--primary-orange);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.form-select:focus, .form-control:focus {
+  border-color: var(--primary-orange);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);
+  outline: none;
+}
+
+.form-check {
+  margin-bottom: 12px;
+  padding-left: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.form-check-input[type="checkbox"] {
+  width: 20px !important;
+  height: 20px !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  border: 2px solid #dee2e6 !important;
+  border-radius: 4px !important;
+  transition: all 0.2s ease !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-color: white !important;
+  position: relative !important;
+  flex-shrink: 0 !important;
+  background-image: none !important;
+}
+
+.form-check-input[type="checkbox"]:hover {
+  border-color: var(--primary-orange) !important;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1) !important;
+}
+
+.form-check-input[type="checkbox"]:checked {
+  background-color: var(--primary-orange) !important;
+  border-color: var(--primary-orange) !important;
+  background-image: none !important;
+}
+
+.form-check-input[type="checkbox"]:checked::after {
+  content: '' !important;
+  position: absolute !important;
+  left: 6px !important;
+  top: 2px !important;
+  width: 5px !important;
+  height: 10px !important;
+  border: solid white !important;
+  border-width: 0 2px 2px 0 !important;
+  transform: rotate(45deg) !important;
+  display: block !important;
+}
+
+.form-check-input[type="checkbox"]:focus {
+  border-color: var(--primary-orange) !important;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2) !important;
+  outline: none !important;
+}
+
+.form-check-label {
+  cursor: pointer;
+  user-select: none;
+  font-weight: 500;
+  color: #495057;
+  transition: color 0.2s ease;
+  margin: 0;
+}
+
+.form-check-label:hover {
+  color: var(--primary-orange);
 }
 
 .match-container {
@@ -368,21 +605,50 @@ export default {
 }
 
 .match-card {
-  background: white;
-  border-radius: 16px;
+  background: #ffffff;
+  border-radius: 14px;
   padding: 20px;
-  border: 2px solid #e8ecef;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  transition: all 0.3s ease;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   cursor: pointer;
+  position: relative;
+  min-height: 380px;
 }
 
 .match-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(255, 107, 53, 0.15);
-  border-color: var(--primary-orange);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  background: #fafafa;
+}
+
+.sport-icon-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.match-card:hover .sport-icon-badge {
+  transform: scale(1.15) rotate(-5deg);
+}
+
+.weather-section {
+  margin: 12px -4px;
+  padding: 12px;
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+  border-radius: 12px;
+  border: 1px solid #e8e8ed;
 }
 
 .match-header {
@@ -428,49 +694,115 @@ export default {
   margin: 5px 0;
 }
 
+.player-progress {
+  margin-top: 15px;
+}
+
 .player-count {
   display: inline-block;
   background: #e9ecef;
   padding: 5px 12px;
   border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin-top: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #495057;
 }
 
-.btn-view-details {
-  background-color: var(--dark-bg);
-  color: white;
-  padding: 12px;
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary-orange);
+  border-radius: 10px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 8px rgba(255, 107, 53, 0.6);
+}
+
+.btn-join-match {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: white !important;
+  padding: 12px 20px;
   width: 100%;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 600;
-  margin-top: 15px;
-  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  margin-top: 20px;
+  transition: all 0.2s ease;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
 }
 
-.match-card:hover .btn-view-details {
-  background-color: var(--primary-orange);
+.btn-join-match:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
 }
 
-.btn-view-details:hover {
-  transform: scale(1.02);
+.btn-join-match:active {
+  transform: translateY(0);
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.7);
+  }
+}
+
+.pulse-btn {
+  background: linear-gradient(135deg, var(--primary-orange) 0%, #e85a2a 100%);
+  animation: pulse-glow 2s infinite;
 }
 
 .page-header {
-  margin: 30px 0;
+  margin: 0 0 24px 0;
+  padding: 28px 32px;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #FF6B35 0%, #f97316 50%, #10b981 100%);
 }
 
 .page-header h1 {
-  font-weight: bold;
-  color: var(--dark-bg);
+  font-weight: 700;
+  color: #1d1d1f;
+  font-size: 2rem;
+  margin: 0;
 }
 
 .results-count {
-  color: #6c757d;
-  margin-top: 10px;
+  color: #86868b;
+  margin-top: 6px;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.results-count span {
+  color: var(--primary-orange);
+  font-weight: 600;
 }
 
 .clear-filters {
@@ -523,5 +855,79 @@ export default {
   color: #6c757d;
   pointer-events: none;
   background-color: #f8f9fa;
+}
+</style>
+
+<style>
+/* Non-scoped styles for checkboxes to override Bootstrap */
+.sidebar .form-check {
+  margin-bottom: 12px !important;
+  padding-left: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.sidebar .form-check-input[type="checkbox"] {
+  width: 20px !important;
+  height: 20px !important;
+  margin: 0 !important;
+  margin-top: 0 !important;
+  cursor: pointer !important;
+  border: 2px solid #dee2e6 !important;
+  border-radius: 4px !important;
+  transition: all 0.2s ease !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-color: white !important;
+  position: relative !important;
+  flex-shrink: 0 !important;
+  background-image: none !important;
+  background-size: 0 !important;
+}
+
+.sidebar .form-check-input[type="checkbox"]:hover {
+  border-color: #FF6B35 !important;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1) !important;
+}
+
+.sidebar .form-check-input[type="checkbox"]:checked {
+  background-color: #FF6B35 !important;
+  border-color: #FF6B35 !important;
+  background-image: none !important;
+}
+
+.sidebar .form-check-input[type="checkbox"]:checked::after {
+  content: '✓' !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  color: white !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+  display: block !important;
+  line-height: 1 !important;
+}
+
+.sidebar .form-check-input[type="checkbox"]:focus {
+  border-color: #FF6B35 !important;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2) !important;
+  outline: none !important;
+}
+
+.sidebar .form-check-label {
+  cursor: pointer !important;
+  user-select: none !important;
+  font-weight: 500 !important;
+  color: #495057 !important;
+  transition: color 0.2s ease !important;
+  margin: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.sidebar .form-check-label:hover {
+  color: #FF6B35 !important;
 }
 </style>
