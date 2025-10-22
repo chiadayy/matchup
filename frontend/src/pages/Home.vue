@@ -9,20 +9,61 @@
       </div>
     </div>
 
-    <!-- Enhanced Hero Section -->
-    <div class="hero-section">
+    <!-- Dynamic Welcome Back Section -->
+    <div class="welcome-section">
       <div class="container-fluid px-5">
-        <div class="row py-5 my-4 text-center">
-          <div class="hero-content">
-            <h1 class="hero-title">Find Your Next Game</h1>
-            <p class="hero-subtitle">Join local sports matches, connect with players, and stay active in your community</p>
-            <div class="hero-buttons">
-              <button class="btn-primary-hero" @click="$router.push('/browser')">
-                Browse Matches
+        <div class="row py-4">
+          <div class="col-lg-8">
+            <div class="welcome-content">
+              <div class="welcome-greeting">
+                <h1 class="welcome-title">{{ greetingMessage }} 👋</h1>
+                <p class="welcome-subtitle">{{ personalizedMessage }}</p>
+              </div>
+              <div class="welcome-stats">
+                <div class="stat-card">
+                  <div class="stat-icon">🎾</div>
+                  <div class="stat-info">
+                    <div class="stat-value">{{ userStats.gamesPlayed }}</div>
+                    <div class="stat-label">Games Played</div>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon">⭐</div>
+                  <div class="stat-info">
+                    <div class="stat-value">{{ userStats.reliability }}%</div>
+                    <div class="stat-label">Reliability</div>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon">🏆</div>
+                  <div class="stat-info">
+                    <div class="stat-value">{{ userStats.badges }}</div>
+                    <div class="stat-label">Badges Earned</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="quick-actions-card">
+              <h5 class="quick-actions-title">Quick Actions</h5>
+              <button class="btn-quick-action primary" @click="$router.push('/browser')">
+                <span class="action-icon">🔍</span>
+                <span class="action-text">Browse Matches</span>
               </button>
-              <button class="btn-secondary-hero" @click="$router.push('/game-creation')">
-                Create Game
+              <button class="btn-quick-action secondary" @click="$router.push('/game-creation')">
+                <span class="action-icon">➕</span>
+                <span class="action-text">Create Game</span>
               </button>
+              <div class="weather-widget">
+                <div class="weather-info">
+                  <span class="weather-icon">{{ weatherData.icon }}</span>
+                  <div>
+                    <div class="weather-temp">{{ weatherData.temp }}°C</div>
+                    <div class="weather-desc">{{ weatherData.description }}</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -31,15 +72,72 @@
 
     <div class="container-fluid px-5">
 
-      <!-- Popular This Week - Auto-sliding Carousel -->
+      <!-- Featured Players of the Week -->
+      <div class="row mb-5">
+        <div class="col-12">
+          <h3 class="fw-bold mb-4">⭐ Stars of the Week</h3>
+          <div class="row g-4">
+            <div class="col-lg-6">
+              <div class="featured-card player-of-week">
+                <div class="featured-badge">🏅 PLAYER OF THE WEEK</div>
+                <div class="featured-content">
+                  <div class="featured-avatar">
+                    <img src="https://i.pravatar.cc/150?img=33" alt="Jason Lee" />
+                    <div class="featured-ring"></div>
+                  </div>
+                  <div class="featured-info">
+                    <h4 class="featured-name">Jason Lee</h4>
+                    <p class="featured-stat">Joined <strong>5 games</strong> this week</p>
+                    <div class="featured-sports">
+                      <span class="sport-tag">🏀 Basketball</span>
+                      <span class="sport-tag">🎾 Tennis</span>
+                      <span class="sport-tag">⚽ Football</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="featured-quote">
+                  "Always ready to play! Great sportsmanship and team player."
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="featured-card organiser-of-week">
+                <div class="featured-badge organiser">🎯 TOP ORGANISER</div>
+                <div class="featured-content">
+                  <div class="featured-avatar">
+                    <img src="https://i.pravatar.cc/150?img=20" alt="Rachel Wong" />
+                    <div class="featured-ring organiser"></div>
+                  </div>
+                  <div class="featured-info">
+                    <h4 class="featured-name">Rachel Wong</h4>
+                    <p class="featured-stat">Hosted <strong>12 badminton sessions</strong></p>
+                    <div class="featured-sports">
+                      <span class="sport-tag organiser">🏸 Badminton Expert</span>
+                      <span class="sport-tag organiser">⭐ 98% Rating</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="featured-quote">
+                  "Bringing the community together, one match at a time!"
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Highlights Carousel -->
       <div class="row mb-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <h3 class="fw-bold">Popular This Week</h3>
+          <div>
+            <h3 class="fw-bold mb-1">🔥 Top Moments</h3>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">Epic plays and highlights from our community</p>
+          </div>
           <div class="carousel-controls">
             <button class="carousel-nav-btn" @click="prevSlide" :disabled="isTransitioning">
               ←
             </button>
-            <span class="carousel-indicator">{{ currentSlide + 1 }} / {{ carouselSlides.length }}</span>
+            <span class="carousel-indicator">{{ currentSlide + 1 }} / {{ tipsCarouselSlides.length }}</span>
             <button class="carousel-nav-btn" @click="nextSlide" :disabled="isTransitioning">
               →
             </button>
@@ -49,44 +147,38 @@
         <div class="carousel-container">
           <div class="carousel-track" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
             <div
-              v-for="(slide, slideIndex) in carouselSlides"
+              v-for="(slide, slideIndex) in tipsCarouselSlides"
               :key="slideIndex"
               class="carousel-slide"
             >
               <div class="row g-4">
                 <div
-                  v-for="match in slide"
-                  :key="match.id"
+                  v-for="tip in slide"
+                  :key="tip.id"
                   class="col-xl-3 col-lg-6 col-md-6 col-sm-12"
                 >
-                  <div class="athlete-card" @click="openMatchDetail(match)">
-                    <div class="athlete-image-container">
-                      <img :src="getAthleteImage(match.sport)" :alt="match.sport" class="athlete-image" />
-                      <div class="image-overlay"></div>
-                      <div class="trending-tag">🔥 HOT</div>
-                      <div class="sport-icon-overlay" :style="{ backgroundColor: getSportColor(match.sport) }">
-                        {{ getSportIcon(match.sport) }}
+                  <div class="tips-card">
+                    <div class="tips-image-container">
+                      <img :src="tip.image" :alt="tip.title" class="tips-image" />
+                      <div class="tips-overlay"></div>
+                      <div class="tips-icon" :style="{ backgroundColor: tip.color }">
+                        {{ tip.icon }}
                       </div>
                     </div>
-                    <div class="athlete-card-content">
-                      <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="sport-name">{{ match.sport }}</h5>
-                        <span :class="['price-pill', match.price === 0 ? 'free' : 'paid']">
-                          {{ match.price === 0 ? 'Free' : `$${match.price}` }}
-                        </span>
+                    <div class="tips-card-content">
+                      <div class="tips-category" :style="{ color: tip.color }">
+                        {{ tip.category }}
                       </div>
-                      <div class="match-quick-info">
-                        <div class="info-item">
-                          <span class="info-icon">📍</span>
-                          <span class="info-text">{{ match.location }}</span>
+                      <h5 class="tips-title">{{ tip.title }}</h5>
+                      <p class="tips-description">{{ tip.description }}</p>
+                      <div class="highlight-meta">
+                        <div class="meta-item">
+                          <span class="meta-icon">👤</span>
+                          <span class="meta-text">{{ tip.player }}</span>
                         </div>
-                        <div class="info-item">
-                          <span class="info-icon">🕒</span>
-                          <span class="info-text">{{ match.date }}</span>
-                        </div>
-                        <div class="info-item">
-                          <span class="info-icon">👥</span>
-                          <span class="info-text">{{ match.players }}</span>
+                        <div class="meta-item">
+                          <span class="meta-icon">📍</span>
+                          <span class="meta-text">{{ tip.location }}</span>
                         </div>
                       </div>
                     </div>
@@ -100,6 +192,98 @@
         <!-- Auto-slide progress bar -->
         <div class="auto-slide-progress">
           <div class="progress-bar-fill" :style="{ width: autoSlideProgress + '%' }"></div>
+        </div>
+      </div>
+
+      <!-- Community Activity Feed -->
+      <div class="row mb-5">
+        <div class="col-12">
+          <div class="activity-feed-container">
+            <h3 class="fw-bold mb-4">What's Happening 🔥</h3>
+
+            <!-- Activity Feed with Grouped Time Categories -->
+            <div class="activity-feed-grouped">
+              <div
+                v-for="(category, index) in Object.keys(groupedActivities)"
+                :key="category"
+                class="activity-time-group"
+              >
+                <div class="time-category-header">
+                  <span class="time-category-label">{{ category }}</span>
+                  <div class="time-category-line"></div>
+                </div>
+
+                <div class="activity-cards-container">
+                  <div
+                    v-for="(activity, activityIndex) in groupedActivities[category]"
+                    :key="activity.id"
+                    class="activity-card"
+                    :class="{ 'activity-card-new': activity.isNew }"
+                    :style="{
+                      animationDelay: `${activityIndex * 0.1}s`,
+                      borderLeftColor: activity.color
+                    }"
+                  >
+                    <!-- Sport-specific colored left border -->
+                    <div class="activity-card-border" :style="{ background: activity.color }"></div>
+
+                    <!-- Card Content -->
+                    <div class="activity-card-header">
+                      <!-- User Avatar/Initials -->
+                      <div class="activity-user-avatar" :style="{
+                        background: `linear-gradient(135deg, ${activity.color} 0%, ${adjustColorBrightness(activity.color, -20)} 100%)`
+                      }">
+                        <span class="avatar-initials">{{ activity.userInitials }}</span>
+                      </div>
+
+                      <!-- Activity Info -->
+                      <div class="activity-card-info">
+                        <div class="activity-card-text">
+                          <strong class="activity-user-name">{{ activity.user }}</strong>
+                          <span class="activity-action">{{ activity.action }}</span>
+                        </div>
+                        <div class="activity-card-meta">
+                          <span class="activity-time">{{ activity.time }}</span>
+                          <span class="activity-badge-pill" :style="{
+                            background: `${activity.color}15`,
+                            color: activity.color
+                          }">
+                            {{ activity.badge }}
+                          </span>
+                        </div>
+                      </div>
+
+                      <!-- Thumbnail Preview (if available) -->
+                      <div v-if="activity.thumbnail" class="activity-thumbnail">
+                        <img :src="activity.thumbnail" :alt="activity.badge" />
+                      </div>
+                    </div>
+
+                    <!-- Social Proof Metrics -->
+                    <div class="activity-card-footer">
+                      <div class="activity-reactions">
+                        <button class="reaction-btn">
+                          <span class="reaction-icon">❤️</span>
+                          <span class="reaction-count">{{ activity.reactions.likes }}</span>
+                        </button>
+                        <button class="reaction-btn">
+                          <span class="reaction-icon">💬</span>
+                          <span class="reaction-count">{{ activity.reactions.comments }}</span>
+                        </button>
+                        <button class="reaction-btn">
+                          <span class="reaction-icon">👀</span>
+                          <span class="reaction-count">{{ activity.reactions.views }}</span>
+                        </button>
+                      </div>
+                      <div class="activity-sport-icon" :style="{ color: activity.color }">
+                        {{ activity.iconText }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -199,13 +383,214 @@ export default {
       isLoggedIn: false, // Change to true to simulate logged-in state
       userProfilePic: 'https://i.pravatar.cc/150?img=12',
       currentUser: null,
-      featuredMatches: [],
+      userName: 'Bing Zi', // This would come from auth
+      userStats: {
+        gamesPlayed: 23,
+        reliability: 95,
+        badges: 5,
+        favoriteSport: 'Tennis'
+      },
+      weatherData: {
+        temp: 28,
+        description: 'Perfect for sports',
+        icon: '☀️'
+      },
       mapCenter: { lat: 1.3521, lng: 103.8198 }, // Singapore center
       currentSlide: 0,
       isTransitioning: false,
       autoSlideInterval: null,
       autoSlideProgress: 0,
       autoSlideTimer: null,
+      gameHighlights: [
+        {
+          id: 1,
+          icon: '🏀',
+          category: 'BASKETBALL',
+          title: 'Incredible 3-Pointer by Team Bukit Timah!',
+          description: 'Game-winning shot in the final seconds — pure clutch performance from Marcus.',
+          image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&h=600&fit=crop',
+          player: 'Marcus Chen',
+          location: 'Bukit Timah Sports Hall',
+          color: '#f97316'
+        },
+        {
+          id: 2,
+          icon: '🏸',
+          category: 'BADMINTON',
+          title: 'Epic Smash Rally in Bedok!',
+          description: '23-shot rally ending with a powerful smash. The whole court went wild!',
+          image: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&h=600&fit=crop',
+          player: 'Sarah Tan',
+          location: 'Bedok Sports Complex',
+          color: '#ec4899'
+        },
+        {
+          id: 3,
+          icon: '⚽',
+          category: 'FOOTBALL',
+          title: 'Last-Minute Goal Saves the Match',
+          description: 'Aaron\'s bicycle kick in injury time to tie the game 3-3. Unbelievable!',
+          image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&h=600&fit=crop',
+          player: 'Aaron Lim',
+          location: 'Hougang Stadium',
+          color: '#10b981'
+        },
+        {
+          id: 4,
+          icon: '🎾',
+          category: 'TENNIS',
+          title: 'Perfect Ace to Win the Set',
+          description: 'Rachel served 5 consecutive aces to close out the tiebreak. Dominant!',
+          image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&h=600&fit=crop',
+          player: 'Rachel Wong',
+          location: 'Sengkang Tennis Courts',
+          color: '#84cc16'
+        },
+        {
+          id: 5,
+          icon: '🏀',
+          category: 'BASKETBALL',
+          title: 'Ankle-Breaking Crossover Highlights',
+          description: 'Jason\'s nasty crossover left the defender on the floor. Respect!',
+          image: 'https://images.unsplash.com/photo-1608245449230-4ac19066d2d0?w=800&h=600&fit=crop',
+          player: 'Jason Lee',
+          location: 'Tampines Hub',
+          color: '#f97316'
+        },
+        {
+          id: 6,
+          icon: '🏐',
+          category: 'VOLLEYBALL',
+          title: 'Monster Spike Seals the Victory',
+          description: 'Celine\'s thunderous spike ended the 5-set thriller. What a finish!',
+          image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&h=600&fit=crop',
+          player: 'Celine Ng',
+          location: 'Punggol Sports Center',
+          color: '#06b6d4'
+        },
+        {
+          id: 7,
+          icon: '⚽',
+          category: 'FUTSAL',
+          title: 'Solo Run Through 4 Defenders',
+          description: 'Bryan weaved through the entire defense for a stunning solo goal.',
+          image: 'https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=800&h=600&fit=crop',
+          player: 'Bryan Tan',
+          location: 'Yishun Futsal Arena',
+          color: '#10b981'
+        },
+        {
+          id: 8,
+          icon: '🏸',
+          category: 'BADMINTON',
+          title: 'Championship Point Deception Shot',
+          description: 'Alex\'s deceptive drop shot caught everyone off-guard to win the match.',
+          image: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&h=600&fit=crop',
+          player: 'Alex Koh',
+          location: 'Clementi Sports Hall',
+          color: '#ec4899'
+        }
+      ],
+      communityActivities: [
+        {
+          id: 1,
+          user: 'Alex',
+          userInitials: 'AK',
+          action: 'joined a badminton match in Bedok',
+          time: '2 minutes ago',
+          timeCategory: 'Today',
+          iconText: 'BD',
+          color: '#ec4899',
+          badge: 'Joined',
+          thumbnail: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=80&h=80&fit=crop',
+          reactions: { likes: 12, comments: 5, views: 23 },
+          isNew: true
+        },
+        {
+          id: 2,
+          user: 'Bryan',
+          userInitials: 'BT',
+          action: 'created a futsal game for Saturday',
+          time: '15 minutes ago',
+          timeCategory: 'Today',
+          iconText: 'FS',
+          color: '#10b981',
+          badge: 'Created',
+          thumbnail: 'https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=80&h=80&fit=crop',
+          reactions: { likes: 18, comments: 8, views: 45 },
+          isNew: true
+        },
+        {
+          id: 3,
+          user: 'Jane',
+          userInitials: 'JL',
+          action: 'hosted a new tennis match near you',
+          time: '1 hour ago',
+          timeCategory: 'Today',
+          iconText: 'TN',
+          color: '#84cc16',
+          badge: 'Hosting',
+          thumbnail: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=80&h=80&fit=crop',
+          reactions: { likes: 9, comments: 3, views: 31 },
+          isNew: false
+        },
+        {
+          id: 4,
+          user: 'Michael',
+          userInitials: 'MC',
+          action: 'completed a basketball game in Tampines',
+          time: '2 hours ago',
+          timeCategory: 'Today',
+          iconText: 'BB',
+          color: '#f97316',
+          badge: 'Completed',
+          thumbnail: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=80&h=80&fit=crop',
+          reactions: { likes: 25, comments: 12, views: 67 },
+          isNew: false
+        },
+        {
+          id: 5,
+          user: 'Sarah',
+          userInitials: 'ST',
+          action: 'earned the "Consistent Player" badge',
+          time: '3 hours ago',
+          timeCategory: 'Today',
+          iconText: '★',
+          color: '#f59e0b',
+          badge: 'Achievement',
+          thumbnail: null,
+          reactions: { likes: 34, comments: 15, views: 89 },
+          isNew: false
+        },
+        {
+          id: 6,
+          user: 'David',
+          userInitials: 'DW',
+          action: 'joined a football match in Hougang',
+          time: '5 hours ago',
+          timeCategory: 'Yesterday',
+          iconText: 'FB',
+          color: '#10b981',
+          badge: 'Joined',
+          thumbnail: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=80&h=80&fit=crop',
+          reactions: { likes: 7, comments: 2, views: 19 },
+          isNew: false
+        },
+        {
+          id: 7,
+          user: 'Rachel',
+          userInitials: 'RW',
+          action: 'won a tennis tournament in Sengkang',
+          time: '1 day ago',
+          timeCategory: 'Yesterday',
+          iconText: 'TN',
+          color: '#84cc16',
+          badge: 'Champion',
+          thumbnail: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=80&h=80&fit=crop',
+          reactions: { likes: 52, comments: 28, views: 145 },
+          isNew: false
+        }
+      ],
       nearbyMatches: [
         { sport: 'Basketball', skill: 'Beginner', date: '8/10/25 6pm', distance: '2.3km', price: 'Free', isFree: true, location: 'Hougang' },
         { sport: 'Tennis', skill: 'Intermediate', date: '8/10/25 7pm', distance: '3.5km', price: '$15', isFree: false, location: 'Sengkang' },
@@ -216,6 +601,48 @@ export default {
     };
   },
   computed: {
+    greetingMessage() {
+      const hour = new Date().getHours();
+      const isWeekend = [0, 6].includes(new Date().getDay());
+
+      if (isWeekend) {
+        return `Happy ${hour < 12 ? 'Weekend Morning' : 'Weekend'}, ${this.userName}`;
+      }
+
+      if (hour < 12) return `Good Morning, ${this.userName}`;
+      if (hour < 18) return `Good Afternoon, ${this.userName}`;
+      return `Good Evening, ${this.userName}`;
+    },
+
+    personalizedMessage() {
+      const hour = new Date().getHours();
+      const sport = this.userStats.favoriteSport.toLowerCase();
+
+      const messages = [
+        `Ready for your next ${sport} rally?`,
+        `Perfect ${this.weatherData.description.toLowerCase()} for ${sport} tonight!`,
+        `Your favorite ${sport} courts are calling`,
+        `${this.userStats.gamesPlayed} games down — ready for another?`,
+        `Let's keep that ${this.userStats.reliability}% reliability streak going!`
+      ];
+
+      // Pick message based on time of day
+      const index = hour % messages.length;
+      return messages[index];
+    },
+
+    // Group activities by time category
+    groupedActivities() {
+      const groups = {};
+      this.communityActivities.forEach(activity => {
+        if (!groups[activity.timeCategory]) {
+          groups[activity.timeCategory] = [];
+        }
+        groups[activity.timeCategory].push(activity);
+      });
+      return groups;
+    },
+
     mapGames() {
       // Location coordinates for Singapore neighborhoods
       const locationCoords = {
@@ -234,7 +661,7 @@ export default {
         'Badminton': { icon: '🏸', color: '#ec4899' }
       };
 
-      return this.nearbyMatches.map((match, index) => {
+      const games = this.nearbyMatches.map((match, index) => {
         const coords = locationCoords[match.location] || { lat: 1.3521, lng: 103.8198 };
         const sport = sportConfig[match.sport] || { icon: '🏃', color: '#3b82f6' };
 
@@ -253,19 +680,17 @@ export default {
           capacity: 10
         };
       });
+
+      console.log('🗺️ Map Games:', games);
+      return games;
     },
-    carouselSlides() {
-      // Split featuredMatches into slides of 4 matches each
+    tipsCarouselSlides() {
+      // Split gameHighlights into slides of 4 highlights each
       const slides = [];
-      const matchesPerSlide = 4;
+      const highlightsPerSlide = 4;
 
-      if (this.featuredMatches.length === 0) {
-        // Return empty array if no matches
-        return [];
-      }
-
-      for (let i = 0; i < this.featuredMatches.length; i += matchesPerSlide) {
-        slides.push(this.featuredMatches.slice(i, i + matchesPerSlide));
+      for (let i = 0; i < this.gameHighlights.length; i += highlightsPerSlide) {
+        slides.push(this.gameHighlights.slice(i, i + highlightsPerSlide));
       }
 
       return slides;
@@ -321,31 +746,15 @@ export default {
 
           console.log('🎯 Combined matches:', this.featuredMatches);
         } else {
-          console.log('📝 No matches found in DB, using dummy data');
-          this.loadDummyMatches();
+          console.log('📝 No matches found in DB');
         }
 
       } catch (error) {
         console.error('❌ Error fetching matches:', error);
-        console.log('📝 Using dummy data as fallback');
-        this.loadDummyMatches();
       }
     },
 
-    loadDummyMatches() {
-      // Dummy data for carousel when no DB matches are available
-      this.featuredMatches = [
-        { id: 1, sport: 'Basketball', skill: 'Intermediate', location: 'Hougang Sports Hall', date: '22/10/25 6pm', price: 0, players: '8/10' },
-        { id: 2, sport: 'Tennis', skill: 'Advanced', location: 'Sengkang Tennis Court', date: '22/10/25 7pm', price: 15, players: '3/4' },
-        { id: 3, sport: 'Football', skill: 'Beginner', location: 'Punggol Stadium', date: '23/10/25 5pm', price: 0, players: '18/22' },
-        { id: 4, sport: 'Badminton', skill: 'Intermediate', location: 'Tampines Hub', date: '23/10/25 8pm', price: 10, players: '6/8' },
-        { id: 5, sport: 'Basketball', skill: 'Advanced', location: 'Bedok Sports Complex', date: '24/10/25 6pm', price: 12, players: '9/10' },
-        { id: 6, sport: 'Tennis', skill: 'Beginner', location: 'Hougang Country Club', date: '24/10/25 3pm', price: 0, players: '2/4' },
-        { id: 7, sport: 'Football', skill: 'Intermediate', location: 'Sengkang Field', date: '25/10/25 7pm', price: 8, players: '14/22' },
-        { id: 8, sport: 'Badminton', skill: 'Advanced', location: 'Punggol Sports Center', date: '25/10/25 9am', price: 15, players: '4/8' }
-      ];
-    },
-    
+
     // ✅ NEW: Format date and time for display
     formatDateTime(date, time) {
       try {
@@ -496,16 +905,15 @@ export default {
       return colors[sport] || '#3b82f6';
     },
 
-    getAthleteImage(sport) {
-      // Sport-specific athlete images from Unsplash
-      const images = {
-        'Basketball': 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&h=600&fit=crop',
-        'Tennis': 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&h=600&fit=crop',
-        'Football': 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&h=600&fit=crop',
-        'Badminton': 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&h=600&fit=crop'
-      };
-      return images[sport] || 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&h=600&fit=crop';
+    adjustColorBrightness(color, percent) {
+      const num = parseInt(color.replace('#', ''), 16);
+      const amt = Math.round(2.55 * percent);
+      const R = Math.max(0, Math.min(255, (num >> 16) + amt));
+      const G = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amt));
+      const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+      return '#' + (0x1000000 + (R << 16) + (G << 8) + B).toString(16).slice(1);
     },
+
 
     async logout() {
       if (confirm('Are you sure you want to logout?')) {
@@ -590,8 +998,178 @@ body {
     background-color: var(--primary-color);
 }
 
-/* ========== ENHANCED HERO SECTION ========== */
-.hero-section {
+/* ========== DYNAMIC WELCOME SECTION ========== */
+.welcome-section {
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
+    margin: 0 40px 40px 40px;
+    border-radius: 24px;
+    padding: 32px 0;
+}
+
+.welcome-content {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    height: 100%;
+}
+
+.welcome-greeting {
+    margin-bottom: 24px;
+}
+
+.welcome-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1d1d1f;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+}
+
+.welcome-subtitle {
+    font-size: 1.1rem;
+    color: #6c757d;
+    margin: 0;
+}
+
+.welcome-stats {
+    display: flex;
+    gap: 16px;
+}
+
+.stat-card {
+    flex: 1;
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    font-size: 2rem;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1d1d1f;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+}
+
+.quick-actions-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.quick-actions-title {
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #1d1d1f;
+}
+
+.btn-quick-action {
+    width: 100%;
+    padding: 14px 20px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.btn-quick-action.primary {
+    background: linear-gradient(135deg, #FF6B35 0%, #f97316 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
+}
+
+.btn-quick-action.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.3);
+}
+
+.btn-quick-action.secondary {
+    background: white;
+    color: #1d1d1f;
+    border: 2px solid #e8e8ed;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.btn-quick-action.secondary:hover {
+    transform: translateY(-2px);
+    border-color: #10b981;
+    color: #10b981;
+}
+
+.action-icon {
+    font-size: 1.2rem;
+}
+
+.action-text {
+    flex: 1;
+    text-align: left;
+}
+
+.weather-widget {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 2px solid #f3f4f6;
+}
+
+.weather-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.weather-icon {
+    font-size: 2.5rem;
+}
+
+.weather-temp {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1d1d1f;
+}
+
+.weather-desc {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+/* ========== ENHANCED HERO SECTION (OLD) ========== */
+.hero-section-old {
     background: linear-gradient(135deg, rgba(255, 107, 53, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%);
     border-radius: 24px;
     margin: 0 40px 40px 40px;
@@ -755,8 +1333,401 @@ body {
     flex-shrink: 0;
 }
 
-/* ========== ATHLETE CARDS ========== */
-.athlete-card {
+/* ========== COMMUNITY ACTIVITY FEED ========== */
+/* Activity Feed Container */
+.activity-feed-container {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    animation: fadeInUp 0.8s ease 1s both;
+}
+
+.activity-feed-grouped {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+/* Time Category Headers */
+.activity-time-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.time-category-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.time-category-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.time-category-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, #e5e7eb 0%, transparent 100%);
+}
+
+/* Activity Cards Container */
+.activity-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+/* Activity Card - Social Post Style */
+.activity-card {
+    position: relative;
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    border-left: 4px solid;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    animation: slideInUp 0.5s ease both;
+}
+
+.activity-card:hover {
+    transform: scale(1.02) translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+/* New Activity Highlight Animation */
+.activity-card-new {
+    animation: slideInFromTop 0.6s ease both, highlightFade 3s ease 0.6s both;
+}
+
+@keyframes slideInFromTop {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes highlightFade {
+    0% {
+        background: #fffbe6;
+    }
+    100% {
+        background: white;
+    }
+}
+
+/* Card Header with Avatar */
+.activity-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.activity-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease;
+}
+
+.activity-card:hover .activity-user-avatar {
+    transform: scale(1.1);
+}
+
+.avatar-initials {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.5px;
+}
+
+.activity-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-card-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #1d1d1f;
+    margin-bottom: 6px;
+}
+
+.activity-user-name {
+    font-weight: 700;
+    color: #1d1d1f;
+}
+
+.activity-action {
+    color: #4b5563;
+}
+
+.activity-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.activity-time {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.activity-badge-pill {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Thumbnail Preview */
+.activity-thumbnail {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.activity-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Card Footer - Social Proof Metrics */
+.activity-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid #f3f4f6;
+    margin-top: 12px;
+}
+
+.activity-reactions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.reaction-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    background: #f9fafb;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.8rem;
+}
+
+.reaction-btn:hover {
+    background: #f3f4f6;
+    transform: scale(1.05);
+}
+
+.reaction-icon {
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.reaction-count {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.activity-sport-icon {
+    font-size: 0.85rem;
+    font-weight: 800;
+    padding: 6px 10px;
+    background: rgba(0,0,0,0.03);
+    border-radius: 8px;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========== FEATURED PLAYERS/ORGANISERS ========== */
+.featured-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid transparent;
+}
+
+.featured-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
+    transition: height 0.3s ease;
+}
+
+.featured-card.organiser-of-week::before {
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+.featured-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+}
+
+.featured-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin-bottom: 20px;
+}
+
+.featured-badge.organiser {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+}
+
+.featured-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 16px;
+}
+
+.featured-avatar {
+    position: relative;
+}
+
+.featured-avatar img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    position: relative;
+    z-index: 2;
+}
+
+.featured-ring {
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border-radius: 50%;
+    border: 3px solid #f59e0b;
+    animation: pulse-ring 2s ease-in-out infinite;
+}
+
+.featured-ring.organiser {
+    border-color: #10b981;
+}
+
+@keyframes pulse-ring {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+}
+
+.featured-info {
+    flex: 1;
+}
+
+.featured-name {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #1d1d1f;
+    margin: 0 0 6px 0;
+}
+
+.featured-stat {
+    font-size: 0.95rem;
+    color: #6c757d;
+    margin: 0 0 10px 0;
+}
+
+.featured-stat strong {
+    color: #1d1d1f;
+    font-weight: 700;
+}
+
+.featured-sports {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.sport-tag {
+    background: #f3f4f6;
+    color: #4b5563;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.sport-tag.organiser {
+    background: #ecfdf5;
+    color: #059669;
+}
+
+.featured-quote {
+    font-style: italic;
+    color: #6c757d;
+    font-size: 0.9rem;
+    padding: 12px 16px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border-left: 3px solid #f59e0b;
+}
+
+.organiser-of-week .featured-quote {
+    border-left-color: #10b981;
+}
+
+/* ========== TIPS CARDS (NOW GAME HIGHLIGHTS) ========== */
+.tips-card {
     background: white;
     border-radius: 16px;
     overflow: hidden;
@@ -768,134 +1739,125 @@ body {
     flex-direction: column;
 }
 
-.athlete-card:hover {
+.tips-card:hover {
     transform: translateY(-12px);
     box-shadow: 0 20px 40px rgba(0,0,0,0.15);
 }
 
-.athlete-image-container {
+.tips-image-container {
     position: relative;
-    height: 280px;
+    height: 240px;
     overflow: hidden;
 }
 
-.athlete-image {
+.tips-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: transform 0.6s ease;
 }
 
-.athlete-card:hover .athlete-image {
+.tips-card:hover .tips-image {
     transform: scale(1.1);
 }
 
-.image-overlay {
+.tips-overlay {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%);
-    transition: opacity 0.3s ease;
+    background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%);
 }
 
-.athlete-card:hover .image-overlay {
-    opacity: 0.7;
-}
-
-.trending-tag {
+.tips-icon {
     position: absolute;
-    top: 12px;
-    left: 12px;
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    color: #92400e;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    z-index: 2;
-    animation: pulseTrending 2s ease-in-out infinite;
-}
-
-@keyframes pulseTrending {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
-.sport-icon-overlay {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    width: 55px;
-    height: 55px;
+    top: 16px;
+    right: 16px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.6rem;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+    font-size: 1.5rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     z-index: 2;
     transition: transform 0.3s ease;
 }
 
-.athlete-card:hover .sport-icon-overlay {
+.tips-card:hover .tips-icon {
     transform: rotate(15deg) scale(1.1);
 }
 
-.athlete-card-content {
-    padding: 18px;
+.tips-card-content {
+    padding: 20px;
     flex: 1;
     display: flex;
     flex-direction: column;
 }
 
-.sport-name {
-    font-size: 1.2rem;
+.tips-category {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.tips-title {
+    font-size: 1.1rem;
     font-weight: 700;
     color: #1d1d1f;
-    margin: 0;
+    margin: 0 0 10px 0;
+    line-height: 1.4;
 }
 
-.price-pill {
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    white-space: nowrap;
+.tips-description {
+    font-size: 0.9rem;
+    color: #6c757d;
+    line-height: 1.6;
+    margin-bottom: 16px;
+    flex: 1;
 }
 
-.price-pill.free {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    color: #065f46;
+.btn-read-more {
+    background: transparent;
+    border: 2px solid;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    align-self: flex-start;
 }
 
-.price-pill.paid {
-    background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
-    color: #9a3412;
+.btn-read-more:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-.match-quick-info {
+.highlight-meta {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid #f3f4f6;
 }
 
-.info-item {
+.meta-item {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.info-icon {
-    font-size: 1rem;
-    width: 20px;
+.meta-icon {
+    font-size: 0.9rem;
 }
 
-.info-text {
-    font-size: 0.9rem;
+.meta-text {
+    font-size: 0.85rem;
     color: #6c757d;
     font-weight: 500;
 }
