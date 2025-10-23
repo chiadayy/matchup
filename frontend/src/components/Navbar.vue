@@ -437,8 +437,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1400px;
-    margin: 0 auto;
+    width: 100%;
+    /* max-width: 1400px; */
+    /* margin: 0 auto; */
   }
 
   .navbar-left {
