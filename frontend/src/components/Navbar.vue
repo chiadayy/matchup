@@ -326,11 +326,13 @@
     async mounted() {
       window.addEventListener('scroll', this.handleScroll);
       document.addEventListener('click', this.handleClickOutside);
+      document.addEventListener('click', this.handleNotificationClickOutside);
       this.loadNotifications();
     },
     beforeUnmount() {
       window.removeEventListener('scroll', this.handleScroll);
       document.removeEventListener('click', this.handleClickOutside);
+      document.removeEventListener('click', this.handleNotificationClickOutside);
     },
     methods: {
       handleScroll() {
@@ -400,6 +402,15 @@
       async closeNotifications() {
         this.notifications = this.notifications.filter(n => !n.read); 
         this.showNotifications = false;
+      },
+      async handleNotificationClickOutside(event) {
+        const dropdown = this.$refs.dropdownMenu;
+        const bell = this.$refs.bellContainer;
+
+        if (this.showNotifications && dropdown && bell && !bell.contains(event.target) && !dropdown.contains(event.target)) {
+          this.notifications = this.notifications.filter(n => !n.read); 
+          this.showNotifications = false;
+        }
       }
     }
   };
@@ -814,22 +825,34 @@
   }
 
   .notification-btn {
-    position: relative;
-    background: #fff;
-    padding: 10px;
-    border-radius: 50%;
+    background: transparent; 
+    border: none;
+    padding: 6px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.15s ease, color 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .notification-btn:active {
+    transform: scale(0.95);
   }
 
   .notification-btn:hover {
-    transform: scale(1.05);
+    transform: scale(1.1);   
+    color: #1f2937;  
   }
 
   .bell-icon {
     font-size: 1.4rem;
     color: #4a5568;
+    transition: color 0.2s ease;
   }
+
+  .notification-btn:hover .bell-icon {
+    color: #111827;          
+    }
 
   .notification-count {
     position: absolute;
@@ -871,7 +894,6 @@
     transform: scale(0.95);
   }
 
-  /* --- Header --- */
   .notification-header {
     display: flex;
     justify-content: space-between;
@@ -881,7 +903,7 @@
   }
 
   .notification-header h3 {
-    font-size: 1rem;
+    font-size: 1.3rem;
     font-weight: 600;
     color: #111827;
   }
@@ -894,7 +916,6 @@
     color: #6b7280;
   }
 
-  /* --- Body --- */
   .notification-body {
     max-height: 400px;
     overflow-y: auto;
@@ -923,30 +944,6 @@
     background: #eef6ff;
   }
 
-  /* --- Icons --- */
-  .notification-icon-box {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .notification-icon-box.success {
-    background: #dcfce7;
-    color: #16a34a;
-  }
-  .notification-icon-box.error {
-    background: #fee2e2;
-    color: #dc2626;
-  }
-  .notification-icon-box.info {
-    background: #dbeafe;
-    color: #2563eb;
-  }
-
-  /* --- Texts --- */
   .notification-content {
     flex: 1;
     min-width: 0;
@@ -981,7 +978,6 @@
     margin-top: 6px;
   }
 
-  /* --- Empty State --- */
   .notification-empty {
     text-align: center;
     padding: 32px 16px;
@@ -1003,7 +999,6 @@
     color: #9ca3af;
   }
 
-  /* --- Footer --- */
   .notification-footer {
     padding: 10px;
     border-top: 1px solid #e2e8f0;
