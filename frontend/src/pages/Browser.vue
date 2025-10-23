@@ -272,19 +272,19 @@
 
               <!-- Compact Weather Tag -->
               <div class="weather-section" @click.stop>
-                <WeatherBadge
+                <!-- <WeatherBadge
                   :lat="getMatchCoords('Hougang').lat"
                   :lon="getMatchCoords('Hougang').lng"
                   :eventTimeISO="getMatchISO(match)"
                   :locationName="match.location"
                   :compact="true"
-                />
-                <!-- <WeatherBadge
+                /> -->
+                <WeatherBadge
                   :lat="match.latitude"
                   :lon="match.longitude"
                   :eventTimeISO="getMatchISO(match)"
                   :locationName="match.location"
-                /> -->
+                />
               </div>
 
               <div class="match-details">
@@ -481,7 +481,7 @@ export default {
       };
 
       return this.filteredMatches.map(match => {
-        const coords = locationCoords["Hougang"] || { lat: 1.3521, lng: 103.8198 };
+        const coords = { lat: match.latitude, lng: match.longitude } || { lat: 1.3521, lng: 103.8198 };
         const config = sportConfig[match.sport] || { icon: '🏃', color: '#3b82f6' };
 
         // Parse players "7/8" to joined and capacity
