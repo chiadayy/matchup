@@ -262,7 +262,7 @@
 
               <div class="match-header">
                 <div>
-                  <h3 class="match-title">{{ match.id }} Match</h3>
+                  <h3 class="match-title">{{ match.name }}</h3>
                   <p class="sport-type">{{ match.sport_type }}</p>
                 </div>
                 <span :class="['match-price', match.total_price === 0 ? 'price-free' : 'price-paid']">
@@ -310,8 +310,7 @@
                 :class="{ 'pulse-btn': getAvailableSpots(match.current_player_count) < 3 }"
                 @click="openMatchDetail(match)"
               >
-                <!-- {{ getAvailableSpots(match.current_player_count) === 0 ? 'Full' : 'Join Match' }} -->
-                Join Match
+                {{ getAvailableSpots(match) === 0 ? 'Full' : 'Join Match' }}
               </button>
             </div>
           </div>
@@ -469,19 +468,13 @@ export default {
         const coords = { lat: match.latitude, lng: match.longitude } || { lat: 1.3521, lng: 103.8198 };
         const config = sportConfig[match.sport] || { icon: '🏃', color: '#3b82f6' };
 
-        // Parse players "7/8" to joined and capacity
-        // const [joined, capacity] = match.total_player_count.split('/').map(Number);
         const [joined, capacity] = "7/8".split('/').map(Number);
 
         // Create ISO timestamp from date and time
         const dateStr = match.date; // "2025-10-20" 
         const timeStr = match.time // "14:00:00"
         const [year, month, date] = dateStr.split('-').map(Number);
-        // const hour = timeStr.includes('pm') && !timeStr.startsWith('12')
-        //   ? parseInt(timeStr) + 12
-        //   : parseInt(timeStr);
-        // const startTimeISO = new Date(2000 + year, month - 1, day, hour, 0).toISOString();
-        const startTimeISO = new Date(`${match.date}T${match.time}`).toISOString();
+        const startTimeISO = new Date(`${dateStr}T${timeStr}`).toISOString();
 
         return {
           id: match.id,
@@ -722,7 +715,7 @@ export default {
     openMatchDetail(match) {
         this.selectedMatch = match;
         this.showMatchDetail = true;
-
+        // prevent scrolling
         document.body.style.overflow = 'hidden';
     },
     closeMatchDetail() {
@@ -780,21 +773,18 @@ export default {
       const dateStr = match.date;
       const timeStr = match.time;
       const [year, month, date] = dateStr.split('/').map(Number);
-      // const hour = timeStr.includes('pm') && !timeStr.startsWith('12')
-      //   ? parseInt(timeStr) + 12
-      //   : parseInt(timeStr);
-      // return new Date(2000 + year, month - 1, day, hour, 0).toISOString();
       const startTimeISO = new Date(`${dateStr}T${timeStr}`).toISOString();
       return startTimeISO;
     },
 
-    getPlayerPercentage(players) {
-      const [joined, capacity] = "7/8".split('/').map(Number);
-      return (joined / capacity) * 100;
+    getPlayerPercentage(match) {
+      const joined = match.current_player_count;
+      return joined * 100;
     },
 
-    getAvailableSpots(players) {
-      const [joined, capacity] = "7/8".split('/').map(Number);
+    getAvailableSpots(match) {
+      const capacity = match.total_player_count;
+      const joined = match.current_player_count;
       return capacity - joined;
     }
   },
@@ -1010,6 +1000,7 @@ export default {
 
 .match-header {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
   align-items: start;
   margin-bottom: 15px;
