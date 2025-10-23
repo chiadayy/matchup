@@ -51,7 +51,7 @@
                 <span class="action-icon">🔍</span>
                 <span class="action-text">Browse Matches</span>
               </button>
-              <button class="btn-quick-action secondary" @click="$router.push('/game-creation')">
+              <button class="btn-quick-action secondary" @click="$router.push('/create-game')">
                 <span class="action-icon">➕</span>
                 <span class="action-text">Create Game</span>
               </button>
@@ -383,7 +383,8 @@ export default {
       isLoggedIn: false, // Change to true to simulate logged-in state
       userProfilePic: 'https://i.pravatar.cc/150?img=12',
       currentUser: null,
-      userName: 'Bing Zi', // This would come from auth
+      profileData: null,
+      // userName: 'Bing Zi', // This would come from auth
       userStats: {
         gamesPlayed: 23,
         reliability: 95,
@@ -602,16 +603,19 @@ export default {
   },
   computed: {
     greetingMessage() {
+      if (!this.profileData) return 'Welcome!';
+
       const hour = new Date().getHours();
       const isWeekend = [0, 6].includes(new Date().getDay());
+      console.log("hi");
 
       if (isWeekend) {
-        return `Happy ${hour < 12 ? 'Weekend Morning' : 'Weekend'}, ${this.userName}`;
+        return `Happy ${hour < 12 ? 'Weekend Morning' : 'Weekend'}, ${this.profileData.name}`;
       }
 
-      if (hour < 12) return `Good Morning, ${this.userName}`;
-      if (hour < 18) return `Good Afternoon, ${this.userName}`;
-      return `Good Evening, ${this.userName}`;
+      if (hour < 12) return `Good Morning, ${this.profileData.name}`;
+      if (hour < 18) return `Good Afternoon, ${this.profileData.name}`;
+      return `Good Evening, ${this.profileData.name}`;
     },
 
     personalizedMessage() {
@@ -698,10 +702,11 @@ export default {
   },
   async mounted() {
     window.addEventListener('scroll', this.handleScroll);
-    const { data: { user } } = await supabase.auth.getUser();
-    this.currentUser = user;
-    await this.fetchMatchesFromDB();
+
     this.startAutoSlide();
+
+    await this.fetchMatchesFromDB();
+    await this.loadCurrentUser()
   },
 
   beforeUnmount() {
@@ -710,10 +715,30 @@ export default {
   },
   
   methods: {
-    // ✅ NEW: Fetch matches from Supabase and combine with dummy data
+    async loadCurrentUser() {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error) return console.error(error);
+
+        if (data.user) {
+          this.currentUser = data.user;
+
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.user.id)
+            .single();
+
+          if (profileError) console.error(profileError);
+          else this.profileData = profileData;
+        }
+      } catch (err) {
+        console.error('Unexpected error loading user:', err);
+      }
+    },
     async fetchMatchesFromDB() {
       try {
-        console.log('🎯 Fetching matches from backend...');
+        console.log('Fetching matches from backend...');
 
         const response = await fetch('http://localhost:3000/matches');
 
@@ -722,7 +747,7 @@ export default {
         }
 
         const data = await response.json();
-        console.log('✅ Received matches from DB:', data);
+        console.log('Received matches from DB:', data);
 
         if (data.success && data.matches && data.matches.length > 0) {
           // Transform Supabase data to match your UI format
@@ -741,21 +766,18 @@ export default {
             host: match.host
           }));
 
-          // ✅ Use DB matches
           this.featuredMatches = dbMatches;
 
-          console.log('🎯 Combined matches:', this.featuredMatches);
+          console.log('Combined matches:', this.featuredMatches);
         } else {
-          console.log('📝 No matches found in DB');
+          console.log('No matches found in DB');
         }
 
       } catch (error) {
-        console.error('❌ Error fetching matches:', error);
+        console.error('Error fetching matches:', error);
       }
     },
-
-
-    // ✅ NEW: Format date and time for display
+    // Format date and time for display
     formatDateTime(date, time) {
       try {
         // Handle date format
