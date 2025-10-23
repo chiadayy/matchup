@@ -1,833 +1,1027 @@
-<template>
-  <nav :class="['navbar-custom', { 'scrolled': isScrolled }]">
-    <div class="navbar-container">
-      <!-- Brand + Main Navigation (Left side) -->
-      <div class="navbar-left">
-        <div class="navbar-brand">
-          <router-link to="/" class="d-flex align-items-center text-decoration-none">
-            <span class="brand-icon">🏆</span>
-            <strong class="brand-text">MatchUp</strong>
-          </router-link>
+  <template>
+    <nav :class="['navbar-custom', { 'scrolled': isScrolled }]">
+      <div class="navbar-container">
+        <!-- Brand + Main Navigation (Left side) -->
+        <div class="navbar-left">
+          <div class="navbar-brand">
+            <router-link to="/" class="d-flex align-items-center text-decoration-none">
+              <span class="brand-icon">🏆</span>
+              <strong class="brand-text">MatchUp</strong>
+            </router-link>
+          </div>
+
+          <!-- Desktop Navigation Links -->
+          <div class="navbar-links">
+            <!-- Browser - visible to everyone except admins -->
+            <router-link 
+              v-if="userRole !== 'admin'"
+              to="/browser" 
+              class="nav-link-custom"
+            >
+              Browser
+            </router-link>
+
+            <!-- Calendar - visible to regular users and organizers -->
+            <router-link 
+              v-if="isLoggedIn && (userRole === 'regular' || userRole === 'organizer')"
+              to="/calendar" 
+              class="nav-link-custom"
+            >
+              Calendar
+            </router-link>
+
+            <!-- My Matches - visible to regular users and organizers -->
+            <router-link 
+              v-if="isLoggedIn && userRole === 'regular'"
+              to="/my-matches" 
+              class="nav-link-custom"
+            >
+              My Matches
+            </router-link>
+
+            <!-- Game Creation - visible to organizers only -->
+            <router-link 
+              v-if="isLoggedIn && userRole === 'regular'"
+              to="/create-game" 
+              class="nav-link-custom"
+            >
+              Game Creation
+            </router-link>
+
+            <!-- Admin Dashboard - visible to admins only -->
+            <router-link 
+              v-if="isLoggedIn && userRole === 'admin'"
+              to="/admin-dashboard" 
+              class="nav-link-custom"
+            >
+              Admin Dashboard
+            </router-link>
+          </div>
         </div>
 
-        <!-- Desktop Navigation Links -->
-        <div class="navbar-links">
-          <!-- Browser - visible to everyone except admins -->
-          <router-link 
-            v-if="userRole !== 'admin'"
-            to="/browser" 
-            class="nav-link-custom"
-          >
-            Browser
-          </router-link>
+        <!-- Mobile Toggle Button -->
+        <button 
+          class="navbar-toggler d-lg-none" 
+          type="button" 
+          @click="toggleMobileMenu"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon">☰</span>
+        </button>
 
-          <!-- Calendar - visible to regular users and organizers -->
-          <router-link 
-            v-if="isLoggedIn && (userRole === 'regular' || userRole === 'organizer')"
-            to="/calendar" 
-            class="nav-link-custom"
-          >
-            Calendar
-          </router-link>
+        <!-- Mobile Menu (Right side) -->
+        <div :class="['mobile-menu', { 'show': showMobileMenu }]">
+          <div class="mobile-menu-content">
+            <!-- Mobile Navigation Links -->
+            <router-link 
+              to="/browser" 
+              class="mobile-nav-link"
+              @click="closeMobileMenu"
+              
+            >
+              Browser
+            </router-link>
 
-          <!-- My Matches - visible to regular users and organizers -->
-          <router-link 
-            v-if="isLoggedIn && userRole === 'regular'"
-            to="/my-matches" 
-            class="nav-link-custom"
-          >
-            My Matches
-          </router-link>
+            <router-link 
+              v-if="isLoggedIn && (userRole === 'regular' || userRole === 'organizer')"
+              to="/calendar" 
+              class="mobile-nav-link"
+              @click="closeMobileMenu"
+            >
+              Calendar
+            </router-link>
 
-          <!-- Game Creation - visible to organizers only -->
-          <router-link 
-            v-if="isLoggedIn && userRole === 'regular'"
-            to="/create-game" 
-            class="nav-link-custom"
-          >
-            Game Creation
-          </router-link>
+            <router-link 
+              v-if="isLoggedIn && (userRole === 'regular')"
+              to="/my-matches" 
+              class="mobile-nav-link"
+              @click="closeMobileMenu"
+            >
+              My Matches
+            </router-link>
 
-          <!-- Admin Dashboard - visible to admins only -->
-          <router-link 
-            v-if="isLoggedIn && userRole === 'admin'"
-            to="/admin-dashboard" 
-            class="nav-link-custom"
-          >
-            Admin Dashboard
-          </router-link>
+            <router-link 
+              v-if="isLoggedIn && userRole === 'regular'"
+              to="/create-game" 
+              class="mobile-nav-link"
+              @click="closeMobileMenu"
+            >
+              Game Creation
+            </router-link>
+
+            <router-link 
+              v-if="isLoggedIn && userRole === 'admin'"
+              to="/admin-dashboard" 
+              class="mobile-nav-link"
+              @click="closeMobileMenu"
+            >
+              Admin Dashboard
+            </router-link>
+
+            <div class="mobile-menu-divider"></div>
+
+            <!-- User Actions in Mobile Menu -->
+            <div v-if="isLoggedIn && userRole !== 'admin'" class="mobile-user-section">
+              <div class="mobile-profile-info">
+                <img :src="user.profilePic" alt="Profile" class="mobile-profile-pic" />
+                <span class="mobile-user-name">{{ user.name }}</span>
+              </div>
+              <router-link 
+                to="/profile" 
+                class="mobile-nav-link"
+                @click="closeMobileMenu"
+              >
+                👤 My Profile
+              </router-link>
+              <button @click="logout" class="mobile-nav-link logout-link">Logout</button>
+            </div>
+
+            <div v-if="isLoggedIn && userRole === 'admin'" class="mobile-user-section">
+              <div class="mobile-profile-info">
+                <img :src="user.profilePic" alt="Profile" class="mobile-profile-pic" />
+                <span class="mobile-user-name admin-badge">{{ user.name }} (Admin)</span>
+              </div>
+              <button @click="logout" class="mobile-nav-link logout-link">Logout</button>
+            </div>
+
+            <template v-if="!isLoggedIn">
+              <router-link 
+                to="/login" 
+                class="mobile-nav-link"
+                @click="closeMobileMenu"
+              >
+                Login
+              </router-link>
+              <router-link 
+                to="/register" 
+                class="mobile-nav-link mobile-signup"
+                @click="closeMobileMenu"
+              >
+                Sign Up
+              </router-link>
+            </template>
+          </div>
         </div>
-      </div>
 
-      <!-- Mobile Toggle Button -->
-      <button 
-        class="navbar-toggler d-lg-none" 
-        type="button" 
-        @click="toggleMobileMenu"
-        aria-label="Toggle navigation"
-      >
-        <span class="navbar-toggler-icon">☰</span>
-      </button>
+        <!-- Desktop User Actions (Right side) -->
+        <div class="navbar-actions desktop-actions">
 
-      <!-- Mobile Menu (Right side) -->
-      <div :class="['mobile-menu', { 'show': showMobileMenu }]">
-        <div class="mobile-menu-content">
-          <!-- Mobile Navigation Links -->
-          <router-link 
-            to="/browser" 
-            class="mobile-nav-link"
-            @click="closeMobileMenu"
+          <!-- Notification Bell -->
+          <!-- <div class="notification-bell" ref="bellContainer">
+            <button @click="toggleNotifications" class="bell-btn">
+              <i class="fas fa-bell"></i>
+              <span v-if="unreadCount" class="notif-count">
+                {{ unreadCount }}
+              </span>
+            </button> -->
+
+            <!-- Notification Popup -->
+            <!-- <div v-if="showNotifications" class="dropdown-menu-custom" ref="dropdownMenu">
+              <i class="fas fa-x notif-close" @click="closeNotifications"></i>
+              <div class="notif-header">Notifications</div>
+              <ul class="notif-list">
+                <li v-for="notif in notifications" :key="notif.id" class="notif-item">
+                  <div class="notif-msg">{{ notif.message }}</div>
+                  <div class="notif-time">{{ notif.created_at }}</div>
+                </li>
+                <li v-if="!notifications.length" class="notif-empty">No new notifications</li>
+              </ul>
+            </div>
+          </div> -->
+
+          <div class="notification-container" ref="bellContainer">
+            <!-- Bell Button -->
+            <button @click="toggleNotifications" class="notification-btn">
+              <i class="fas fa-bell bell-icon"></i>
+              <span v-if="unreadCount" class="notification-count">
+                {{ unreadCount }}
+              </span>
+            </button>
+
+            <!-- Dropdown -->
+            <transition name="fade-scale">
+              <div v-if="showNotifications" ref="dropdownMenu" class="notification-dropdown">
+                <!-- Header -->
+                <div class="notification-header">
+                  <h3>Notifications</h3>
+                  <button @click="closeNotifications" class="close-btn">
+                    <i class="fas fa-x"></i>
+                  </button>
+                </div>
+
+                <!-- Body -->
+                <div class="notification-body">
+                  <div v-if="notifications.length === 0" class="notification-empty">
+                    <i class="fas fa-bell empty-icon"></i>
+                    <p class="empty-title">No new notifications</p>
+                    <p class="empty-sub">We'll notify you when something arrives</p>
+                  </div>
+
+                  <ul v-else class="notification-list">
+                    <li v-for="notification in notifications" :key="notification.id" class="notification-item" 
+                      :class="{ 'unread': !notification.read }">
+                      <div class="notification-content">
+                        <div class="notification-title">
+                          {{ notification.title }}
+                          <span v-if="!notification.read" class="notification-dot"></span>
+                        </div>
+                        <p class="notification-message">{{ notification.message }}</p>
+                        <p class="notification-time">{{ notification.created_at }}</p>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- mark as all read footer -->
+                <div v-if="notifications.length > 0" class="notification-footer">
+                  <button @click="markAllAsRead" class="mark-all-btn">
+                    Mark all as read
+                  </button>
+                </div>
+              </div>
+            </transition>
+          </div>
+          <!-- end of notifications -->
+
+          <!-- Logged in user (regular or organizer) - show profile dropdown -->
+          <div v-if="isLoggedIn && userRole !== 'admin'" class="profile-dropdown">
+            <button 
+              class="profile-button" 
+              type="button" 
+              @click="toggleDropdown"
+              ref="profileButton"
+            >
+              <img :src="user.profilePic" alt="Profile" class="profile-pic-small" />
+              <span class="user-name d-none d-md-inline">{{ user.name }}</span>
+            </button>
             
-          >
-            Browser
-          </router-link>
-
-          <router-link 
-            v-if="isLoggedIn && (userRole === 'regular' || userRole === 'organizer')"
-            to="/calendar" 
-            class="mobile-nav-link"
-            @click="closeMobileMenu"
-          >
-            Calendar
-          </router-link>
-
-          <router-link 
-            v-if="isLoggedIn && (userRole === 'regular')"
-            to="/my-matches" 
-            class="mobile-nav-link"
-            @click="closeMobileMenu"
-          >
-            My Matches
-          </router-link>
-
-          <router-link 
-            v-if="isLoggedIn && userRole === 'regular'"
-            to="/create-game" 
-            class="mobile-nav-link"
-            @click="closeMobileMenu"
-          >
-            Game Creation
-          </router-link>
-
-          <router-link 
-            v-if="isLoggedIn && userRole === 'admin'"
-            to="/admin-dashboard" 
-            class="mobile-nav-link"
-            @click="closeMobileMenu"
-          >
-            Admin Dashboard
-          </router-link>
-
-          <div class="mobile-menu-divider"></div>
-
-          <!-- User Actions in Mobile Menu -->
-          <div v-if="isLoggedIn && userRole !== 'admin'" class="mobile-user-section">
-            <div class="mobile-profile-info">
-              <img :src="user.profilePic" alt="Profile" class="mobile-profile-pic" />
-              <span class="mobile-user-name">{{ user.name }}</span>
+            <div v-if="showDropdown" class="dropdown-menu-custom" ref="dropdownMenu">
+              <router-link 
+                to="/profile" 
+                class="dropdown-item-custom"
+                @click="closeDropdown"
+              >
+                👤 My Profile
+              </router-link>
+              <hr class="dropdown-divider" />
+              <button @click="logout" class="btn btn-logout">Logout</button>
             </div>
-            <router-link 
-              to="/profile" 
-              class="mobile-nav-link"
-              @click="closeMobileMenu"
-            >
-              👤 My Profile
-            </router-link>
-            <button @click="logout" class="mobile-nav-link logout-link">Logout</button>
           </div>
 
-          <div v-if="isLoggedIn && userRole === 'admin'" class="mobile-user-section">
-            <div class="mobile-profile-info">
-              <img :src="user.profilePic" alt="Profile" class="mobile-profile-pic" />
-              <span class="mobile-user-name admin-badge">{{ user.name }} (Admin)</span>
-            </div>
-            <button @click="logout" class="mobile-nav-link logout-link">Logout</button>
+          <!-- Admin user - show admin label and logout -->
+          <div v-if="isLoggedIn && userRole === 'admin'" class="admin-section">
+            <span class="admin-label">Admin</span>
+            <button @click="logout" class="btn btn-logout-small">Logout</button>
           </div>
-
+          
+          <!-- Not logged in - show login and signup -->
           <template v-if="!isLoggedIn">
-            <router-link 
-              to="/login" 
-              class="mobile-nav-link"
-              @click="closeMobileMenu"
-            >
-              Login
-            </router-link>
-            <router-link 
-              to="/register" 
-              class="mobile-nav-link mobile-signup"
-              @click="closeMobileMenu"
-            >
-              Sign Up
-            </router-link>
+            <router-link to="/login" class="nav-link-custom">Login</router-link>
+            <router-link to="/register" class="btn btn-signup">Sign Up</router-link>
           </template>
         </div>
       </div>
+    </nav>
+  </template>
 
-      <!-- Desktop User Actions (Right side) -->
-      <div class="navbar-actions desktop-actions">
+  <script>
+  import { supabase } from '@/lib/supabase'
 
-        <!-- Notification Bell -->
-        <div class="notification-bell" ref="bellContainer">
-          <button @click="toggleNotifications" class="bell-btn">
-            <i class="fas fa-bell"></i>
-            <span v-if="unreadCount" class="notif-count">
-              {{ unreadCount }}
-            </span>
-          </button>
-
-          <!-- Notification Popup -->
-          <div v-if="showNotifications" class="dropdown-menu-custom" ref="dropdownMenu">
-            <i class="fas fa-x notif-close" @click="closeNotifications"></i>
-            <div class="notif-header">Notifications</div>
-            <ul class="notif-list">
-              <li v-for="notif in notifications" :key="notif.id" class="notif-item">
-                <div class="notif-msg">{{ notif.message }}</div>
-                <!-- <div class="notif-time">{{ notif.created_at }}</div> -->
-              </li>
-              <li v-if="!notifications.length" class="notif-empty">No new notifications</li>
-            </ul>
-          </div>
-        </div>
-
-
-        <!-- Logged in user (regular or organizer) - show profile dropdown -->
-        <div v-if="isLoggedIn && userRole !== 'admin'" class="profile-dropdown">
-          <button 
-            class="profile-button" 
-            type="button" 
-            @click="toggleDropdown"
-            ref="profileButton"
-          >
-            <img :src="user.profilePic" alt="Profile" class="profile-pic-small" />
-            <span class="user-name d-none d-md-inline">{{ user.name }}</span>
-          </button>
-          
-          <div v-if="showDropdown" class="dropdown-menu-custom" ref="dropdownMenu">
-            <router-link 
-              to="/profile" 
-              class="dropdown-item-custom"
-              @click="closeDropdown"
-            >
-              👤 My Profile
-            </router-link>
-            <hr class="dropdown-divider" />
-            <button @click="logout" class="btn btn-logout">Logout</button>
-          </div>
-        </div>
-
-        <!-- Admin user - show admin label and logout -->
-        <div v-if="isLoggedIn && userRole === 'admin'" class="admin-section">
-          <span class="admin-label">Admin</span>
-          <button @click="logout" class="btn btn-logout-small">Logout</button>
-        </div>
-        
-        <!-- Not logged in - show login and signup -->
-        <template v-if="!isLoggedIn">
-          <router-link to="/login" class="nav-link-custom">Login</router-link>
-          <router-link to="/register" class="btn btn-signup">Sign Up</router-link>
-        </template>
-      </div>
-    </div>
-  </nav>
-</template>
-
-<script>
-import { supabase } from '@/lib/supabase'
-
-export default {
-  name: 'Navbar',
-  
-  props: {
-    isLoggedIn: {
-      type: Boolean,
-      default: false
+  export default {
+    name: 'Navbar',
+    
+    props: {
+      isLoggedIn: {
+        type: Boolean,
+        default: false
+      },
+      userRole: {
+        type: String,
+        enum: ['admin', 'organizer', 'regular'],
+        default: 'regular'
+      },
+      user: {
+        type: Object,
+        default: () => ({
+          name: 'John Doe',
+          profilePic: 'https://i.pravatar.cc/150?img=12'
+        })
+      }
     },
-    userRole: {
-      type: String,
-      enum: ['admin', 'organizer', 'regular'],
-      default: 'regular'
+    data() {
+      return {
+        currentUser: null,
+        isScrolled: false,
+        showDropdown: false,
+        showMobileMenu: false,
+        showNotifications: false,
+        notifications: []
+      };
     },
-    user: {
-      type: Object,
-      default: () => ({
-        name: 'John Doe',
-        profilePic: 'https://i.pravatar.cc/150?img=12'
-      })
-    }
-  },
-  data() {
-    return {
-      currentUser: null,
-      isScrolled: false,
-      showDropdown: false,
-      showMobileMenu: false,
-      showNotifications: false,
-      notifications: []
-    };
-  },
-  computed: {
-    unreadCount() {
-      return this.notifications.filter(n => !n.read).length;
-    }
-  },
-  async mounted() {
-    window.addEventListener('scroll', this.handleScroll);
-    document.addEventListener('click', this.handleClickOutside);
-    this.loadNotifications();
-  },
-  beforeUnmount() {
-    window.removeEventListener('scroll', this.handleScroll);
-    document.removeEventListener('click', this.handleClickOutside);
-  },
-  methods: {
-    handleScroll() {
-      this.isScrolled = window.scrollY > 50;
+    computed: {
+      unreadCount() {
+        return this.notifications.filter(n => !n.read).length;
+      }
     },
-    toggleDropdown() {
-      this.showDropdown = !this.showDropdown;
+    async mounted() {
+      window.addEventListener('scroll', this.handleScroll);
+      document.addEventListener('click', this.handleClickOutside);
+      this.loadNotifications();
     },
-    closeDropdown() {
-      this.showDropdown = false;
+    beforeUnmount() {
+      window.removeEventListener('scroll', this.handleScroll);
+      document.removeEventListener('click', this.handleClickOutside);
     },
-    toggleMobileMenu() {
-      this.showMobileMenu = !this.showMobileMenu;
-    },
-    closeMobileMenu() {
-      this.showMobileMenu = false;
-    },
-    handleClickOutside(event) {
-      if (this.$refs.profileButton && this.$refs.dropdownMenu) {
-        if (!event.target.closest('.profile-dropdown')) {
-          this.closeDropdown();
+    methods: {
+      handleScroll() {
+        this.isScrolled = window.scrollY > 50;
+      },
+      toggleDropdown() {
+        this.showDropdown = !this.showDropdown;
+      },
+      closeDropdown() {
+        this.showDropdown = false;
+      },
+      toggleMobileMenu() {
+        this.showMobileMenu = !this.showMobileMenu;
+      },
+      closeMobileMenu() {
+        this.showMobileMenu = false;
+      },
+      handleClickOutside(event) {
+        if (this.$refs.profileButton && this.$refs.dropdownMenu) {
+          if (!event.target.closest('.profile-dropdown')) {
+            this.closeDropdown();
+          }
         }
+      },
+      async logout() {
+        if (confirm('Are you sure you want to logout?')) {
+          await supabase.auth.signOut()
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          this.$emit('logout');
+          this.closeDropdown();
+          this.closeMobileMenu();
+          this.closeNotifications();
+          this.$router.push('/');
+        }
+      },
+      async loadNotifications() {
+        const { data, error } = await supabase
+          .from('notifications')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) console.error('Error loading notifications:', error);
+        else this.notifications = data;
+      },
+      async toggleNotifications() {
+        this.showNotifications = !this.showNotifications;
+      },
+      async markAllAsRead() {
+        const { data: { user } } = await supabase.auth.getUser();
+        this.currentUser = user;
+
+        const { error } = await supabase
+          .from('notifications')
+          .update({ read: true })
+          .eq('user_id', this.currentUser.id)
+          .eq('read', false);
+
+        if (error) {
+          console.error('Error marking notifications as read:', error);
+          return;
+        }
+
+        // Update locally
+        this.notifications = this.notifications.map(n => ({ ...n, read: true }));
+      },
+      async closeNotifications() {
+        this.notifications = this.notifications.filter(n => !n.read); 
+        this.showNotifications = false;
       }
-    },
-    async logout() {
-      if (confirm('Are you sure you want to logout?')) {
-        await supabase.auth.signOut()
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        this.$emit('logout');
-        this.closeDropdown();
-        this.closeMobileMenu();
-        this.closeNotifications();
-        this.$router.push('/');
-      }
-    },
-    async loadNotifications() {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq("read", false)
-        .order('created_at', { ascending: false });
-
-      if (error) console.error('Error loading notifications:', error);
-      else this.notifications = data;
-    },
-    async toggleNotifications() {
-      this.showNotifications = !this.showNotifications;
-    },
-    async markAllAsRead() {
-      const { data: { user } } = await supabase.auth.getUser();
-      this.currentUser = user;
-
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('user_id', this.currentUser.id)
-        .eq('read', false);
-
-      if (error) {
-        console.error('Error marking notifications as read:', error);
-        return;
-      }
-
-      // Update locally
-      this.notifications = this.notifications.map(n => ({ ...n, read: true })).filter(n => !n.read);
-    },
-    async closeNotifications() {
-      await this.markAllAsRead();
-      this.showNotifications = false;
     }
-  }
-};
-</script>
+  };
+  </script>
 
-<style scoped>
-.navbar-custom {
-  background-color: white;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  transition: all 0.3s ease;
-  padding: 1rem 2rem;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
-.navbar-custom.scrolled {
-  padding: 0.75rem 2rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-}
-
-.navbar-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.navbar-left {
-  display: flex;
-  align-items: center;
-  gap: 3rem;
-  flex: 1;
-}
-
-.navbar-brand {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.navbar-brand a {
-  display: flex;
-  align-items: center;
-}
-
-.brand-icon {
-  background: #2C3E50;
-  padding: 0.25rem;
-  border-radius: 0.25rem;
-  color: white;
-  margin-right: 0.5rem;
-  font-size: 1.2rem;
-}
-
-.brand-text {
-  color: #2C3E50;
-  font-size: 1.25rem;
-}
-
-.navbar-links {
-  display: flex;
-  gap: 2rem;
-  align-items: center;
-}
-
-.nav-link-custom {
-  position: relative;
-  padding: 0.5rem 0;
-  color: #2C3E50;
-  text-decoration: none;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.nav-link-custom::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 2px;
-  background-color: #FF6B35;
-  transition: width 0.3s ease;
-}
-
-.nav-link-custom:hover::after,
-.nav-link-custom.router-link-active::after {
-  width: 80%;
-}
-
-.nav-link-custom:hover,
-.nav-link-custom.router-link-active {
-  color: #FF6B35;
-}
-
-.navbar-toggler {
-  display: none;
-  background: none;
-  border: 2px solid #2C3E50;
-  border-radius: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  cursor: pointer;
-  font-size: 1.5rem;
-  color: #2C3E50;
-}
-
-.navbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.profile-dropdown {
-  position: relative;
-}
-
-.profile-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 2rem;
-  transition: background 0.3s ease;
-}
-
-.profile-button:hover {
-  background: rgba(255, 107, 53, 0.1);
-}
-
-.profile-pic-small {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #FF6B35;
-}
-
-.user-name {
-  color: #2C3E50;
-  font-weight: 500;
-}
-
-.dropdown-menu-custom {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  right: 0;
-  background: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-  min-width: 200px;
-  padding: 0.5rem;
-  z-index: 1000;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.dropdown-item-custom {
-  display: block;
-  padding: 0.75rem 1rem;
-  color: #2C3E50;
-  text-decoration: none;
-  border-radius: 0.5rem;
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
-
-.dropdown-item-custom:hover {
-  background: rgba(255, 107, 53, 0.1);
-  color: #FF6B35;
-}
-
-.dropdown-divider {
-  margin: 0.5rem 0;
-  border: none;
-  border-top: 1px solid #e8ecef;
-}
-
-.btn-signup {
-  background-color: #FF6B35;
-  color: white;
-  border: none;
-  padding: 0.5rem 1.25rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  display: inline-block;
-}
-
-.btn-signup:hover {
-  background-color: #FF5722;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
-}
-
-.btn-logout {
-  width: 100%;
-  padding: 0.75rem;
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-logout:hover {
-  background: #c82333;
-}
-
-.btn-logout-small {
-  padding: 0.5rem 1rem;
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-logout-small:hover {
-  background: #c82333;
-}
-
-.admin-section {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.admin-label {
-  background: #007bff;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.admin-badge {
-  color: #007bff;
-  font-weight: 600;
-}
-
-/* Mobile Menu */
-.mobile-menu {
-  display: none;
-  position: fixed;
-  top: 0;
-  right: -100%;
-  height: 100vh;
-  width: 250px;
-  background: white;
-  box-shadow: -2px 0 10px rgba(0,0,0,0.1);
-  transition: right 0.3s ease;
-  z-index: 999;
-  overflow-y: auto;
-  padding-top: 70px;
-}
-
-.mobile-menu.show {
-  right: 0;
-}
-
-.mobile-menu-content {
-  padding: 1rem;
-}
-
-.mobile-nav-link {
-  display: block;
-  padding: 1rem;
-  color: #2C3E50;
-  text-decoration: none;
-  font-weight: 500;
-  border-bottom: 1px solid #e8ecef;
-  transition: all 0.2s ease;
-  border: none;
-  background: none;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-}
-
-.mobile-nav-link:hover {
-  background: rgba(255, 107, 53, 0.1);
-  color: #FF6B35;
-}
-
-.mobile-nav-link.logout-link {
-  color: #dc3545;
-}
-
-.mobile-nav-link.logout-link:hover {
-  background: rgba(220, 53, 69, 0.1);
-}
-
-.mobile-menu-divider {
-  height: 1px;
-  background: #e8ecef;
-  margin: 1rem 0;
-}
-
-.mobile-user-section {
-  margin-bottom: 1rem;
-}
-
-.mobile-profile-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  margin-bottom: 0.5rem;
-  background: rgba(255, 107, 53, 0.05);
-  border-radius: 0.5rem;
-}
-
-.mobile-profile-pic {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #FF6B35;
-}
-
-.mobile-user-name {
-  font-weight: 600;
-  color: #2C3E50;
-}
-
-.mobile-signup {
-  background: #FF6B35;
-  color: white !important;
-  margin-top: 0.5rem;
-}
-
-.mobile-signup:hover {
-  background: #FF5722;
-}
-
-/* Desktop Responsive */
-@media (max-width: 991px) {
-  .navbar-toggler {
-    display: block;
-  }
-
-  .navbar-links {
-    display: none;
-  }
-
-  .mobile-menu {
-    display: block;
-  }
-
-  .desktop-actions {
-    display: none !important;
-  }
-}
-
-@media (max-width: 576px) {
+  <style scoped>
   .navbar-custom {
-    padding: 1rem;
+    background-color: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+
+  .navbar-custom.scrolled {
+    padding: 0.75rem 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+
+  .navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
   }
 
   .navbar-left {
-    gap: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    flex: 1;
+  }
+
+  .navbar-brand {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .navbar-brand a {
+    display: flex;
+    align-items: center;
+  }
+
+  .brand-icon {
+    background: #2C3E50;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    color: white;
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
   }
 
   .brand-text {
-    font-size: 1.1rem;
+    color: #2C3E50;
+    font-size: 1.25rem;
   }
 
-  .mobile-menu {
-    width: 100%;
-    right: -100%;
+  .navbar-links {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .nav-link-custom {
+    position: relative;
+    padding: 0.5rem 0;
+    color: #2C3E50;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .nav-link-custom::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background-color: #FF6B35;
+    transition: width 0.3s ease;
+  }
+
+  .nav-link-custom:hover::after,
+  .nav-link-custom.router-link-active::after {
+    width: 80%;
+  }
+
+  .nav-link-custom:hover,
+  .nav-link-custom.router-link-active {
+    color: #FF6B35;
+  }
+
+  .navbar-toggler {
+    display: none;
+    background: none;
+    border: 2px solid #2C3E50;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: #2C3E50;
+  }
+
+  .navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .profile-dropdown {
+    position: relative;
+  }
+
+  .profile-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 2rem;
+    transition: background 0.3s ease;
+  }
+
+  .profile-button:hover {
+    background: rgba(255, 107, 53, 0.1);
+  }
+
+  .profile-pic-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #FF6B35;
+  }
+
+  .user-name {
+    color: #2C3E50;
+    font-weight: 500;
+  }
+
+  .dropdown-menu-custom {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    min-width: 200px;
+    padding: 0.5rem;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .dropdown-item-custom {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: #2C3E50;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    font-weight: 500;
+  }
+
+  .dropdown-item-custom:hover {
+    background: rgba(255, 107, 53, 0.1);
+    color: #FF6B35;
+  }
+
+  .dropdown-divider {
+    margin: 0.5rem 0;
+    border: none;
+    border-top: 1px solid #e8ecef;
   }
 
   .btn-signup {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
+    background-color: #FF6B35;
+    color: white;
+    border: none;
+    padding: 0.5rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
   }
-}
 
-.d-none {
-  display: none !important;
-}
+  .btn-signup:hover {
+    background-color: #FF5722;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  }
 
-.d-flex {
-  display: flex !important;
-}
+  .btn-logout {
+    width: 100%;
+    padding: 0.75rem;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
 
-.notification-bell {
-  position: relative;
-}
+  .btn-logout:hover {
+    background: #c82333;
+  }
 
-.bell-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.5rem;
-  color: #2C3E50;
-  position: relative;
-  padding: 10px;
-}
+  .btn-logout-small {
+    padding: 0.5rem 1rem;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
 
-.bell-btn:hover {
-  color: #FF6B35;
-}
+  .btn-logout-small:hover {
+    background: #c82333;
+  }
 
-.notif-count {
-  position: absolute;
-  top: 5px;
-  right: 2px;
-  background: red;
-  color: white;
-  border-radius: 50%;
-  font-size: 10px;
-  padding: 3px 6px;
-}
+  .admin-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
 
-.notif-header {
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid #eee;
-  font-weight: 600;
-}
+  .admin-label {
+    background: #007bff;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
 
-.notif-list {
-  max-height: 300px;
-  overflow-y: auto;
-}
+  .admin-badge {
+    color: #007bff;
+    font-weight: 600;
+  }
 
-.notif-item {
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid #f2f2f2;
-}
+  /* Mobile Menu */
+  .mobile-menu {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: -100%;
+    height: 100vh;
+    width: 250px;
+    background: white;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+    transition: right 0.3s ease;
+    z-index: 999;
+    overflow-y: auto;
+    padding-top: 70px;
+  }
 
-.notif-item:hover {
-  background: rgba(255, 107, 53, 0.05);
-}
+  .mobile-menu.show {
+    right: 0;
+  }
 
-.notif-msg {
-  font-size: 0.9rem;
-}
+  .mobile-menu-content {
+    padding: 1rem;
+  }
 
-.notif-time {
-  font-size: 0.75rem;
-  color: #888;
-}
+  .mobile-nav-link {
+    display: block;
+    padding: 1rem;
+    color: #2C3E50;
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 1px solid #e8ecef;
+    transition: all 0.2s ease;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+  }
 
-.notif-empty {
-  text-align: center;
-  padding: 1rem;
-  color: #777;
-}
+  .mobile-nav-link:hover {
+    background: rgba(255, 107, 53, 0.1);
+    color: #FF6B35;
+  }
 
-.notif-close {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  font-size: 0.75rem;
-  color: #2C3E50;
-  cursor: pointer;
-}
+  .mobile-nav-link.logout-link {
+    color: #dc3545;
+  }
 
-</style>
+  .mobile-nav-link.logout-link:hover {
+    background: rgba(220, 53, 69, 0.1);
+  }
+
+  .mobile-menu-divider {
+    height: 1px;
+    background: #e8ecef;
+    margin: 1rem 0;
+  }
+
+  .mobile-user-section {
+    margin-bottom: 1rem;
+  }
+
+  .mobile-profile-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    background: rgba(255, 107, 53, 0.05);
+    border-radius: 0.5rem;
+  }
+
+  .mobile-profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #FF6B35;
+  }
+
+  .mobile-user-name {
+    font-weight: 600;
+    color: #2C3E50;
+  }
+
+  .mobile-signup {
+    background: #FF6B35;
+    color: white !important;
+    margin-top: 0.5rem;
+  }
+
+  .mobile-signup:hover {
+    background: #FF5722;
+  }
+
+  /* Desktop Responsive */
+  @media (max-width: 991px) {
+    .navbar-toggler {
+      display: block;
+    }
+
+    .navbar-links {
+      display: none;
+    }
+
+    .mobile-menu {
+      display: block;
+    }
+
+    .desktop-actions {
+      display: none !important;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .navbar-custom {
+      padding: 1rem;
+    }
+
+    .navbar-left {
+      gap: 1rem;
+    }
+
+    .brand-text {
+      font-size: 1.1rem;
+    }
+
+    .mobile-menu {
+      width: 100%;
+      right: -100%;
+    }
+
+    .btn-signup {
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+    }
+  }
+
+  .d-none {
+    display: none !important;
+  }
+
+  .d-flex {
+    display: flex !important;
+  }
+
+  .notification-container {
+    position: relative;
+  }
+
+  .notification-btn {
+    position: relative;
+    background: #fff;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .notification-btn:hover {
+    transform: scale(1.05);
+  }
+
+  .bell-icon {
+    font-size: 1.4rem;
+    color: #4a5568;
+  }
+
+  .notification-count {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: bold;
+    border-radius: 999px;
+    height: 18px;
+    width: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .notification-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    min-width: 380px;
+    padding: 0.5rem;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+  }
+
+  /* --- Transition --- */
+  .fade-scale-enter-active,
+  .fade-scale-leave-active {
+    transition: all 0.2s ease;
+  }
+  .fade-scale-enter-from,
+  .fade-scale-leave-to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  /* --- Header --- */
+  .notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .notification-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .close-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #6b7280;
+  }
+
+  /* --- Body --- */
+  .notification-body {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .notification-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .notification-item {
+    display: flex;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .notification-item:hover {
+    background: #f8fafc;
+  }
+
+  .notification-item.unread {
+    background: #eef6ff;
+  }
+
+  /* --- Icons --- */
+  .notification-icon-box {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .notification-icon-box.success {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+  .notification-icon-box.error {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+  .notification-icon-box.info {
+    background: #dbeafe;
+    color: #2563eb;
+  }
+
+  /* --- Texts --- */
+  .notification-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .notification-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+    color: #111827;
+    font-size: 0.9rem;
+  }
+
+  .notification-dot {
+    width: 8px;
+    height: 8px;
+    background: #2563eb;
+    border-radius: 50%;
+    margin-left: 6px;
+  }
+
+  .notification-message {
+    font-size: 0.85rem;
+    color: #4b5563;
+    margin-top: 4px;
+  }
+
+  .notification-time {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-top: 6px;
+  }
+
+  /* --- Empty State --- */
+  .notification-empty {
+    text-align: center;
+    padding: 32px 16px;
+    color: #6b7280;
+  }
+
+  .empty-icon {
+    font-size: 2rem;
+    color: #d1d5db;
+    margin-bottom: 8px;
+  }
+
+  .empty-title {
+    font-weight: 500;
+  }
+
+  .empty-sub {
+    font-size: 0.85rem;
+    color: #9ca3af;
+  }
+
+  /* --- Footer --- */
+  .notification-footer {
+    padding: 10px;
+    border-top: 1px solid #e2e8f0;
+    background: #f9fafb;
+  }
+
+  .mark-all-btn {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #2563eb;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .mark-all-btn:hover {
+    color: #1e40af;
+  }
+
+  </style>
