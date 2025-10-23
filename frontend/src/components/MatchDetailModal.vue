@@ -176,11 +176,8 @@ export default {
     currentPlayers() {
       return this.matchPlayers.length;
     },
-    async maxPlayers() {
-      // Extract from match.players string (e.g., "7/8")
-      // const parts = this.match.players.split('/');
-      // return parseInt(parts[1]) || 8;
-      
+    maxPlayers() {
+      return this.match.total_player_count;
     },
     spotsRemaining() {
       return this.maxPlayers - this.currentPlayers;
