@@ -1010,14 +1010,17 @@
     width: 100%;
     background: transparent;
     border: none;
-    color: #2563eb;
+    color: #316ef1;
     font-weight: 500;
     cursor: pointer;
-    transition: color 0.2s;
+    transition: transform 0.15s ease; /* smooth pop effect */
+    padding: 0.5rem;
+    border-radius: 0.25rem;
   }
 
   .mark-all-btn:hover {
-    color: #1e40af;
+    color: #0641c0;
+    transform: scale(1.05);
   }
 
   </style>
