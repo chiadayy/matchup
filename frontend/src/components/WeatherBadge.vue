@@ -1,5 +1,66 @@
 <template>
-  <div style="
+  <!-- Compact Inline Weather Tag -->
+  <div
+    v-if="compact"
+    class="weather-compact"
+    @mouseenter="showExpanded = true"
+    @mouseleave="showExpanded = false"
+  >
+    <div v-if="loading" class="weather-compact-content">
+      <span class="weather-loading">⏳</span>
+      <span class="weather-compact-text">Loading...</span>
+    </div>
+    <div v-else-if="error" class="weather-compact-content weather-error">
+      <span>⚠️ Weather unavailable</span>
+    </div>
+    <div v-else-if="weather" class="weather-compact-content">
+      <span class="weather-icon-small">{{ getWeatherEmoji(weather.description) }}</span>
+      <span class="weather-temp-compact">{{ weather.temp }}°C</span>
+      <span class="weather-divider">|</span>
+      <span class="weather-desc-compact">{{ weather.description }}</span>
+      <span class="weather-divider">|</span>
+      <span class="weather-humidity-compact">{{ weather.humidity }}% humidity</span>
+      <span v-if="weather.rain > 30" class="weather-rain-indicator" :class="getRainClass(weather.rain)">
+        💧 {{ weather.rain }}%
+      </span>
+    </div>
+    <div v-else class="weather-compact-content">
+      <span>🌤️ No data</span>
+    </div>
+
+    <!-- Expanded Weather Card (shown on hover) -->
+    <Transition name="weather-expand">
+      <div
+        v-if="showExpanded && weather"
+        class="weather-expanded-card"
+        @mouseenter="showExpanded = true"
+        @mouseleave="showExpanded = false"
+      >
+        <div class="weather-expanded-header">
+          <AnimatedWeatherIcon :condition="weather.description" />
+          <div class="weather-expanded-temp">{{ weather.temp }}°C</div>
+        </div>
+        <div class="weather-expanded-details">
+          <div class="weather-detail-item">
+            <span class="detail-icon">💧</span>
+            <span class="detail-label">Rain</span>
+            <span class="detail-value">{{ weather.rain }}%</span>
+          </div>
+          <div class="weather-detail-item">
+            <span class="detail-icon">💨</span>
+            <span class="detail-label">Humidity</span>
+            <span class="detail-value">{{ weather.humidity }}%</span>
+          </div>
+        </div>
+        <div v-if="weather.message" class="weather-expanded-message">
+          {{ weather.message }}
+        </div>
+      </div>
+    </Transition>
+  </div>
+
+  <!-- Full Weather Card (Original) -->
+  <div v-else style="
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 24px;
     border-radius: 20px;
@@ -127,8 +188,30 @@ const props = defineProps({
   lat: { type: Number, required: true },
   lon: { type: Number, required: true },
   eventTimeISO: { type: String, required: true },
-  locationName: { type: String, default: '' }
+  locationName: { type: String, default: '' },
+  compact: { type: Boolean, default: false }
 })
+
+const showExpanded = ref(false)
+
+// Helper: Get weather emoji based on description
+const getWeatherEmoji = (description) => {
+  const desc = description.toLowerCase()
+  if (desc.includes('rain') || desc.includes('drizzle')) return '🌧️'
+  if (desc.includes('cloud')) return '☁️'
+  if (desc.includes('clear')) return '☀️'
+  if (desc.includes('snow')) return '❄️'
+  if (desc.includes('thunder')) return '⛈️'
+  if (desc.includes('mist') || desc.includes('fog')) return '🌫️'
+  return '🌤️'
+}
+
+// Helper: Get rain severity class
+const getRainClass = (rainPercent) => {
+  if (rainPercent >= 70) return 'rain-high'
+  if (rainPercent >= 40) return 'rain-medium'
+  return 'rain-low'
+}
 
 const loading = ref(false)
 const error = ref(null)
@@ -213,6 +296,183 @@ watch(() => [props.lat, props.lon, props.eventTimeISO], async () => {
 </script>
 
 <style scoped>
+/* Compact Weather Tag Styles */
+.weather-compact {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.weather-compact-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.weather-compact:hover .weather-compact-content {
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  box-shadow: 0 2px 8px rgba(3, 105, 161, 0.15);
+  transform: translateY(-1px);
+}
+
+.weather-icon-small {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.weather-temp-compact {
+  font-weight: 700;
+  color: #0c4a6e;
+}
+
+.weather-divider {
+  color: #7dd3fc;
+  font-weight: 400;
+}
+
+.weather-desc-compact {
+  text-transform: capitalize;
+  color: #0369a1;
+}
+
+.weather-humidity-compact {
+  color: #0284c7;
+}
+
+.weather-rain-indicator {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  margin-left: 4px;
+}
+
+.weather-rain-indicator.rain-high {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+.weather-rain-indicator.rain-medium {
+  background: rgba(251, 191, 36, 0.15);
+  color: #d97706;
+}
+
+.weather-rain-indicator.rain-low {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+
+.weather-loading {
+  animation: spin 1s linear infinite;
+}
+
+.weather-error {
+  background: rgba(254, 226, 226, 1);
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.weather-compact-text {
+  font-size: 0.75rem;
+}
+
+/* Expanded Weather Card */
+.weather-expanded-card {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 1000;
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  min-width: 280px;
+  border: 1px solid #e5e7eb;
+}
+
+.weather-expanded-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.weather-expanded-temp {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+.weather-expanded-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.weather-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+
+.detail-icon {
+  font-size: 1.25rem;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.weather-expanded-message {
+  padding: 12px 16px;
+  background: rgba(251, 191, 36, 0.1);
+  border-left: 4px solid #fbbf24;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
+/* Transition Animations */
+.weather-expand-enter-active,
+.weather-expand-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.weather-expand-enter-from {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
+.weather-expand-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
+
 @keyframes shimmer {
   0%, 100% {
     opacity: 0.5;

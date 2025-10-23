@@ -13,6 +13,97 @@
         </div>
       </div>
 
+      <!-- Smart Suggestion Shortcuts -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="smart-shortcuts">
+            <h6 class="shortcuts-label">Quick Discover</h6>
+            <div class="shortcuts-container">
+              <button
+                class="shortcut-btn"
+                :class="{ active: activeShortcut === 'trending' }"
+                @click="applyShortcut('trending')"
+              >
+                <span class="shortcut-icon">🔥</span>
+                <span class="shortcut-text">Trending Now</span>
+              </button>
+              <button
+                class="shortcut-btn"
+                :class="{ active: activeShortcut === 'free' }"
+                @click="applyShortcut('free')"
+              >
+                <span class="shortcut-icon">💸</span>
+                <span class="shortcut-text">Free Matches</span>
+              </button>
+              <button
+                class="shortcut-btn"
+                :class="{ active: activeShortcut === 'almost-full' }"
+                @click="applyShortcut('almost-full')"
+              >
+                <span class="shortcut-icon">🧍</span>
+                <span class="shortcut-text">Almost Full</span>
+              </button>
+              <button
+                class="shortcut-btn"
+                :class="{ active: activeShortcut === 'starting-soon' }"
+                @click="applyShortcut('starting-soon')"
+              >
+                <span class="shortcut-icon">🕒</span>
+                <span class="shortcut-text">Starting Soon</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Filter Tags -->
+      <div v-if="hasActiveFilters" class="row mb-3">
+        <div class="col-12">
+          <div class="active-filters">
+            <span class="active-filters-label">Filters:</span>
+            <div class="filter-tags">
+              <span
+                v-for="sport in selectedSports"
+                :key="'sport-' + sport"
+                class="filter-tag"
+                @click="removeSportFilter(sport)"
+              >
+                {{ getSportIcon(sport) }} {{ sport }} <span class="tag-remove">×</span>
+              </span>
+              <span
+                v-if="skillLevel"
+                class="filter-tag"
+                @click="skillLevel = ''; filterMatches()"
+              >
+                {{ skillLevel }} <span class="tag-remove">×</span>
+              </span>
+              <span
+                v-if="location"
+                class="filter-tag"
+                @click="location = ''; locationSearch = ''; filterMatches()"
+              >
+                📍 {{ location }} <span class="tag-remove">×</span>
+              </span>
+              <span
+                v-if="!location && locationSearch.trim()"
+                class="filter-tag"
+                @click="locationSearch = ''; filterMatches()"
+              >
+                🔍 "{{ locationSearch }}" <span class="tag-remove">×</span>
+              </span>
+              <span
+                v-for="price in priceFilter"
+                :key="'price-' + price"
+                class="filter-tag"
+                @click="removePriceFilter(price)"
+              >
+                {{ price === 'Free' ? '💸' : '💰' }} {{ price }} <span class="tag-remove">×</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="row">
         <!-- Sidebar Filters -->
         <div class="col-lg-3 col-md-4">
@@ -22,57 +113,122 @@
               <a class="clear-filters" @click="clearFilters">Clear All</a>
             </div>
 
-            <!-- Sport Type Filter -->
+            <!-- Icon-Based Sport Type Filter -->
             <div class="filter-section">
               <label class="fw-600">Sport Type</label>
-              <div class="form-check" v-for="sport in sports" :key="sport">
-                <input 
-                  class="form-check-input" 
-                  type="checkbox" 
-                  :value="sport" 
-                  :id="sport.toLowerCase()"
-                  v-model="selectedSports"
-                  @change="filterMatches"
+              <div class="sport-pills">
+                <button
+                  v-for="sport in sportsWithIcons"
+                  :key="sport.name"
+                  class="sport-pill"
+                  :class="{ active: selectedSports.includes(sport.name) }"
+                  @click="toggleSport(sport.name)"
                 >
-                <label class="form-check-label" :for="sport.toLowerCase()">{{ sport }}</label>
+                  <span class="sport-pill-icon">{{ sport.icon }}</span>
+                  <span class="sport-pill-text">{{ sport.name }}</span>
+                </button>
               </div>
             </div>
 
             <!-- Skill Level Filter -->
             <div class="filter-section">
               <label class="fw-600">Skill Level</label>
-              <select class="form-select" v-model="skillLevel" @change="filterMatches">
-                <option value="">All Levels</option>
-                <option value="Any Level">Any Level</option>
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
-              </select>
+              <div class="pill-group">
+                <button
+                  v-for="level in skillLevels"
+                  :key="level"
+                  class="filter-pill"
+                  :class="{ active: skillLevel === level }"
+                  @click="skillLevel = level; filterMatches()"
+                >
+                  {{ level }}
+                </button>
+                <button
+                  class="filter-pill"
+                  :class="{ active: skillLevel === '' }"
+                  @click="skillLevel = ''; filterMatches()"
+                >
+                  All Levels
+                </button>
+              </div>
             </div>
 
-            <!-- Location Filter -->
+            <!-- Location Filter (Hybrid) -->
             <div class="filter-section">
               <label class="fw-600">Location</label>
-              <select class="form-select" v-model="location" @change="filterMatches">
-                <option value="">All Locations</option>
-                <option value="Hougang">Hougang</option>
-                <option value="Sengkang">Sengkang</option>
-                <option value="Punggol">Punggol</option>
-                <option value="Tampines">Tampines</option>
-                <option value="Bedok">Bedok</option>
-              </select>
+
+              <!-- Search Bar -->
+              <div class="location-search-wrapper">
+                <input
+                  type="text"
+                  class="location-search-input"
+                  placeholder="🔍 Search by area or venue..."
+                  v-model="locationSearch"
+                  @input="handleLocationSearch"
+                  @focus="showLocationSuggestions = true"
+                  @blur="hideLocationSuggestions"
+                />
+
+                <!-- Auto-complete Dropdown -->
+                <div v-if="showLocationSuggestions && filteredLocationSuggestions.length > 0"
+                     class="location-suggestions">
+                  <div
+                    v-for="suggestion in filteredLocationSuggestions"
+                    :key="suggestion"
+                    class="location-suggestion-item"
+                    @mousedown.prevent="selectLocationSuggestion(suggestion)"
+                  >
+                    📍 {{ suggestion }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Pick Chips -->
+              <div class="pill-group mt-2">
+                <button
+                  class="filter-pill"
+                  :class="{ active: location === 'Near Me' }"
+                  @click="selectNearMe()"
+                >
+                  🏠 Near Me
+                </button>
+                <button
+                  v-for="loc in locations"
+                  :key="loc"
+                  class="filter-pill"
+                  :class="{ active: location === loc }"
+                  @click="location = loc; locationSearch = ''; filterMatches()"
+                >
+                  {{ loc }}
+                </button>
+                <button
+                  class="filter-pill"
+                  :class="{ active: location === '' && locationSearch === '' }"
+                  @click="location = ''; locationSearch = ''; filterMatches()"
+                >
+                  All
+                </button>
+              </div>
             </div>
 
             <!-- Price Filter -->
             <div class="filter-section">
               <label class="fw-600">Price</label>
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="Free" id="free" v-model="priceFilter" @change="filterMatches">
-                <label class="form-check-label" for="free">Free</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="Paid" id="paid" v-model="priceFilter" @change="filterMatches">
-                <label class="form-check-label" for="paid">Paid</label>
+              <div class="pill-group">
+                <button
+                  class="filter-pill"
+                  :class="{ active: priceFilter.includes('Free') }"
+                  @click="togglePrice('Free')"
+                >
+                  💸 Free
+                </button>
+                <button
+                  class="filter-pill"
+                  :class="{ active: priceFilter.includes('Paid') }"
+                  @click="togglePrice('Paid')"
+                >
+                  💰 Paid
+                </button>
               </div>
             </div>
 
@@ -114,13 +270,14 @@
                 </span>
               </div>
 
-              <!-- Weather Badge -->
+              <!-- Compact Weather Tag -->
               <div class="weather-section" @click.stop>
                 <WeatherBadge
                   :lat="getMatchCoords(match.location).lat"
                   :lon="getMatchCoords(match.location).lng"
                   :eventTimeISO="getMatchISO(match)"
                   :locationName="match.location"
+                  :compact="true"
                 />
               </div>
 
@@ -225,16 +382,43 @@ export default {
       currentPage: 1,
       itemsPerPage: 8,
       sports: ['Basketball', 'Tennis', 'Football', 'Badminton'],
+      sportsWithIcons: [
+        { name: 'Basketball', icon: '🏀' },
+        { name: 'Tennis', icon: '🎾' },
+        { name: 'Football', icon: '⚽' },
+        { name: 'Badminton', icon: '🏸' }
+      ],
+      skillLevels: ['Any Level', 'Beginner', 'Intermediate', 'Advanced'],
+      locations: ['Hougang', 'Sengkang', 'Punggol', 'Tampines', 'Bedok'],
       selectedSports: [],
       skillLevel: '',
       location: '',
       priceFilter: [],
       sortBy: 'date',
-      
+      activeShortcut: null,
+      isFiltering: false,
+
+      // Location search
+      locationSearch: '',
+      showLocationSuggestions: false,
+      allLocationSuggestions: [
+        // Pre-set locations
+        'Hougang', 'Sengkang', 'Punggol', 'Tampines', 'Bedok',
+        // Additional areas
+        'Woodlands', 'Yishun', 'Ang Mo Kio', 'Bishan', 'Toa Payoh',
+        'Novena', 'Orchard', 'Marina Bay', 'Bugis', 'Chinatown',
+        'Jurong East', 'Clementi', 'Bukit Timah', 'Newton', 'Outram',
+        // Venues
+        'Sports Hub', 'Kallang Stadium', 'OCBC Arena', 'Singapore Indoor Stadium',
+        'ActiveSG Courts', 'Heartbeat@Bedok', 'Our Tampines Hub', 'Woodlands Stadium',
+        'Choa Chu Kang Stadium', 'Bishan Stadium', 'Jurong East Sports Centre',
+        'Toa Payoh Sports Hall', 'Delta Sports Complex', 'Hougang Sports Hall'
+      ],
+
       // Modal state
       showMatchDetail: false,
       selectedMatch: null,
-      
+
       // Current user (replace with real auth)
       currentUser: {
         id: '1',
@@ -244,6 +428,23 @@ export default {
     }
   },
   computed: {
+    hasActiveFilters() {
+      const hasSkillFilter = this.skillLevel && this.skillLevel !== '' && this.skillLevel !== 'Any Level';
+      const hasLocationFilter = this.location !== '' || this.locationSearch.trim() !== '';
+      return this.selectedSports.length > 0 ||
+             hasSkillFilter ||
+             hasLocationFilter ||
+             this.priceFilter.length > 0;
+    },
+    filteredLocationSuggestions() {
+      if (!this.locationSearch.trim()) {
+        return this.allLocationSuggestions.slice(0, 8);
+      }
+      const query = this.locationSearch.toLowerCase();
+      return this.allLocationSuggestions
+        .filter(loc => loc.toLowerCase().includes(query))
+        .slice(0, 8);
+    },
     totalPages() {
       return Math.ceil(this.filteredMatches.length / this.itemsPerPage)
     },
@@ -321,6 +522,11 @@ export default {
 
       if (this.location) {
         this.filteredMatches = this.filteredMatches.filter(m => m.location === this.location)
+      } else if (this.locationSearch.trim()) {
+        const query = this.locationSearch.toLowerCase();
+        this.filteredMatches = this.filteredMatches.filter(m =>
+          m.location.toLowerCase().includes(query)
+        )
       }
 
       if (this.priceFilter.length > 0) {
@@ -348,11 +554,136 @@ export default {
       this.selectedSports = []
       this.skillLevel = ''
       this.location = ''
+      this.locationSearch = ''
       this.priceFilter = []
       this.sortBy = 'date'
+      this.activeShortcut = null
       this.filterMatches()
     },
-    
+
+    // Location search methods
+    handleLocationSearch() {
+      this.location = '';
+      this.filterMatches();
+    },
+
+    selectLocationSuggestion(suggestion) {
+      this.locationSearch = '';
+      this.location = suggestion;
+      this.showLocationSuggestions = false;
+      this.filterMatches();
+    },
+
+    hideLocationSuggestions() {
+      setTimeout(() => {
+        this.showLocationSuggestions = false;
+      }, 200);
+    },
+
+    selectNearMe() {
+      this.location = 'Near Me';
+      this.locationSearch = '';
+      // In a real app, you'd use geolocation to filter by distance
+      // For now, just set the location
+      this.filterMatches();
+    },
+
+    // Filter toggle methods
+    toggleSport(sport) {
+      const index = this.selectedSports.indexOf(sport);
+      if (index > -1) {
+        this.selectedSports.splice(index, 1);
+      } else {
+        this.selectedSports.push(sport);
+      }
+      this.activeShortcut = null;
+      this.filterMatches();
+    },
+
+    togglePrice(price) {
+      const index = this.priceFilter.indexOf(price);
+      if (index > -1) {
+        this.priceFilter.splice(index, 1);
+      } else {
+        this.priceFilter.push(price);
+      }
+      this.activeShortcut = null;
+      this.filterMatches();
+    },
+
+    removeSportFilter(sport) {
+      this.selectedSports = this.selectedSports.filter(s => s !== sport);
+      this.filterMatches();
+    },
+
+    removePriceFilter(price) {
+      this.priceFilter = this.priceFilter.filter(p => p !== price);
+      this.filterMatches();
+    },
+
+    getSportIcon(sport) {
+      const sportObj = this.sportsWithIcons.find(s => s.name === sport);
+      return sportObj ? sportObj.icon : '🏃';
+    },
+
+    applyShortcut(type) {
+      // Toggle off if clicking the same shortcut
+      if (this.activeShortcut === type) {
+        this.activeShortcut = null;
+        this.clearFilters();
+        return;
+      }
+
+      this.activeShortcut = type;
+
+      // Clear other filters
+      this.selectedSports = [];
+      this.skillLevel = '';
+      this.location = '';
+      this.priceFilter = [];
+
+      switch(type) {
+        case 'trending':
+          // Sort by most players joined (higher capacity filled = trending)
+          this.sortBy = 'date';
+          this.filteredMatches = [...this.allMatches];
+          this.filteredMatches.sort((a, b) => {
+            const aFillRate = parseInt(a.players.split('/')[0]) / parseInt(a.players.split('/')[1]);
+            const bFillRate = parseInt(b.players.split('/')[0]) / parseInt(b.players.split('/')[1]);
+            return bFillRate - aFillRate;
+          });
+          this.currentPage = 1;
+          return;
+
+        case 'free':
+          this.priceFilter = ['Free'];
+          break;
+
+        case 'almost-full':
+          // Filter matches with 75%+ capacity
+          this.filteredMatches = this.allMatches.filter(m => {
+            const [joined, capacity] = m.players.split('/').map(Number);
+            return (joined / capacity) >= 0.75;
+          });
+          this.currentPage = 1;
+          return;
+
+        case 'starting-soon':
+          // Sort by date (earliest first)
+          this.sortBy = 'date';
+          this.filteredMatches = [...this.allMatches];
+          this.filteredMatches.sort((a, b) => {
+            const dateA = new Date(a.date.split('/').reverse().join('-'));
+            const dateB = new Date(b.date.split('/').reverse().join('-'));
+            return dateA - dateB;
+          });
+          this.currentPage = 1;
+          return;
+      }
+
+      this.filterMatches();
+    },
+
     // Modal methods
     openMatchDetail(match) {
       this.selectedMatch = match
@@ -390,16 +721,6 @@ export default {
     },
 
     // Helper methods for enhanced features
-    getSportIcon(sport) {
-      const icons = {
-        'Basketball': '🏀',
-        'Tennis': '🎾',
-        'Football': '⚽',
-        'Badminton': '🏸'
-      };
-      return icons[sport] || '🏃';
-    },
-
     getSportColor(sport) {
       const colors = {
         'Basketball': '#f97316',
@@ -929,5 +1250,331 @@ export default {
 
 .sidebar .form-check-label:hover {
   color: #FF6B35 !important;
+}
+
+/* Smart Shortcuts Styles */
+.smart-shortcuts {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.25);
+}
+
+.shortcuts-label {
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.95;
+}
+
+.shortcuts-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.shortcut-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 24px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+.shortcut-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.shortcut-btn.active {
+  background: white;
+  color: #667eea;
+  border-color: white;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px) scale(1.05);
+}
+
+.shortcut-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.shortcut-text {
+  line-height: 1;
+}
+
+/* Active Filters Tags */
+.active-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 16px;
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  animation: slideInFromTop 0.4s ease;
+}
+
+.active-filters-label {
+  font-weight: 700;
+  color: #856404;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: white;
+  border: 1px solid #ffc107;
+  border-radius: 20px;
+  color: #856404;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  animation: bounceIn 0.3s ease;
+}
+
+.filter-tag:hover {
+  background: #dc3545;
+  color: white;
+  border-color: #dc3545;
+  transform: scale(1.05);
+}
+
+.tag-remove {
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+/* Sport Pills */
+.sport-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.sport-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 24px;
+  color: #4b5563;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sport-pill:hover {
+  border-color: #FF6B35;
+  color: #FF6B35;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
+  transform: translateY(-2px);
+}
+
+.sport-pill.active {
+  background: linear-gradient(135deg, #FF6B35 0%, #ff8c61 100%);
+  border-color: #FF6B35;
+  color: white;
+  box-shadow: 0 6px 16px rgba(255, 107, 53, 0.35);
+  transform: translateY(-2px) scale(1.05);
+  animation: bounceIn 0.3s ease;
+}
+
+.sport-pill-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.sport-pill-text {
+  line-height: 1;
+}
+
+/* Location Search Styles */
+.location-search-wrapper {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.location-search-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  background: white;
+  color: #4b5563;
+}
+
+.location-search-input::placeholder {
+  color: #9ca3af;
+}
+
+.location-search-input:focus {
+  outline: none;
+  border-color: #FF6B35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.location-suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 100;
+  animation: slideDownFade 0.2s ease;
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.location-suggestion-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: #4b5563;
+  font-weight: 500;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.location-suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.location-suggestion-item:hover {
+  background: #fff7ed;
+  color: #FF6B35;
+  padding-left: 18px;
+}
+
+/* Filter Pills (Generic) */
+.pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 20px;
+  color: #4b5563;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.filter-pill:hover {
+  border-color: #FF6B35;
+  color: #FF6B35;
+  box-shadow: 0 3px 10px rgba(255, 107, 53, 0.15);
+  transform: translateY(-1px);
+}
+
+.filter-pill.active {
+  background: #FF6B35;
+  border-color: #FF6B35;
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  transform: translateY(-1px);
+  animation: bounceIn 0.3s ease;
+}
+
+/* Animations */
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Match Cards Fade Animation */
+.match-card {
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
