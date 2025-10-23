@@ -218,20 +218,27 @@ async function updateMarkers(AdvancedMarkerElement) {
   props.games.forEach(game => {
     const position = { lat: game.lat, lng: game.lng }
 
+    // Create a wrapper div for the pin with event handling
+    const pinContainer = document.createElement('div')
+    pinContainer.style.cursor = 'pointer'
+    pinContainer.style.transition = 'transform 0.2s ease'
+
     // Create custom colored pin based on sport
     const pinElement = new PinElement({
       background: game.color || '#3b82f6',
       borderColor: game.color ? adjustColor(game.color, -20) : '#1e40af',
       glyphColor: '#ffffff',
-      glyph: game.icon || '',
+      glyphText: game.icon || '',
       scale: 1.2
     })
+
+    pinContainer.appendChild(pinElement.element)
 
     const marker = new AdvancedMarkerElement({
       map,
       position,
       title: game.title,
-      content: pinElement.element
+      content: pinContainer
     })
 
     // Create info window content
@@ -326,24 +333,32 @@ async function updateMarkers(AdvancedMarkerElement) {
       </div>
     `
 
-    // Add hover effect for pin scale
-    pinElement.element.addEventListener('mouseenter', () => {
-      pinElement.element.style.transform = 'scale(1.3)'
-      pinElement.element.style.transition = 'transform 0.2s ease'
+    // Add hover effect for pin scale using DOM events on the wrapper
+    pinContainer.addEventListener('mouseenter', () => {
+      pinContainer.style.transform = 'scale(1.3)'
+      pinContainer.style.zIndex = '1000'
 
       // Show info window on hover
       infoWindow.setContent(contentString)
-      infoWindow.open(map, marker)
+      infoWindow.open({
+        anchor: marker,
+        map: map,
+        shouldFocus: false
+      })
     })
 
-    pinElement.element.addEventListener('mouseleave', () => {
-      pinElement.element.style.transform = 'scale(1)'
-      // Hide info window when mouse leaves
-      infoWindow.close()
+    pinContainer.addEventListener('mouseleave', () => {
+      pinContainer.style.transform = 'scale(1)'
+      pinContainer.style.zIndex = 'auto'
+
+      // Close info window when mouse leaves
+      setTimeout(() => {
+        infoWindow.close()
+      }, 200)
     })
 
     // Click to select game
-    marker.addListener('click', () => {
+    pinContainer.addEventListener('click', () => {
       window.dispatchEvent(new CustomEvent('game:select', { detail: game }))
     })
 
