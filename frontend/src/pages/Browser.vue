@@ -300,12 +300,18 @@
                   </div>
                 </div>
               </div>
-              <button
+              <!-- <button
                 class="btn-join-match"
                 :class="{ 'pulse-btn': getAvailableSpots(match.current_player_count) < 3 }"
                 @click.stop="handleJoinMatch(match.id)"
+              > -->
+              <button
+                class="btn-join-match"
+                :class="{ 'pulse-btn': getAvailableSpots(match.current_player_count) < 3 }"
+                @click="openMatchDetail(match)"
               >
-                {{ getAvailableSpots(match.current_player_count) === 0 ? 'Full' : 'Join Match' }}
+                <!-- {{ getAvailableSpots(match.current_player_count) === 0 ? 'Full' : 'Join Match' }} -->
+                Join Match
               </button>
             </div>
           </div>
@@ -337,6 +343,7 @@
 
     <!-- Match Detail Modal -->
     <MatchDetailModal
+      v-if="showMatchDetail" 
       :isOpen="showMatchDetail"
       :match="selectedMatch"
       :currentUser="currentUser"
@@ -365,28 +372,6 @@ export default {
   data() {
     return {
       matches: [],
-      allMatches: [
-        { id: 1, sport: "Basketball", skill: "Beginner", location: "Hougang", date: "8/10/25", time: "6pm", price: 0, players: "7/8", organizer: "Alex Chen", description: "Casual basketball game for beginners. Bring your own water!" },
-        { id: 2, sport: "Tennis", skill: "Beginner", location: "Sengkang", date: "8/10/25", time: "7pm", price: 15, players: "2/4", organizer: "Sarah Tan", description: "Evening tennis doubles. Court fees included." },
-        { id: 3, sport: "Basketball", skill: "Beginner", location: "Hougang", date: "8/10/25", time: "6pm", price: 0, players: "7/8", organizer: "Mike Wong" },
-        { id: 4, sport: "Basketball", skill: "Any Level", location: "Hougang", date: "8/10/25", time: "6pm", price: 0, players: "7/8", organizer: "David Lee" },
-        { id: 5, sport: "Football", skill: "Intermediate", location: "Punggol", date: "9/10/25", time: "5pm", price: 10, players: "18/22", organizer: "James Lim" },
-        { id: 6, sport: "Badminton", skill: "Advanced", location: "Tampines", date: "9/10/25", time: "8pm", price: 0, players: "3/4", organizer: "Emma Ng" },
-        { id: 7, sport: "Basketball", skill: "Intermediate", location: "Bedok", date: "10/10/25", time: "7pm", price: 5, players: "9/10", organizer: "Tom Chen" },
-        { id: 8, sport: "Tennis", skill: "Any Level", location: "Hougang", date: "10/10/25", time: "6pm", price: 0, players: "1/4", organizer: "Lisa Wong" },
-        { id: 9, sport: "Football", skill: "Beginner", location: "Sengkang", date: "11/10/25", time: "4pm", price: 12 , players: "15/22", organizer: "Ryan Tan" },
-        { id: 10, sport: "Badminton", skill: "Intermediate", location: "Punggol", date: "11/10/25", time: "9pm", price: 8, players: "2/4", organizer: "Amy Lee" },
-        { id: 11, sport: "Basketball", skill: "Advanced", location: "Tampines", date: "12/10/25", time: "7pm", price: 0, players: "8/10", organizer: "Kevin Ng" },
-        { id: 12, sport: "Tennis", skill: "Intermediate", location: "Bedok", date: "12/10/25", time: "5pm", price: 20, players: "3/4", organizer: "Sophie Tan" },
-        { id: 13, sport: "Football", skill: "Any Level", location: "Hougang", date: "13/10/25", time: "6pm", price: 0, players: "20/22", organizer: "Ben Lim" },
-        { id: 14, sport: "Basketball", skill: "Advanced", location: "Sengkang", date: "13/10/25", time: "8pm", price: 15, players: "6/10", organizer: "Carol Wong" },
-        { id: 15, sport: "Tennis", skill: "Intermediate", location: "Punggol", date: "14/10/25", time: "7pm", price: 10, players: "3/4", organizer: "Daniel Koh" },
-        { id: 16, sport: "Badminton", skill: "Any Level", location: "Tampines", date: "14/10/25", time: "9pm", price: 0, players: "1/4", organizer: "Fiona Ng" },
-        { id: 17, sport: "Football", skill: "Intermediate", location: "Bedok", date: "15/10/25", time: "5pm", price: 18, players: "14/22", organizer: "Gary Lim" },
-        { id: 18, sport: "Basketball", skill: "Beginner", location: "Hougang", date: "15/10/25", time: "6pm", price: 0, players: "5/8", organizer: "Helen Tan" },
-        { id: 19, sport: "Tennis", skill: "Advanced", location: "Sengkang", date: "16/10/25", time: "7pm", price: 25, players: "2/4", organizer: "Ian Chen" },
-        { id: 20, sport: "Badminton", skill: "Any Level", location: "Punggol", date: "16/10/25", time: "8pm", price: 12, players: "3/4", organizer: "Julia Wong" }
-      ],
       filteredMatches: [],
       currentPage: 1,
       itemsPerPage: 8,
@@ -532,8 +517,6 @@ export default {
           return;
         } 
         else {
-          console.log("hi");
-          console.log(data);
           this.matches = data;
         }
       }
@@ -737,10 +720,10 @@ export default {
 
     // Modal methods
     openMatchDetail(match) {
-      this.selectedMatch = match
-      this.showMatchDetail = true
-      // Prevent body scroll when modal is open
-      document.body.style.overflow = 'hidden'
+        this.selectedMatch = match;
+        this.showMatchDetail = true;
+
+        document.body.style.overflow = 'hidden';
     },
     closeMatchDetail() {
       this.showMatchDetail = false
