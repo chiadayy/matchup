@@ -262,7 +262,7 @@
 
               <div class="match-header">
                 <div>
-                  <h3 class="match-title">{{ match.id }} Match</h3>
+                  <h3 class="match-title">{{ match.name }}</h3>
                   <p class="sport-type">{{ match.sport_type }}</p>
                 </div>
                 <span :class="['match-price', match.total_price === 0 ? 'price-free' : 'price-paid']">
@@ -300,12 +300,17 @@
                   </div>
                 </div>
               </div>
-              <button
+              <!-- <button
                 class="btn-join-match"
                 :class="{ 'pulse-btn': getAvailableSpots(match.current_player_count) < 3 }"
                 @click.stop="handleJoinMatch(match.id)"
+              > -->
+              <button
+                class="btn-join-match"
+                :class="{ 'pulse-btn': getAvailableSpots(match.current_player_count) < 3 }"
+                @click="openMatchDetail(match)"
               >
-                {{ getAvailableSpots(match.current_player_count) === 0 ? 'Full' : 'Join Match' }}
+                {{ getAvailableSpots(match) === 0 ? 'Full' : 'Join Match' }}
               </button>
             </div>
           </div>
@@ -337,6 +342,7 @@
 
     <!-- Match Detail Modal -->
     <MatchDetailModal
+      v-if="showMatchDetail" 
       :isOpen="showMatchDetail"
       :match="selectedMatch"
       :currentUser="currentUser"
@@ -365,28 +371,6 @@ export default {
   data() {
     return {
       matches: [],
-      allMatches: [
-        { id: 1, sport: "Basketball", skill: "Beginner", location: "Hougang", date: "8/10/25", time: "6pm", price: 0, players: "7/8", organizer: "Alex Chen", description: "Casual basketball game for beginners. Bring your own water!" },
-        { id: 2, sport: "Tennis", skill: "Beginner", location: "Sengkang", date: "8/10/25", time: "7pm", price: 15, players: "2/4", organizer: "Sarah Tan", description: "Evening tennis doubles. Court fees included." },
-        { id: 3, sport: "Basketball", skill: "Beginner", location: "Hougang", date: "8/10/25", time: "6pm", price: 0, players: "7/8", organizer: "Mike Wong" },
-        { id: 4, sport: "Basketball", skill: "Any Level", location: "Hougang", date: "8/10/25", time: "6pm", price: 0, players: "7/8", organizer: "David Lee" },
-        { id: 5, sport: "Football", skill: "Intermediate", location: "Punggol", date: "9/10/25", time: "5pm", price: 10, players: "18/22", organizer: "James Lim" },
-        { id: 6, sport: "Badminton", skill: "Advanced", location: "Tampines", date: "9/10/25", time: "8pm", price: 0, players: "3/4", organizer: "Emma Ng" },
-        { id: 7, sport: "Basketball", skill: "Intermediate", location: "Bedok", date: "10/10/25", time: "7pm", price: 5, players: "9/10", organizer: "Tom Chen" },
-        { id: 8, sport: "Tennis", skill: "Any Level", location: "Hougang", date: "10/10/25", time: "6pm", price: 0, players: "1/4", organizer: "Lisa Wong" },
-        { id: 9, sport: "Football", skill: "Beginner", location: "Sengkang", date: "11/10/25", time: "4pm", price: 12 , players: "15/22", organizer: "Ryan Tan" },
-        { id: 10, sport: "Badminton", skill: "Intermediate", location: "Punggol", date: "11/10/25", time: "9pm", price: 8, players: "2/4", organizer: "Amy Lee" },
-        { id: 11, sport: "Basketball", skill: "Advanced", location: "Tampines", date: "12/10/25", time: "7pm", price: 0, players: "8/10", organizer: "Kevin Ng" },
-        { id: 12, sport: "Tennis", skill: "Intermediate", location: "Bedok", date: "12/10/25", time: "5pm", price: 20, players: "3/4", organizer: "Sophie Tan" },
-        { id: 13, sport: "Football", skill: "Any Level", location: "Hougang", date: "13/10/25", time: "6pm", price: 0, players: "20/22", organizer: "Ben Lim" },
-        { id: 14, sport: "Basketball", skill: "Advanced", location: "Sengkang", date: "13/10/25", time: "8pm", price: 15, players: "6/10", organizer: "Carol Wong" },
-        { id: 15, sport: "Tennis", skill: "Intermediate", location: "Punggol", date: "14/10/25", time: "7pm", price: 10, players: "3/4", organizer: "Daniel Koh" },
-        { id: 16, sport: "Badminton", skill: "Any Level", location: "Tampines", date: "14/10/25", time: "9pm", price: 0, players: "1/4", organizer: "Fiona Ng" },
-        { id: 17, sport: "Football", skill: "Intermediate", location: "Bedok", date: "15/10/25", time: "5pm", price: 18, players: "14/22", organizer: "Gary Lim" },
-        { id: 18, sport: "Basketball", skill: "Beginner", location: "Hougang", date: "15/10/25", time: "6pm", price: 0, players: "5/8", organizer: "Helen Tan" },
-        { id: 19, sport: "Tennis", skill: "Advanced", location: "Sengkang", date: "16/10/25", time: "7pm", price: 25, players: "2/4", organizer: "Ian Chen" },
-        { id: 20, sport: "Badminton", skill: "Any Level", location: "Punggol", date: "16/10/25", time: "8pm", price: 12, players: "3/4", organizer: "Julia Wong" }
-      ],
       filteredMatches: [],
       currentPage: 1,
       itemsPerPage: 8,
@@ -484,19 +468,13 @@ export default {
         const coords = { lat: match.latitude, lng: match.longitude } || { lat: 1.3521, lng: 103.8198 };
         const config = sportConfig[match.sport] || { icon: '🏃', color: '#3b82f6' };
 
-        // Parse players "7/8" to joined and capacity
-        // const [joined, capacity] = match.total_player_count.split('/').map(Number);
         const [joined, capacity] = "7/8".split('/').map(Number);
 
         // Create ISO timestamp from date and time
         const dateStr = match.date; // "2025-10-20" 
         const timeStr = match.time // "14:00:00"
         const [year, month, date] = dateStr.split('-').map(Number);
-        // const hour = timeStr.includes('pm') && !timeStr.startsWith('12')
-        //   ? parseInt(timeStr) + 12
-        //   : parseInt(timeStr);
-        // const startTimeISO = new Date(2000 + year, month - 1, day, hour, 0).toISOString();
-        const startTimeISO = new Date(`${match.date}T${match.time}`).toISOString();
+        const startTimeISO = new Date(`${dateStr}T${timeStr}`).toISOString();
 
         return {
           id: match.id,
@@ -532,8 +510,6 @@ export default {
           return;
         } 
         else {
-          console.log("hi");
-          console.log(data);
           this.matches = data;
         }
       }
@@ -737,10 +713,10 @@ export default {
 
     // Modal methods
     openMatchDetail(match) {
-      this.selectedMatch = match
-      this.showMatchDetail = true
-      // Prevent body scroll when modal is open
-      document.body.style.overflow = 'hidden'
+        this.selectedMatch = match;
+        this.showMatchDetail = true;
+        // prevent scrolling
+        document.body.style.overflow = 'hidden';
     },
     closeMatchDetail() {
       this.showMatchDetail = false
@@ -797,21 +773,18 @@ export default {
       const dateStr = match.date;
       const timeStr = match.time;
       const [year, month, date] = dateStr.split('/').map(Number);
-      // const hour = timeStr.includes('pm') && !timeStr.startsWith('12')
-      //   ? parseInt(timeStr) + 12
-      //   : parseInt(timeStr);
-      // return new Date(2000 + year, month - 1, day, hour, 0).toISOString();
       const startTimeISO = new Date(`${dateStr}T${timeStr}`).toISOString();
       return startTimeISO;
     },
 
-    getPlayerPercentage(players) {
-      const [joined, capacity] = "7/8".split('/').map(Number);
-      return (joined / capacity) * 100;
+    getPlayerPercentage(match) {
+      const joined = match.current_player_count;
+      return joined * 100;
     },
 
-    getAvailableSpots(players) {
-      const [joined, capacity] = "7/8".split('/').map(Number);
+    getAvailableSpots(match) {
+      const capacity = match.total_player_count;
+      const joined = match.current_player_count;
       return capacity - joined;
     }
   },
@@ -1027,6 +1000,7 @@ export default {
 
 .match-header {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
   align-items: start;
   margin-bottom: 15px;

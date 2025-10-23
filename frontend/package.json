@@ -9,11 +9,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fullcalendar/bootstrap5": "^6.1.19",
+    "@fullcalendar/core": "^6.1.19",
+    "@fullcalendar/daygrid": "^6.1.19",
+    "@fullcalendar/interaction": "^6.1.19",
+    "@fullcalendar/vue3": "^6.1.19",
     "@googlemaps/js-api-loader": "^2.0.1",
     "@stripe/stripe-js": "^8.1.0",
     "@supabase/supabase-js": "^2.75.0",
     "axios": "^1.12.2",
     "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.1",
     "talkjs": "^0.42.1",
     "vue": "^3.5.22",
     "vue-router": "^4.5.1"

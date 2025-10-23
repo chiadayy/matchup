@@ -9,10 +9,10 @@
       <!-- Modal Header -->
       <div class="modal-header">
         <div class="modal-title-section">
-          <span class="sport-icon">{{ getSportIcon(match.sport_level) }}</span>
+          <span class="sport-icon">{{ getSportIcon(match.sport_type) }}</span>
           <div>
-            <h2 class="modal-title">{{ match.sport_level }} Match</h2>
-            <!-- <p class="modal-subtitle">Match #{{ match.id }}</p> -->
+            <h2 class="modal-title">{{ match.name }}</h2>
+            <p class="modal-subtitle">Match #{{ match.id }}</p>
           </div>
         </div>
         <button class="close-btn" @click="closeModal">×</button>
@@ -63,29 +63,31 @@
         <!-- Players List -->
         <div class="players-card">
           <h3 class="section-title">
-            <!-- Players ({{ matchPlayers.length }}) -->
-            Players ({{ match.total_player_count }})
+            Players ({{ matchPlayers.length }})
             <!-- <span class="organizer-badge" v-if="match.organizer">Organized by {{ match.organizer }}</span> -->
           </h3>
           
-          <!-- <div class="players-list">
+          <div class="players-list">
             <div 
               v-for="player in matchPlayers" 
               :key="player.id"
               class="player-item"
             >
               <div class="player-info">
-                <img :src="player.profilePic" :alt="player.name" class="player-avatar">
+                <img :src="player.profile_image" :alt="player.name" class="player-avatar">
                 <div class="player-details">
                   <div class="player-name">
-                    {{ player.name }}
+                    {{ player.profiles.name }}
                     <span v-if="player.isOrganizer" class="badge badge-organizer">Organizer</span>
                   </div>
                   <div class="player-stats">
-                    <span class="attendance-rate" :class="getAttendanceClass(player.attendance)">
-                      {{ player.attendance }}% attendance
+                    <!-- <span class="attendance-rate" :class="getAttendanceClass(player.attendance)"> -->
+                    <span class="attendance-rate" :class="getAttendanceClass(90)">
+                      <!-- {{ player.attendance }}% attendance -->
+                      90% attendance
                     </span>
-                    <span class="player-level">{{ player.skillLevel }}</span>
+                    <!-- <span class="player-level">{{ player.skillLevel }}</span> -->
+                    <span class="player-level">Excellent</span>
                   </div>
                 </div>
               </div>
@@ -97,7 +99,7 @@
               >
                 💬
               </button>
-            </div> -->
+            </div>
 
             <!-- Empty Slots -->
             <!-- <div 
@@ -111,15 +113,15 @@
                   <div class="player-name text-muted">Waiting for player...</div>
                 </div>
               </div>
-            </div>
-          </div> -->
+            </div> -->
+          </div>
         </div>
 
         <!-- Match Description -->
-        <div v-if="match.description" class="description-card">
+        <!-- <div v-if="match.description" class="description-card">
           <h3 class="section-title">Description</h3>
           <p class="match-description">{{ match.description }}</p>
-        </div>
+        </div> -->
       </div>
 
       <!-- Modal Footer -->
@@ -142,6 +144,9 @@
 </template>
 
 <script>
+// import { match } from 'assert';
+import { supabase } from '@/lib/supabase'
+
 export default {
   name: 'MatchDetailModal',
   props: {
@@ -172,9 +177,7 @@ export default {
       return this.matchPlayers.length;
     },
     maxPlayers() {
-      // Extract from match.players string (e.g., "7/8")
-      const parts = this.match.players.split('/');
-      return parseInt(parts[1]) || 8;
+      return this.match.total_player_count;
     },
     spotsRemaining() {
       return this.maxPlayers - this.currentPlayers;
@@ -190,6 +193,27 @@ export default {
     }
   },
   methods: {
+    async getPlayers() {
+      try {
+        const { data, error } = await supabase
+        .from('users_matches')
+        .select(`*, profiles(*)`)
+        .eq("match_id", this.match.id);
+
+        if (error) {
+          console.error("Failed to fetch players data", error);
+          return;
+        }
+        else {
+          console.log(data);
+          this.matchPlayers = data;
+        }
+      }
+      catch (err) {
+        console.error("Unexpected error:", err);
+      }
+
+    }, 
     closeModal() {
       this.$emit('close');
     },
@@ -266,24 +290,24 @@ export default {
         }
       }
     },
-    async fetchMatchPlayers() {
-      try {
-        const response = await fetch(`http://localhost:3000/matches/${this.match.id}/users`);
-        const result = await response.json();
-        this.matchPlayers = Array.isArray(result)
-          ? result.map(u => ({
-              id: u.user_id,
-              name: `User ${u.user_id.substring(0, 6)}`, 
-              profilePic: 'https://i.pravatar.cc/150?u=' + u.user_id, 
-              attendance: 100, 
-              skillLevel: 'Unknown', 
-              isOrganizer: false 
-            }))
-          : [];
-      } catch (err) {
-        console.error('Failed to fetch match players:', err);
-      }
-    },
+    // async fetchMatchPlayers() {
+    //   try {
+    //     const response = await fetch(`http://localhost:3000/matches/${this.match.id}/users`);
+    //     const result = await response.json();
+    //     this.matchPlayers = Array.isArray(result)
+    //       ? result.map(u => ({
+    //           id: u.user_id,
+    //           name: `User ${u.user_id.substring(0, 6)}`, 
+    //           profilePic: 'https://i.pravatar.cc/150?u=' + u.user_id, 
+    //           attendance: 100, 
+    //           skillLevel: 'Unknown', 
+    //           isOrganizer: false 
+    //         }))
+    //       : [];
+    //   } catch (err) {
+    //     console.error('Failed to fetch match players:', err);
+    //   }
+    // },
     messagePlayer(player) {
       this.$emit('message', player);
       // Or open chat directly
@@ -294,7 +318,8 @@ export default {
     'match.id': {
       handler(newId) {
         if (newId) {
-          this.fetchMatchPlayers();
+          // this.fetchMatchPlayers();
+          this.getPlayers();
         }
       },
       immediate: true
