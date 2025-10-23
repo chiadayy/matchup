@@ -9,9 +9,9 @@
       <!-- Modal Header -->
       <div class="modal-header">
         <div class="modal-title-section">
-          <span class="sport-icon">{{ getSportIcon(match.sport) }}</span>
+          <span class="sport-icon">{{ getSportIcon(match.sport_level) }}</span>
           <div>
-            <h2 class="modal-title">{{ match.sport }} Match</h2>
+            <h2 class="modal-title">{{ match.sport_level }} Match</h2>
             <!-- <p class="modal-subtitle">Match #{{ match.id }}</p> -->
           </div>
         </div>
@@ -30,16 +30,17 @@
             </div>
             <div class="info-item">
               <span class="info-label">📅 Date & Time</span>
-              <span class="info-value">{{ match.date.split(" ")[0] }} at {{ match.date.split(" ")[1] }}</span>
+              <!-- <span class="info-value">{{ match.date.split(" ")[0] }} at {{ match.date.split(" ")[1] }}</span> -->
+              <span class="info-value">{{ match.date }} at {{ match.time }}</span>
             </div>
             <div class="info-item">
               <span class="info-label">🎯 Skill Level</span>
-              <span class="info-value">{{ match.skill }}</span>
+              <span class="info-value">{{ match.skill_level }}</span>
             </div>
             <div class="info-item">
               <span class="info-label">💰 Entry Fee</span>
-              <span :class="['info-value', match.price === 0 ? 'text-success' : 'text-danger']">
-                {{ match.price === 0 ? 'Free' : `$${match.price}` }}
+              <span :class="['info-value', match.total_price === 0 ? 'text-success' : 'text-danger']">
+                {{ match.total_price === 0 ? 'Free' : `$${match.total_price}` }}
               </span>
             </div>
           </div>
@@ -62,11 +63,12 @@
         <!-- Players List -->
         <div class="players-card">
           <h3 class="section-title">
-            Players ({{ matchPlayers.length }})
-            <span class="organizer-badge" v-if="match.organizer">Organized by {{ match.organizer }}</span>
+            <!-- Players ({{ matchPlayers.length }}) -->
+            Players ({{ match.total_player_count }})
+            <!-- <span class="organizer-badge" v-if="match.organizer">Organized by {{ match.organizer }}</span> -->
           </h3>
           
-          <div class="players-list">
+          <!-- <div class="players-list">
             <div 
               v-for="player in matchPlayers" 
               :key="player.id"
@@ -95,10 +97,10 @@
               >
                 💬
               </button>
-            </div>
+            </div> -->
 
             <!-- Empty Slots -->
-            <div 
+            <!-- <div 
               v-for="slot in emptySlots" 
               :key="'empty-' + slot"
               class="player-item empty-slot"
@@ -110,7 +112,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          </div> -->
         </div>
 
         <!-- Match Description -->

@@ -96,53 +96,59 @@
               v-for="match in paginatedMatches"
               :key="match.id"
               class="match-card"
-              :class="['sport-' + match.sport.toLowerCase()]"
+              :class="['sport-' + match.sport_type.toLowerCase()]"
               @click="openMatchDetail(match)"
             >
               <!-- Sport Icon Badge -->
-              <div class="sport-icon-badge" :style="{ backgroundColor: getSportColor(match.sport) }">
-                {{ getSportIcon(match.sport) }}
+              <div class="sport-icon-badge" :style="{ backgroundColor: getSportColor(match.sport_type) }">
+                {{ getSportIcon(match.sport_type) }}
               </div>
 
               <div class="match-header">
                 <div>
-                  <h3 class="match-title">{{ match.sport }} Match</h3>
-                  <p class="sport-type">{{ match.location }}</p>
+                  <h3 class="match-title">{{ match.id }} Match</h3>
+                  <p class="sport-type">{{ match.sport_type }}</p>
                 </div>
-                <span :class="['match-price', match.price === 0 ? 'price-free' : 'price-paid']">
-                  {{ match.price === 0 ? 'Free' : `$${match.price}` }}
+                <span :class="['match-price', match.total_price === 0 ? 'price-free' : 'price-paid']">
+                  {{ match.total_price === 0 ? 'Free' : `$${match.total_price}` }}
                 </span>
               </div>
 
               <!-- Weather Badge -->
               <div class="weather-section" @click.stop>
                 <WeatherBadge
-                  :lat="getMatchCoords(match.location).lat"
-                  :lon="getMatchCoords(match.location).lng"
+                  :lat="getMatchCoords('Hougang').lat"
+                  :lon="getMatchCoords('Hougang').lng"
                   :eventTimeISO="getMatchISO(match)"
                   :locationName="match.location"
                 />
+                <!-- <WeatherBadge
+                  :lat="match.latitude"
+                  :lon="match.longitude"
+                  :eventTimeISO="getMatchISO(match)"
+                  :locationName="match.location"
+                /> -->
               </div>
 
               <div class="match-details">
-                <p><strong>Skill level:</strong> {{ match.skill }}</p>
+                <p><strong>Skill level:</strong> {{ match.skill_level }}</p>
                 <p><strong>Date and Time:</strong> {{ match.date }} {{ match.time }}</p>
                 <div class="player-progress">
-                  <span class="player-count">{{ match.players }} players</span>
+                  <span class="player-count">{{ match.current_player_count }} players</span>
                   <div class="progress-bar">
                     <div
                       class="progress-fill"
-                      :style="{ width: getPlayerPercentage(match.players) + '%', backgroundColor: getSportColor(match.sport) }"
+                      :style="{ width: getPlayerPercentage(match.current_player_count) + '%', backgroundColor: getSportColor(match.sport_type) }"
                     ></div>
                   </div>
                 </div>
               </div>
               <button
                 class="btn-join-match"
-                :class="{ 'pulse-btn': getAvailableSpots(match.players) < 3 }"
-                @click.stop="openMatchDetail(match)"
+                :class="{ 'pulse-btn': getAvailableSpots(match.current_player_count) < 3 }"
+                @click.stop="handleJoinMatch(match.id)"
               >
-                {{ getAvailableSpots(match.players) === 0 ? 'Full' : 'Join Match' }}
+                {{ getAvailableSpots(match.current_player_count) === 0 ? 'Full' : 'Join Match' }}
               </button>
             </div>
           </div>
@@ -186,9 +192,11 @@
 </template>
 
 <script>
+import { supabase } from '@/lib/supabase'
 import MatchDetailModal from '@/components/MatchDetailModal.vue';
 import MapView from '@/components/MapView.vue';
 import WeatherBadge from '@/components/WeatherBadge.vue';
+// import { format } from 'node:util';
 
 export default {
   name: 'Browser',
@@ -199,6 +207,7 @@ export default {
   },
   data() {
     return {
+      matches: [],
       allMatches: [
         { id: 1, sport: "Basketball", skill: "Beginner", location: "Hougang", date: "8/10/25", time: "6pm", price: 0, players: "7/8", organizer: "Alex Chen", description: "Casual basketball game for beginners. Bring your own water!" },
         { id: 2, sport: "Tennis", skill: "Beginner", location: "Sengkang", date: "8/10/25", time: "7pm", price: 15, players: "2/4", organizer: "Sarah Tan", description: "Evening tennis doubles. Court fees included." },
@@ -271,48 +280,71 @@ export default {
       };
 
       return this.filteredMatches.map(match => {
-        const coords = locationCoords[match.location] || { lat: 1.3521, lng: 103.8198 };
+        const coords = locationCoords["Hougang"] || { lat: 1.3521, lng: 103.8198 };
         const config = sportConfig[match.sport] || { icon: '🏃', color: '#3b82f6' };
 
         // Parse players "7/8" to joined and capacity
-        const [joined, capacity] = match.players.split('/').map(Number);
+        // const [joined, capacity] = match.total_player_count.split('/').map(Number);
+        const [joined, capacity] = "7/8".split('/').map(Number);
 
         // Create ISO timestamp from date and time
-        const dateStr = match.date; // "8/10/25"
-        const timeStr = match.time; // "6pm"
-        const [month, day, year] = dateStr.split('/').map(Number);
-        const hour = timeStr.includes('pm') && !timeStr.startsWith('12')
-          ? parseInt(timeStr) + 12
-          : parseInt(timeStr);
-        const startTimeISO = new Date(2000 + year, month - 1, day, hour, 0).toISOString();
+        const dateStr = match.date; // "2025-10-20" 
+        const timeStr = match.time // "14:00:00"
+        const [year, month, date] = dateStr.split('-').map(Number);
+        // const hour = timeStr.includes('pm') && !timeStr.startsWith('12')
+        //   ? parseInt(timeStr) + 12
+        //   : parseInt(timeStr);
+        // const startTimeISO = new Date(2000 + year, month - 1, day, hour, 0).toISOString();
+        const startTimeISO = new Date(`${match.date}T${match.time}`).toISOString();
 
         return {
           id: match.id,
-          title: `${match.sport} Match ${match.id}`,
+          title: `${match.sport_type} Match ${match.id}`,
           venue: match.location,
           lat: coords.lat,
           lng: coords.lng,
           startTimeISO,
           icon: config.icon,
           color: config.color,
-          sport: match.sport,
-          skillLevel: match.skill,
+          sport: match.sport_type,
+          skillLevel: match.skill_level,
           capacity,
           joined,
-          price: match.price
+          price: match.total_price
         };
       });
     }
   },
-  mounted() {
+  async mounted() {
+    await this.getAllMatches();
     this.filterMatches()
   },
   methods: {
+    async getAllMatches() {
+      try {
+        const { data, error } = await supabase
+          .from("matches")
+          .select("*");
+
+        if (error) {
+          console.error("Error fetching matches:", error);
+          return;
+        } 
+        else {
+          console.log("hi");
+          console.log(data);
+          this.matches = data;
+        }
+      }
+      catch (err) {
+        console.error("Unexpected error:", err);
+      }
+    },
     filterMatches() {
-      this.filteredMatches = [...this.allMatches]
+      this.filteredMatches = [...this.matches]
 
       if (this.selectedSports.length > 0) {
-        this.filteredMatches = this.filteredMatches.filter(m => this.selectedSports.includes(m.sport))
+        this.filteredMatches = this.filteredMatches.filter(m => this.selectedSports.includes(m.sport_type))
       }
 
       if (this.skillLevel) {
@@ -325,19 +357,38 @@ export default {
 
       if (this.priceFilter.length > 0) {
         if (this.priceFilter.includes('Free') && !this.priceFilter.includes('Paid')) {
-          this.filteredMatches = this.filteredMatches.filter(m => m.price === 0)
+          this.filteredMatches = this.filteredMatches.filter(m => m.total_price === 0)
         } else if (this.priceFilter.includes('Paid') && !this.priceFilter.includes('Free')) {
-          this.filteredMatches = this.filteredMatches.filter(m => m.price > 0)
+          this.filteredMatches = this.filteredMatches.filter(m => m.total_price > 0)
         }
       }
 
       if (this.sortBy === 'price-low') {
-        this.filteredMatches.sort((a, b) => a.price - b.price)
+        this.filteredMatches.sort((a, b) => a.total_price - b.total_price)
       } else if (this.sortBy === 'price-high') {
-        this.filteredMatches.sort((a, b) => b.price - a.price)
+        this.filteredMatches.sort((a, b) => b.total_price - a.total_price)
       }
 
       this.currentPage = 1
+    },
+    formatMatchDate(match) {
+      if (!match.match_date) return { date: '', time: '' };
+
+      const d = new Date(match.match_date);
+      if (isNaN(d.getTime())) return { date: '', time: '' }; 
+
+      const day = d.getDate();
+      const month = d.getMonth() + 1;
+      const year = d.getFullYear() % 100; // last 2 digits
+      let hour = d.getHours();
+      const ampm = hour >= 12 ? 'pm' : 'am';
+      if (hour > 12) hour -= 12;
+      if (hour === 0) hour = 12;
+
+      return {
+        date: `${month}/${day}/${year}`,
+        time: `${hour}${ampm}`
+      };
     },
     changePage(page) {
       if (page < 1 || page > this.totalPages) return
@@ -424,20 +475,22 @@ export default {
     getMatchISO(match) {
       const dateStr = match.date;
       const timeStr = match.time;
-      const [month, day, year] = dateStr.split('/').map(Number);
-      const hour = timeStr.includes('pm') && !timeStr.startsWith('12')
-        ? parseInt(timeStr) + 12
-        : parseInt(timeStr);
-      return new Date(2000 + year, month - 1, day, hour, 0).toISOString();
+      const [year, month, date] = dateStr.split('/').map(Number);
+      // const hour = timeStr.includes('pm') && !timeStr.startsWith('12')
+      //   ? parseInt(timeStr) + 12
+      //   : parseInt(timeStr);
+      // return new Date(2000 + year, month - 1, day, hour, 0).toISOString();
+      const startTimeISO = new Date(`${dateStr}T${timeStr}`).toISOString();
+      return startTimeISO;
     },
 
     getPlayerPercentage(players) {
-      const [joined, capacity] = players.split('/').map(Number);
+      const [joined, capacity] = "7/8".split('/').map(Number);
       return (joined / capacity) * 100;
     },
 
     getAvailableSpots(players) {
-      const [joined, capacity] = players.split('/').map(Number);
+      const [joined, capacity] = "7/8".split('/').map(Number);
       return capacity - joined;
     }
   },
