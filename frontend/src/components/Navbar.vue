@@ -373,6 +373,7 @@
         const { data, error } = await supabase
           .from('notifications')
           .select('*')
+          .eq('read', false)
           .order('created_at', { ascending: false });
 
         if (error) console.error('Error loading notifications:', error);
