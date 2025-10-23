@@ -6,55 +6,14 @@
         <!-- Calendar Section -->
         <div class="col-lg-8 mb-4">
           <div class="calendar-container">
-            <div class="calendar-header">
-              <button @click="previousMonth" class="btn btn-sm btn-secondary">←</button>
-              <h3 class="fw-bold">{{ monthYear }}</h3>
-              <button @click="nextMonth" class="btn btn-sm btn-secondary">→</button>
-            </div>
-
-            <table class="calendar-table">
-              <thead>
-                <tr>
-                  <th v-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']" :key="day">{{ day }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(week, index) in calendarDays" :key="index">
-                  <td 
-                    v-for="day in week" 
-                    :key="`${day.date}-${day.month}`"
-                    :class="{ 
-                      'other-month': day.month !== currentMonth,
-                      'today': isToday(day),
-                      'has-event': hasEvent(day)
-                    }"
-                    @click="selectDate(day)"
-                  >
-                    <div class="day-number">{{ day.date }}</div>
-                    <div class="day-events">
-                      <div 
-                        v-for="match in getMatchesForDate(day)"
-                        :key="match.id"
-                        class="event-dot"
-                        :class="match.status"
-                      ></div>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-
+            <FullCalendar :options="calendarOptions" />
             <div class="legend">
               <div class="legend-item">
-                <div class="legend-dot" style="background-color: var(--primary-color);"></div>
-                <span>Today</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-dot" style="background-color: #4CAF50;"></div>
+                <div class="legend-dot-confirmed"></div>
                 <span>Confirmed Match</span>
               </div>
               <div class="legend-item">
-                <div class="legend-dot" style="background-color: #FFC107;"></div>
+                <div class="legend-dot-pending"></div>
                 <span>Pending Match</span>
               </div>
             </div>
@@ -136,9 +95,16 @@
 </template>
 
 <script>
+import FullCalendar from '@fullcalendar/vue3'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import bootstrap5Plugin from '@fullcalendar/bootstrap5'
 
 export default {
   name: 'Calendar',
+  components: {
+    FullCalendar
+  },
   data() {
     return {
       userMatches: [
@@ -150,7 +116,6 @@ export default {
         { id: 6, sport: 'Volleyball', location: 'Pasir Ris', date: '2025-10-25', time: '7:00 PM', status: 'pending', players: '10/12', price: '$12' },
         { id: 7, sport: 'Tennis', location: 'Simei', date: '2025-10-28', time: '5:00 PM', status: 'confirmed', players: '3/4', price: 'Free' }
       ],
-      currentDate: new Date(2025, 9, 9),
       selectedMatch: null,
       sportEmojis: {
         'Basketball': '🏀',
@@ -158,101 +123,49 @@ export default {
         'Football': '⚽',
         'Badminton': '🏸',
         'Volleyball': '🏐'
+      },
+      calendarOptions: {
+        plugins: [dayGridPlugin, interactionPlugin, bootstrap5Plugin],
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,dayGridWeek'
+        },
+        themeSystem: 'bootstrap5',
+        events: [],
+        eventClick: this.handleEventClick,
+        height: 'auto',
+        eventColor: '#FF6B35'
       }
     }
   },
   computed: {
-    currentMonth() {
-      return this.currentDate.getMonth()
-    },
-    currentYear() {
-      return this.currentDate.getFullYear()
-    },
-    monthYear() {
-      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-      return `${months[this.currentMonth]} ${this.currentYear}`
-    },
-    calendarDays() {
-      const firstDay = new Date(this.currentYear, this.currentMonth, 1)
-      const lastDay = new Date(this.currentYear, this.currentMonth + 1, 0)
-      const daysInMonth = lastDay.getDate()
-      const startingDayOfWeek = firstDay.getDay()
-      
-      const days = []
-      let week = []
-      
-      // Previous month's days
-      const prevMonth = new Date(this.currentYear, this.currentMonth, 0)
-      const daysInPrevMonth = prevMonth.getDate()
-      for (let i = startingDayOfWeek - 1; i >= 0; i--) {
-        week.push({
-          date: daysInPrevMonth - i,
-          month: this.currentMonth - 1
-        })
-      }
-      
-      // Current month's days
-      for (let i = 1; i <= daysInMonth; i++) {
-        week.push({
-          date: i,
-          month: this.currentMonth
-        })
-        if (week.length === 7) {
-          days.push(week)
-          week = []
-        }
-      }
-      
-      // Next month's days
-      const remainingDays = 7 - week.length
-      for (let i = 1; i <= remainingDays; i++) {
-        week.push({
-          date: i,
-          month: this.currentMonth + 1
-        })
-      }
-      if (week.length > 0) {
-        days.push(week)
-      }
-      
-      return days
-    },
+    
     upcomingMatches() {
-      const today = new Date(2025, 9, 9)
+      const today = new Date()
       return this.userMatches
         .filter(match => {
           const matchDate = new Date(match.date)
           return matchDate >= today
         })
         .sort((a, b) => new Date(a.date) - new Date(b.date))
+    },
+    
+  },
+  mounted() {
+    this.loadMatchesIntoCalendar()
+  },
+  watch: {
+    userMatches: {
+      handler() {
+        this.loadMatchesIntoCalendar()
+      },
+      deep: true
     }
   },
   methods: {
-    previousMonth() {
-      this.currentDate = new Date(this.currentYear, this.currentMonth - 1, 1)
-    },
-    nextMonth() {
-      this.currentDate = new Date(this.currentYear, this.currentMonth + 1, 1)
-    },
-    isToday(day) {
-      if (day.month !== this.currentMonth) return false
-      const today = new Date(2025, 9, 9)
-      return day.date === today.getDate() && this.currentMonth === today.getMonth() && this.currentYear === today.getFullYear()
-    },
-    hasEvent(day) {
-      return this.getMatchesForDate(day).length > 0
-    },
-    getMatchesForDate(day) {
-      if (day.month !== this.currentMonth) return []
-      const dateStr = `2025-${String(this.currentMonth + 1).padStart(2, '0')}-${String(day.date).padStart(2, '0')}`
-      return this.userMatches.filter(m => m.date === dateStr)
-    },
-    selectDate(day) {
-      const matches = this.getMatchesForDate(day)
-      if (matches.length > 0) {
-        this.selectedMatch = matches[0]
-      }
-    },
+    
     showMatchModal(match) {
       this.selectedMatch = match
     },
@@ -263,10 +176,66 @@ export default {
     joinMatch(matchId) {
       alert(`Joining Match ${matchId}!`)
       this.selectedMatch = null
-    }
+    },
+    loadMatchesIntoCalendar() {
+      this.calendarOptions.events = this.userMatches.map(match => ({
+        id: match.id,
+        title: `${this.sportEmojis[match.sport]} ${match.sport} - ${match.location}`,
+        start: `${match.date}T${this.convertTo24Hour(match.time)}`,
+        extendedProps: {
+          ...match
+        },
+        backgroundColor: match.status === 'confirmed' ? '#4CAF50' : '#FFC107',
+        borderColor: match.status === 'confirmed' ? '#4CAF50' : '#FFC107'
+      })
+      )
+    },
+    convertTo24Hour(time) {
+      const [timeStr, period] = time.split(' ')
+      let [hours, minutes] = timeStr.split(':')
+      hours = parseInt(hours)
+      
+      if (period === 'PM' && hours !== 12) hours += 12
+      if (period === 'AM' && hours === 12) hours = 0
+      
+      return `${String(hours).padStart(2, '0')}:${minutes}:00`
+    },
+    handleEventClick(info) {
+      this.selectedMatch = info.event.extendedProps
+    },
   }
 }
 </script>
+
+<style>
+.fc-prev-button,
+.fc-next-button,
+.fc-today-button,
+.fc-dayGridMonth-button,
+.fc-dayGridWeek-button {
+  background-color: #2C3E50 !important;
+  color: #fff !important;
+  border: 0 !important;
+}
+
+.fc-prev-button:hover,
+.fc-next-button:hover,
+.fc-today-button:hover,
+.fc-dayGridMonth-button:hover,
+.fc-dayGridWeek-button:hover {
+  background-color: #FF6B35 !important;
+  color: #fff !important;
+  border: 0 !important;
+  transition: all 0.3s ease-in-out;
+}
+
+.fc-dayGridMonth-button[aria-pressed="true"],
+.fc-dayGridWeek-button[aria-pressed="true"]{
+  background-color: #FF6B35 !important;
+  color: #fff !important;
+  border: 0 !important;
+}
+</style>
 
 <style scoped>
 :root {
@@ -282,100 +251,14 @@ export default {
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.calendar-header h3 {
-  margin: 0;
-  min-width: 200px;
-  text-align: center;
-}
-
-.calendar-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-}
-
-.calendar-table thead th {
-  background-color: var(--back-color);
-  padding: 12px;
-  text-align: center;
-  font-weight: 600;
-  color: var(--secondary-color);
-}
-
-.calendar-table tbody td {
-  height: 80px;
-  padding: 8px;
-  border: 1px solid #e8ecef;
-  vertical-align: top;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  background-color: white;
-}
-
-.calendar-table tbody td:hover {
-  background-color: var(--back-color);
-}
-
-.calendar-table tbody td.other-month {
-  color: #ccc;
-  background-color: #f9f9f9;
-}
-
-.calendar-table tbody td.today .day-number {
-  background: linear-gradient(135deg, var(--primary-color), #FF5722);
-  color: white;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-}
-
-.calendar-table tbody td.has-event {
-  background-color: rgba(255, 107, 53, 0.05);
-}
-
-.day-number {
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.day-events {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-
-.event-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.event-dot.confirmed {
-  background-color: #4CAF50;
-}
-
-.event-dot.pending {
-  background-color: #FFC107;
-}
-
 .legend {
   display: flex;
   gap: 24px;
   padding: 16px;
   background-color: var(--back-color);
-  border-radius: 12px;
+  /* border-radius: 12px; */
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
 .legend-item {
@@ -385,19 +268,30 @@ export default {
   font-size: 0.875rem;
 }
 
-.legend-dot {
+.legend-dot-confirmed,
+.legend-dot-pending {
   width: 12px;
   height: 12px;
   border-radius: 50%;
 }
 
+.legend-dot-confirmed {
+  background-color: #4CAF50;
+}
+
+.legend-dot-pending{
+    background-color: #FFC107;
+
+}
+
 .upcoming-matches-panel {
   background: white;
   border-radius: 16px;
-  padding: 24px;
+  padding: 12px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   max-height: 700px;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .match-item {

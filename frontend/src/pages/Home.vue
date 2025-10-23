@@ -1,13 +1,13 @@
 <template>
   <div class="min-h-screen" style="background-color: #F7F9FC">
     <!-- Logout Button -->
-    <div class="container-fluid px-5 pt-3">
+    <!-- <div class="container-fluid px-5 pt-3">
       <div class="d-flex justify-content-end">
         <button class="btn-logout-custom" @click="logout">
           Logout
         </button>
       </div>
-    </div>
+    </div> -->
 
     <!-- Dynamic Welcome Back Section -->
     <div class="welcome-section">
@@ -937,13 +937,7 @@ export default {
     },
 
 
-    async logout() {
-      if (confirm('Are you sure you want to logout?')) {
-        await supabase.auth.signOut()
-        this.isLoggedIn = false;
-        this.$router.push('/');
-      }
-    }
+    
   }
 };
 </script>
