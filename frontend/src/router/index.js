@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Landing from '@/pages/Landing.vue'
 import Home from '@/pages/Home.vue'
+import MatchChatRoom from '@/pages/MatchChatRoom.vue'
 import LocationWeather from '@/pages/LocationWeather.vue'
 import Login from '@/pages/Login.vue'
 import Register from '@/pages/Register.vue'
@@ -56,9 +57,15 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/match-chat',
+    path: '/my-matches',
     name: 'MyMatches',
     component: MyMatches,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/matches/:id/chat',
+    name: 'MatchChatRoom',
+    component: MatchChatRoom,
     meta: { requiresAuth: true }
   },
   {

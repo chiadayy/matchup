@@ -368,6 +368,24 @@ export default {
         }
 
         const data = await response.json();
+        const createdMatch = data.match;
+
+        // Automatically join the match as the host
+        const joinResponse = await fetch(`http://localhost:3000/matches/${createdMatch.id}/join`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+          },
+          body: JSON.stringify({
+            user_id: user.id,
+            payment_success: true // Host is automatically confirmed
+          })
+        });
+
+        if (!joinResponse.ok) {
+          console.error('Failed to add host to match');
+        }
 
         // Show success message
         this.showSuccessMessage = true;
@@ -375,7 +393,7 @@ export default {
         // Reset form and redirect after delay
         setTimeout(() => {
           this.resetForm();
-          this.$router.push('/home');
+          this.$router.push('/my-matches'); // Redirect to My Matches page
         }, 2000);
 
       } catch (error) {
