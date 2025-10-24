@@ -146,6 +146,7 @@
 <script>
 // import { match } from 'assert';
 import { supabase } from '@/lib/supabase'
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'MatchDetailModal',
@@ -236,9 +237,8 @@ export default {
     async joinMatch() {
       if (!this.isUserJoined && this.spotsRemaining > 0) {
         // If free game, payment_success is true
-        if (this.match.price !== 0) {
-          alert('got to handle payment logic first.');
-          return;
+        if (this.match.total_price !== 0) {
+          this.$router.push('/pay');
         }
         const paymentSuccess = true;
         try {
