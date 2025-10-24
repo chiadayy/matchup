@@ -30,7 +30,7 @@
           v-for="match in matches" 
           :key="match.id" 
           class="match-card"
-          :class="{ 'has-chat': match.conversation_id }"
+          :class="{ 'has-chat': match.confirmed_player_count >= 2 }"
         >
           <div class="match-content">
             <div class="match-header">
@@ -38,8 +38,8 @@
                 <div class="sport-icon">{{ getSportIcon(match.sport_type) }}</div>
                 <h3>{{ match.name }}</h3>
               </div>
-              <span class="status-badge" :class="match.conversation_id ? 'confirmed' : 'pending'">
-                {{ match.conversation_id ? 'CONFIRMED' : 'PENDING' }}
+              <span class="status-badge" :class="match.confirmed_player_count >= 2 ? 'confirmed' : 'pending'">
+                {{ match.confirmed_player_count >= 2 ? 'READY TO CHAT' : 'WAITING FOR PLAYERS' }}
               </span>
             </div>
 
@@ -69,8 +69,13 @@
               </div>
             </div>
 
+            <div class="player-count-info">
+              <span class="player-icon">👥</span>
+              <span>{{ match.confirmed_player_count }} {{ match.confirmed_player_count === 1 ? 'player' : 'players' }} confirmed</span>
+            </div>
+
             <router-link 
-              v-if="match.conversation_id"
+              v-if="match.confirmed_player_count >= 2"
               :to="`/matches/${match.id}/chat`" 
               class="chat-button"
             >
@@ -79,7 +84,11 @@
             </router-link>
 
             <div v-else class="waiting-message">
-              ⏳ Waiting for all players to confirm
+              <div class="waiting-icon">⏳</div>
+              <div class="waiting-text">
+                <strong>Waiting for more players</strong>
+                <p>Need {{ 2 - match.confirmed_player_count }} more {{ 2 - match.confirmed_player_count === 1 ? 'player' : 'players' }} to join before chat opens</p>
+              </div>
             </div>
           </div>
         </div>
@@ -154,7 +163,28 @@ export default {
 
         if (matchesError) throw matchesError;
 
-        matches.value = matchesData || [];
+        // For each match, get the confirmed player count
+        const matchesWithPlayerCount = await Promise.all(
+          (matchesData || []).map(async (match) => {
+            const { data: confirmedPlayers, error: playersError } = await supabase
+              .from('users_matches')
+              .select('user_id')
+              .eq('match_id', match.id)
+              .eq('payment_success', true);
+
+            if (playersError) {
+              console.error('Error fetching players for match:', match.id, playersError);
+              return { ...match, confirmed_player_count: 0 };
+            }
+
+            return {
+              ...match,
+              confirmed_player_count: confirmedPlayers?.length || 0
+            };
+          })
+        );
+
+        matches.value = matchesWithPlayerCount;
 
       } catch (err) {
         error.value = err.message;
@@ -416,6 +446,23 @@ export default {
   color: #48bb78;
 }
 
+.player-count-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.player-icon {
+  font-size: 18px;
+}
+
 .chat-button {
   display: flex;
   align-items: center;
@@ -443,13 +490,36 @@ export default {
 }
 
 .waiting-message {
-  text-align: center;
-  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
   background: #fef3c7;
-  color: #78350f;
   border-radius: 8px;
+}
+
+.waiting-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.waiting-text {
+  flex: 1;
+}
+
+.waiting-text strong {
+  display: block;
+  color: #78350f;
   font-size: 14px;
   font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.waiting-text p {
+  margin: 0;
+  color: #92400e;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 @media (max-width: 768px) {

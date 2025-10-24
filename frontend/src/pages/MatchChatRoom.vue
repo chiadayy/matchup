@@ -14,9 +14,9 @@
       <div class="sidebar">
         <!-- Move back button here, inside match-header -->
         <div class="match-header">
-          <router-link to="/home" class="back-button-inline">
+          <router-link to="/my-matches" class="back-button-inline">
             <span class="back-icon">←</span>
-            <span>Back</span>
+            <span>Back to Matches</span>
           </router-link>
           <div class="header-content">
             <h2>{{ matchData.name }}</h2>
@@ -106,7 +106,7 @@
       <!-- Chat Area -->
       <div class="chat-area">
         <ChatRoom
-          :matchId="1"
+          :matchId="matchId"
           :conversationId="conversationId"
           :currentUserId="currentUserId"
         />
@@ -114,27 +114,31 @@
     </div>
     <div v-else class="no-chat">
       <div class="no-chat-icon">⏳</div>
-      <h3>Waiting for Confirmation</h3>
-      <p>Both players need to confirm before the chat becomes available.</p>
+      <h3>Chat Room Not Available</h3>
+      <p>Waiting for more players to join and confirm their participation.</p>
+      <p class="sub-info">The chat will open automatically once 2 or more players have joined this match.</p>
+      <router-link to="/my-matches" class="back-link">Back to My Matches</router-link>
     </div>
   </div>
 </template>
 
 <script>
 import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { supabase } from "@/lib/supabase";
 import ChatRoom from "../components/ChatRoom.vue";
 
 export default {
-  name: "MyMatches",
+  name: "MatchChatRoom",
   components: { ChatRoom },
 
-
   setup() {
+    const route = useRoute();
+    const matchId = ref(parseInt(route.params.id));
     const loading = ref(true);
     const error = ref(null);
     const conversationId = ref(null);
-    const currentUserId = ref("17c26d43-eba7-445e-af45-84e34dac8ece");
-    // const currentUserId = ref("77995803-7951-4f0e-9797-f84a6fecec1e");
+    const currentUserId = ref(null);
     const matchData = ref({});
     const weather = ref(null);
     const hostProfile = ref(null);
@@ -193,9 +197,46 @@ export default {
 
     onMounted(async () => {
       try {
-        const matchResponse = await fetch("http://localhost:3000/matches/1");
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
+        currentUserId.value = user.id;
+
+        // Fetch match data
+        const matchResponse = await fetch(
+          `http://localhost:3000/matches/${matchId.value}`
+        );
         matchData.value = await matchResponse.json();
-        conversationId.value = matchData.value.conversation_id;
+
+        // Check if chat exists, if not try to create it
+        if (!matchData.value.conversation_id) {
+          try {
+            const createChatResponse = await fetch(
+              'http://localhost:3000/chatroom/check-and-create',
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ match_id: matchId.value })
+              }
+            );
+
+            const createChatResult = await createChatResponse.json();
+            
+            if (createChatResult.conversation_id) {
+              conversationId.value = createChatResult.conversation_id;
+              matchData.value.conversation_id = createChatResult.conversation_id;
+            } else {
+              // Not enough players yet
+              console.log(createChatResult.message);
+            }
+          } catch (chatError) {
+            console.error('Error creating chat:', chatError);
+          }
+        } else {
+          conversationId.value = matchData.value.conversation_id;
+        }
 
         if (matchData.value.location) {
           await fetchWeather(matchData.value.location);
@@ -206,7 +247,7 @@ export default {
         }
 
         const usersResponse = await fetch(
-          `http://localhost:3000/matches/1/users`
+          `http://localhost:3000/matches/${matchId.value}/users`
         );
         const users = await usersResponse.json();
         if (Array.isArray(users)) {
@@ -223,6 +264,7 @@ export default {
     });
 
     return {
+      matchId,
       loading,
       error,
       conversationId,
@@ -369,6 +411,29 @@ export default {
   font-size: 16px;
   color: #718096;
   max-width: 400px;
+  margin-bottom: 12px;
+}
+
+.no-chat .sub-info {
+  font-size: 14px;
+  color: #a0aec0;
+  margin-bottom: 24px;
+}
+
+.back-link {
+  display: inline-block;
+  padding: 12px 24px;
+  background: #1a1a1a;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.back-link:hover {
+  background: #2d2d2d;
+  transform: translateY(-2px);
 }
 
 .match-layout {
