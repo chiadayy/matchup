@@ -1,80 +1,87 @@
 <template>
-  <div class="my-matches-container">
-    <div class="header">
-      <router-link to="/home" class="back-button">
-        <span class="back-icon">←</span>
-        <span>Back</span>
-      </router-link>
-      <div class="header-content">
+  <div class="my-matches-page">
+    <div class="page-content">
+      <div class="page-header">
         <h1>My Matches</h1>
-        <p>View and manage your upcoming games</p>
+        <p class="subtitle">Your upcoming games and conversations</p>
       </div>
-    </div>
 
-    <div v-if="loading" class="loading">
-      <div class="spinner"></div>
-      <p>Loading your matches...</p>
-    </div>
+      <div v-if="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading your matches...</p>
+      </div>
 
-    <div v-else-if="error" class="error">
-      <span>⚠️</span>
-      <p>{{ error }}</p>
-    </div>
+      <div v-else-if="error" class="error">
+        <span>⚠️</span>
+        <p>{{ error }}</p>
+      </div>
 
-    <div v-else-if="matches.length === 0" class="empty-state">
-      <div class="empty-icon">🎾</div>
-      <h2>No matches yet</h2>
-      <p>Join a match to start playing!</p>
-      <router-link to="/browser" class="browse-button">
-        Browse Matches
-      </router-link>
-    </div>
+      <div v-else-if="matches.length === 0" class="empty-state">
+        <div class="empty-icon">🎾</div>
+        <h2>No matches yet</h2>
+        <p>Join a match to start playing!</p>
+        <router-link to="/home" class="browse-button">
+          Back to Home
+        </router-link>
+      </div>
 
-    <div v-else class="matches-grid">
-      <div 
-        v-for="match in matches" 
-        :key="match.id" 
-        class="match-card"
-      >
-        <div class="match-card-header">
-          <h3>{{ match.name }}</h3>
-          <div class="price-badge">
-            <span class="dollar">$</span>{{ match.total_price }}
+      <div v-else class="matches-container">
+        <div 
+          v-for="match in matches" 
+          :key="match.id" 
+          class="match-card"
+          :class="{ 'has-chat': match.conversation_id }"
+        >
+          <div class="match-content">
+            <div class="match-header">
+              <div class="sport-info">
+                <div class="sport-icon">{{ getSportIcon(match.sport_type) }}</div>
+                <h3>{{ match.name }}</h3>
+              </div>
+              <span class="status-badge" :class="match.conversation_id ? 'confirmed' : 'pending'">
+                {{ match.conversation_id ? 'CONFIRMED' : 'PENDING' }}
+              </span>
+            </div>
+
+            <div class="match-location">{{ match.location }}</div>
+
+            <div class="match-info-grid">
+              <div class="info-section">
+                <div class="info-label">Date & Time</div>
+                <div class="info-value">{{ formatDate(match.date) }} at {{ match.time }}</div>
+              </div>
+
+              <div class="info-section">
+                <div class="info-label">Skill Level</div>
+                <div class="info-value">{{ match.skill_level || 'All Levels' }}</div>
+              </div>
+
+              <div class="info-section">
+                <div class="info-label">Players</div>
+                <div class="info-value">{{ match.current_player_count }}/{{ match.total_player_count }}</div>
+              </div>
+
+              <div class="info-section">
+                <div class="info-label">Price</div>
+                <div class="info-value price" :class="{ free: match.total_price === 0 }">
+                  {{ match.total_price === 0 ? 'Free' : `$${match.total_price}` }}
+                </div>
+              </div>
+            </div>
+
+            <router-link 
+              v-if="match.conversation_id"
+              :to="`/matches/${match.id}/chat`" 
+              class="chat-button"
+            >
+              <span class="chat-icon">💬</span>
+              <span>Open Chat Room</span>
+            </router-link>
+
+            <div v-else class="waiting-message">
+              ⏳ Waiting for all players to confirm
+            </div>
           </div>
-        </div>
-
-        <div class="match-details">
-          <div class="detail-row">
-            <span class="icon">📍</span>
-            <span>{{ match.location }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="icon">📅</span>
-            <span>{{ formatDate(match.date) }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="icon">🕐</span>
-            <span>{{ match.time }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="icon">👥</span>
-            <span>{{ match.current_player_count }}/{{ match.total_player_count }} players</span>
-          </div>
-        </div>
-
-        <div class="match-actions">
-          <router-link 
-            :to="`/matches/${match.id}/chat`" 
-            class="chat-button"
-            :class="{ disabled: !match.conversation_id }"
-          >
-            <span class="chat-icon">💬</span>
-            <span>{{ match.conversation_id ? 'Open Chat' : 'Waiting for confirmation' }}</span>
-          </router-link>
-        </div>
-
-        <div v-if="!match.conversation_id" class="pending-badge">
-          Pending Confirmation
         </div>
       </div>
     </div>
@@ -101,6 +108,18 @@ export default {
         day: 'numeric',
         year: 'numeric',
       });
+    };
+
+    const getSportIcon = (sportType) => {
+      const icons = {
+        'basketball': '🏀',
+        'tennis': '🎾',
+        'football': '⚽',
+        'badminton': '🏸',
+        'volleyball': '🏐',
+        'soccer': '⚽',
+      };
+      return icons[sportType?.toLowerCase()] || '🎾';
     };
 
     const fetchUserMatches = async () => {
@@ -154,89 +173,39 @@ export default {
       error,
       matches,
       formatDate,
+      getSportIcon,
     };
   },
 };
 </script>
 
 <style scoped>
-.my-matches-container {
+.my-matches-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding-bottom: 40px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+  padding: 40px 60px;
 }
 
-.header {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  color: white;
-  padding: 0;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  position: relative;
-  overflow: hidden;
+.page-content {
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.header::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.1) 0%,
-    transparent 70%
-  );
-  animation: shimmer 3s ease-in-out infinite;
+.page-header {
+  margin-bottom: 40px;
 }
 
-@keyframes shimmer {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(-20%, -20%); }
-}
-
-.back-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 16px 32px;
-  color: rgba(255, 255, 255, 0.9);
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  position: relative;
-  z-index: 1;
-}
-
-.back-button:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.back-icon {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.header-content {
-  padding: 32px;
-  position: relative;
-  z-index: 1;
-}
-
-.header-content h1 {
-  margin: 0 0 8px 0;
+.page-header h1 {
   font-size: 36px;
   font-weight: 700;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #2d3748;
+  margin: 0 0 8px 0;
 }
 
-.header-content p {
-  margin: 0;
+.subtitle {
   font-size: 16px;
-  opacity: 0.9;
+  color: #718096;
+  margin: 0;
 }
 
 .loading, .error {
@@ -245,14 +214,14 @@ export default {
   justify-content: center;
   align-items: center;
   gap: 20px;
-  min-height: 60vh;
+  min-height: 50vh;
 }
 
 .spinner {
   width: 50px;
   height: 50px;
   border: 4px solid #e2e8f0;
-  border-top: 4px solid #1a1a1a;
+  border-top: 4px solid #ff6b35;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -283,7 +252,7 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
+  min-height: 50vh;
   text-align: center;
   padding: 40px;
 }
@@ -314,104 +283,137 @@ export default {
 .browse-button {
   display: inline-block;
   padding: 14px 32px;
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  background: #ff6b35;
   color: white;
   text-decoration: none;
-  border-radius: 12px;
+  border-radius: 8px;
   font-weight: 600;
   font-size: 16px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .browse-button:hover {
+  background: #e85d2a;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
 
-.matches-grid {
-  max-width: 1200px;
-  margin: 40px auto;
-  padding: 0 32px;
+.matches-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
   gap: 24px;
 }
 
 .match-card {
   background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  position: relative;
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border-left: 4px solid #fbbf24;
+}
+
+.match-card.has-chat {
+  border-left-color: #48bb78;
 }
 
 .match-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
-.match-card-header {
+.match-content {
+  padding: 24px;
+}
+
+.match-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 20px;
-  gap: 12px;
+  margin-bottom: 16px;
+  gap: 16px;
 }
 
-.match-card-header h3 {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  color: #2d3748;
+.sport-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   flex: 1;
 }
 
-.price-badge {
-  display: inline-flex;
-  align-items: center;
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
+.sport-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.match-header h3 {
+  margin: 0;
+  font-size: 20px;
   font-weight: 700;
-  font-size: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  color: #2d3748;
+  line-height: 1.3;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
   flex-shrink: 0;
 }
 
-.dollar {
-  font-size: 12px;
-  margin-right: 2px;
-  opacity: 0.9;
+.status-badge.confirmed {
+  background: #c6f6d5;
+  color: #22543d;
 }
 
-.match-details {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
+.status-badge.pending {
+  background: #fef3c7;
+  color: #78350f;
 }
 
-.detail-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.match-location {
   color: #4a5568;
   font-size: 14px;
+  margin-bottom: 20px;
   font-weight: 500;
 }
 
-.icon {
-  font-size: 18px;
-  width: 24px;
-  text-align: center;
+.match-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
 }
 
-.match-actions {
-  margin-top: 20px;
+.info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 11px;
+  color: #a0aec0;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #2d3748;
+  font-weight: 600;
+}
+
+.info-value.price.free {
+  color: #48bb78;
 }
 
 .chat-button {
@@ -421,44 +423,46 @@ export default {
   gap: 10px;
   width: 100%;
   padding: 14px;
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  background: #ff6b35;
   color: white;
   text-decoration: none;
-  border-radius: 12px;
+  border-radius: 8px;
   font-weight: 600;
   font-size: 15px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.chat-button:not(.disabled):hover {
+.chat-button:hover {
+  background: #e85d2a;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-}
-
-.chat-button.disabled {
-  background: #e2e8f0;
-  color: #a0aec0;
-  cursor: not-allowed;
-  box-shadow: none;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
 
 .chat-icon {
   font-size: 20px;
 }
 
-.pending-badge {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: #fbbf24;
+.waiting-message {
+  text-align: center;
+  padding: 14px;
+  background: #fef3c7;
   color: #78350f;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .my-matches-page {
+    padding: 24px 20px;
+  }
+
+  .matches-container {
+    grid-template-columns: 1fr;
+  }
+
+  .match-info-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
