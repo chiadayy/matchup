@@ -236,9 +236,10 @@ export default {
     },
     async joinMatch() {
       if (!this.isUserJoined && this.spotsRemaining > 0) {
-        // If free game, payment_success is true
+        // Block paid matches until payment is implemented
         if (this.match.total_price !== 0) {
-          this.$router.push('/pay');
+          alert('Got to handle payment logic first.');
+          return;
         }
         const paymentSuccess = true;
         try {
