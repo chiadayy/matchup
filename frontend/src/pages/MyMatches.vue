@@ -1,236 +1,158 @@
 <template>
-  <div class="match-container">
+  <div class="my-matches-container">
+    <div class="header">
+      <router-link to="/home" class="back-button">
+        <span class="back-icon">←</span>
+        <span>Back</span>
+      </router-link>
+      <div class="header-content">
+        <h1>My Matches</h1>
+        <p>View and manage your upcoming games</p>
+      </div>
+    </div>
+
     <div v-if="loading" class="loading">
       <div class="spinner"></div>
-      <p>Loading your match...</p>
+      <p>Loading your matches...</p>
     </div>
+
     <div v-else-if="error" class="error">
       <span>⚠️</span>
       <p>{{ error }}</p>
     </div>
 
-    <div v-else-if="conversationId" class="match-layout">
-      <!-- Sidebar -->
-      <div class="sidebar">
-        <!-- Move back button here, inside match-header -->
-        <div class="match-header">
-          <router-link to="/home" class="back-button-inline">
-            <span class="back-icon">←</span>
-            <span>Back</span>
-          </router-link>
-          <div class="header-content">
-            <h2>{{ matchData.name }}</h2>
-            <div class="price-badge">
-              <span class="dollar">$</span>{{ matchData.total_price }}
-            </div>
-          </div>
-        </div>
-
-        <div class="match-section">
-          <h3><span class="icon">📍</span> Location & Time</h3>
-          <div class="info-grid">
-            <div class="info-item">
-              <span class="label">Location</span>
-              <span class="value">{{ matchData.location }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">Date</span>
-              <span class="value">{{ formatDate(matchData.date) }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">Time</span>
-              <span class="value">{{ matchData.time }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">Players</span>
-              <span class="value"
-                >{{ matchData.total_player_count }} spots</span
-              >
-            </div>
-          </div>
-        </div>
-
-        <div class="match-section" v-if="matchData.description">
-          <h3><span class="icon">📝</span> Details</h3>
-          <p class="description">{{ matchData.description }}</p>
-        </div>
-
-        <div class="match-section weather-section" v-if="weather">
-          <h3><span class="icon">🌤️</span> Weather Forecast</h3>
-          <div class="weather-card">
-            <div class="weather-temp">{{ weather.temp }}°C</div>
-            <div class="weather-desc">{{ weather.description }}</div>
-          </div>
-        </div>
-
-        <div class="match-section">
-          <h3><span class="icon">👥</span> Match Players</h3>
-          <div class="players-list">
-            <div class="player" v-if="hostProfile">
-              <img
-                :src="
-                  hostProfile.profile_image ||
-                  'https://ui-avatars.com/api/?name=' +
-                    hostProfile.name +
-                    '&background=1a1a1a&color=fff'
-                "
-                alt="host"
-              />
-              <div class="player-info">
-                <p class="player-name">
-                  {{ hostProfile.name }}
-                  <span class="badge">Host</span>
-                </p>
-                <p class="player-role">{{ hostProfile.role }}</p>
-              </div>
-            </div>
-            <div class="player" v-if="playerProfile">
-              <img
-                :src="
-                  playerProfile.profile_image ||
-                  'https://ui-avatars.com/api/?name=' +
-                    playerProfile.name +
-                    '&background=2d2d2d&color=fff'
-                "
-                alt="player"
-              />
-              <div class="player-info">
-                <p class="player-name">{{ playerProfile.name }}</p>
-                <p class="player-role">{{ playerProfile.role }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Chat Area -->
-      <div class="chat-area">
-        <ChatRoom
-          :matchId="1"
-          :conversationId="conversationId"
-          :currentUserId="currentUserId"
-        />
-      </div>
+    <div v-else-if="matches.length === 0" class="empty-state">
+      <div class="empty-icon">🎾</div>
+      <h2>No matches yet</h2>
+      <p>Join a match to start playing!</p>
+      <router-link to="/browser" class="browse-button">
+        Browse Matches
+      </router-link>
     </div>
-    <div v-else class="no-chat">
-      <div class="no-chat-icon">⏳</div>
-      <h3>Waiting for Confirmation</h3>
-      <p>Both players need to confirm before the chat becomes available.</p>
+
+    <div v-else class="matches-grid">
+      <div 
+        v-for="match in matches" 
+        :key="match.id" 
+        class="match-card"
+      >
+        <div class="match-card-header">
+          <h3>{{ match.name }}</h3>
+          <div class="price-badge">
+            <span class="dollar">$</span>{{ match.total_price }}
+          </div>
+        </div>
+
+        <div class="match-details">
+          <div class="detail-row">
+            <span class="icon">📍</span>
+            <span>{{ match.location }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="icon">📅</span>
+            <span>{{ formatDate(match.date) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="icon">🕐</span>
+            <span>{{ match.time }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="icon">👥</span>
+            <span>{{ match.current_player_count }}/{{ match.total_player_count }} players</span>
+          </div>
+        </div>
+
+        <div class="match-actions">
+          <router-link 
+            :to="`/matches/${match.id}/chat`" 
+            class="chat-button"
+            :class="{ disabled: !match.conversation_id }"
+          >
+            <span class="chat-icon">💬</span>
+            <span>{{ match.conversation_id ? 'Open Chat' : 'Waiting for confirmation' }}</span>
+          </router-link>
+        </div>
+
+        <div v-if="!match.conversation_id" class="pending-badge">
+          Pending Confirmation
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
-import ChatRoom from "../components/ChatRoom.vue";
+import { ref, onMounted } from 'vue';
+import { supabase } from '@/lib/supabase';
 
 export default {
-  name: "MyMatches",
-  components: { ChatRoom },
-
-
+  name: 'MyMatches',
+  
   setup() {
     const loading = ref(true);
     const error = ref(null);
-    const conversationId = ref(null);
-    const currentUserId = ref("17c26d43-eba7-445e-af45-84e34dac8ece");
-    // const currentUserId = ref("77995803-7951-4f0e-9797-f84a6fecec1e");
-    const matchData = ref({});
-    const weather = ref(null);
-    const hostProfile = ref(null);
-    const playerProfile = ref(null);
+    const matches = ref([]);
+    const currentUserId = ref(null);
 
     const formatDate = (dateStr) => {
-      return new Date(dateStr).toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-        year: "numeric",
+      return new Date(dateStr).toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
       });
     };
 
-    const fetchWeather = async (location) => {
+    const fetchUserMatches = async () => {
       try {
-        const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-        if (!apiKey) {
-          console.log("No weather API key");
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
+        
+        currentUserId.value = user.id;
+
+        // Get all match IDs where user is a confirmed participant
+        const { data: userMatches, error: userMatchesError } = await supabase
+          .from('users_matches')
+          .select('match_id')
+          .eq('user_id', user.id)
+          .eq('payment_success', true);
+
+        if (userMatchesError) throw userMatchesError;
+
+        if (!userMatches || userMatches.length === 0) {
+          matches.value = [];
           return;
         }
 
-        const response = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${location}&units=metric&appid=${apiKey}`
-        );
+        // Get the actual match details
+        const matchIds = userMatches.map(um => um.match_id);
+        const { data: matchesData, error: matchesError } = await supabase
+          .from('matches')
+          .select('*')
+          .in('id', matchIds)
+          .order('date', { ascending: true });
 
-        if (!response.ok) {
-          console.log("Weather API failed:", response.status);
-          return;
-        }
+        if (matchesError) throw matchesError;
 
-        const data = await response.json();
+        matches.value = matchesData || [];
 
-        if (data.main && data.main.temp && data.weather && data.weather[0]) {
-          weather.value = {
-            temp: Math.round(data.main.temp),
-            description:
-              data.weather[0].description.charAt(0).toUpperCase() +
-              data.weather[0].description.slice(1),
-          };
-        }
-      } catch (err) {
-        console.log("Weather fetch skipped:", err.message);
-      }
-    };
-
-    const fetchProfile = async (userId) => {
-      try {
-        const response = await fetch(`http://localhost:3000/users/${userId}`);
-        return await response.json();
-      } catch (err) {
-        console.error("Profile fetch failed:", err);
-        return null;
-      }
-    };
-
-    onMounted(async () => {
-      try {
-        const matchResponse = await fetch("http://localhost:3000/matches/1");
-        matchData.value = await matchResponse.json();
-        conversationId.value = matchData.value.conversation_id;
-
-        if (matchData.value.location) {
-          await fetchWeather(matchData.value.location);
-        }
-
-        if (matchData.value.host) {
-          hostProfile.value = await fetchProfile(matchData.value.host);
-        }
-
-        const usersResponse = await fetch(
-          `http://localhost:3000/matches/1/users`
-        );
-        const users = await usersResponse.json();
-        if (Array.isArray(users)) {
-          const player = users.find((u) => u.user_id !== matchData.value.host);
-          if (player) {
-            playerProfile.value = await fetchProfile(player.user_id);
-          }
-        }
       } catch (err) {
         error.value = err.message;
+        console.error('Error fetching matches:', err);
       } finally {
         loading.value = false;
       }
+    };
+
+    onMounted(() => {
+      fetchUserMatches();
     });
 
     return {
       loading,
       error,
-      conversationId,
-      currentUserId,
-      matchData,
-      weather,
-      hostProfile,
-      playerProfile,
+      matches,
       formatDate,
     };
   },
@@ -238,198 +160,23 @@ export default {
 </script>
 
 <style scoped>
-* {
-  box-sizing: border-box;
-}
-
-.match-container {
+.my-matches-container {
   min-height: 100vh;
-  padding: 32px;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
+  padding-bottom: 40px;
 }
 
-.back-button-inline {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 28px;
-  color: rgba(255, 255, 255, 0.9);
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.back-button-inline:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.back-icon {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.back-button:hover {
-  background: rgba(0, 0, 0, 0.95);
-  transform: translateX(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.loading {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-}
-
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid #e2e8f0;
-  border-top: 4px solid #1a1a1a;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.loading p {
-  color: #4a5568;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.error {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-}
-
-.error span {
-  font-size: 48px;
-}
-
-.error p {
-  color: #e53e3e;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.no-chat {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 40px;
-}
-
-.no-chat-icon {
-  font-size: 64px;
-  margin-bottom: 20px;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.1);
-  }
-}
-
-.no-chat h3 {
-  font-size: 24px;
-  color: #2d3748;
-  margin: 0 0 12px 0;
-}
-
-.no-chat p {
-  font-size: 16px;
-  color: #718096;
-  max-width: 400px;
-}
-
-.match-layout {
-  display: flex;
-  width: 100%;
-  max-width: 1400px;
-  height: 85vh;
-  max-height: 900px;
-  background: white;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  animation: fadeIn 0.5s ease-in;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.sidebar {
-  width: 380px;
-  background: #ffffff;
-  overflow-y: auto;
-  border-right: 1px solid #e2e8f0;
-  flex-shrink: 0;
-}
-
-.sidebar::-webkit-scrollbar {
-  width: 8px;
-}
-
-.sidebar::-webkit-scrollbar-track {
-  background: #f1f3f5;
-}
-
-.sidebar::-webkit-scrollbar-thumb {
-  background: #cbd5e0;
-  border-radius: 4px;
-}
-
-.sidebar::-webkit-scrollbar-thumb:hover {
-  background: #a0aec0;
-}
-
-.match-header {
-  padding: 0;
+.header {
   background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   color: white;
+  padding: 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   position: relative;
   overflow: hidden;
 }
 
-.match-header::before {
-  content: "";
+.header::before {
+  content: '';
   position: absolute;
   top: -50%;
   right: -50%;
@@ -444,214 +191,274 @@ export default {
 }
 
 @keyframes shimmer {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(-20%, -20%);
-  }
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-20%, -20%); }
 }
 
-.header-content {
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 32px;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
-  padding: 36px 28px;
   z-index: 1;
 }
 
-.match-header h2 {
-  margin: 0 0 16px 0;
-  font-size: 32px;
-  font-weight: 700;
+.back-button:hover {
   color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.back-icon {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.header-content {
+  padding: 32px;
+  position: relative;
+  z-index: 1;
+}
+
+.header-content h1 {
+  margin: 0 0 8px 0;
+  font-size: 36px;
+  font-weight: 700;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-content p {
+  margin: 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.loading, .error {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  min-height: 60vh;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #1a1a1a;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading p {
+  color: #4a5568;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.error span {
+  font-size: 48px;
+}
+
+.error p {
+  color: #e53e3e;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+  padding: 40px;
+}
+
+.empty-icon {
+  font-size: 80px;
+  margin-bottom: 24px;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+.empty-state h2 {
+  font-size: 28px;
+  color: #2d3748;
+  margin: 0 0 12px 0;
+}
+
+.empty-state p {
+  font-size: 16px;
+  color: #718096;
+  margin: 0 0 32px 0;
+}
+
+.browse-button {
+  display: inline-block;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.browse-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.matches-grid {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 32px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+}
+
+.match-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.match-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.match-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
+.match-card-header h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #2d3748;
+  flex: 1;
 }
 
 .price-badge {
   display: inline-flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   color: white;
-  padding: 10px 20px;
-  border-radius: 24px;
+  padding: 8px 16px;
+  border-radius: 20px;
   font-weight: 700;
-  font-size: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-size: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
 }
 
 .dollar {
-  font-size: 16px;
-  margin-right: 4px;
+  font-size: 12px;
+  margin-right: 2px;
   opacity: 0.9;
 }
 
-.match-section {
-  background: white;
-  padding: 24px 28px;
-  margin: 0;
-  border-bottom: 1px solid #f1f3f5;
-  transition: all 0.3s ease;
+.match-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
-.match-section:hover {
-  background: #fafbfc;
-}
-
-.match-section h3 {
-  margin: 0 0 20px 0;
-  font-size: 14px;
-  font-weight: 700;
-  color: #4a5568;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.detail-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  color: #4a5568;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .icon {
   font-size: 18px;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.label {
-  font-size: 12px;
-  color: #a0aec0;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.value {
-  font-size: 15px;
-  color: #2d3748;
-  font-weight: 600;
-}
-
-.description {
-  margin: 0;
-  color: #4a5568;
-  font-size: 15px;
-  line-height: 1.7;
-}
-
-.weather-section {
-  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-  border: none;
-}
-
-.weather-section h3 {
-  color: #2d3748;
-}
-
-.weather-card {
+  width: 24px;
   text-align: center;
-  padding: 16px;
 }
 
-.weather-temp {
-  font-size: 48px;
-  font-weight: 700;
-  color: #2d3748;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+.match-actions {
+  margin-top: 20px;
 }
 
-.weather-desc {
-  font-size: 16px;
-  color: #4a5568;
-  font-weight: 500;
-  margin-top: 8px;
-  text-transform: capitalize;
-}
-
-.players-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.player {
+.chat-button {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 16px;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  border: 2px solid transparent;
-}
-
-.player:hover {
-  transform: translateX(8px) scale(1.02);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  border-color: #1a1a1a;
-}
-
-.player img {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #1a1a1a;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-}
-
-.player:hover img {
-  transform: rotate(5deg) scale(1.1);
-}
-
-.player-info {
-  flex: 1;
-}
-
-.player-name {
-  margin: 0 0 4px 0;
-  font-weight: 700;
-  font-size: 16px;
-  color: #2d3748;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.player-role {
-  margin: 0;
-  font-size: 13px;
-  color: #718096;
-  text-transform: capitalize;
-}
-
-.badge {
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px;
   background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   color: white;
-  padding: 4px 12px;
+  text-decoration: none;
   border-radius: 12px;
-  font-size: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.chat-button:not(.disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.chat-button.disabled {
+  background: #e2e8f0;
+  color: #a0aec0;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.chat-icon {
+  font-size: 20px;
+}
+
+.pending-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #fbbf24;
+  color: #78350f;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-}
-
-.chat-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
 }
 </style>
