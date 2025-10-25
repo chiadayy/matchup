@@ -500,42 +500,6 @@ export default {
   cursor: not-allowed;
 }
 
-/* @media (max-width: 768px) {
-  .creation-container {
-    padding: 20px;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .summary-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .steps-indicator {
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .steps-indicator::before {
-    display: none;
-  }
-
-  .form-navigation {
-    flex-direction: column;
-  }
-
-  .btn {
-    width: 100%;
-  }
-
-  .success-notification {
-    left: 20px;
-    right: 20px;
-  }
-} */
-
 .review-container {
   max-width: 900px;
   margin: 0 auto;
