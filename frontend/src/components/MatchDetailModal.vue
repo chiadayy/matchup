@@ -140,16 +140,26 @@
         </div>
       </div>
     </div>
+
+    <!-- Payment Page -->
+    <PayPage
+      v-if="showPayPage"
+      :match="selectedMatch"
+      :currentUser="currentUser"
+      @close="closePayPage"
+      @paid="handlePaidMatch"
+    />
   </div>
 </template>
 
 <script>
 // import { match } from 'assert';
-import { supabase } from '@/lib/supabase'
-import { useRouter } from 'vue-router'
+import { supabase } from '@/lib/supabase';
+import PayPage from '@/pages/Pay.vue';
 
 export default {
   name: 'MatchDetailModal',
+  components: { PayPage },
   props: {
     isOpen: {
       type: Boolean,
@@ -236,10 +246,13 @@ export default {
     },
     async joinMatch() {
       if (!this.isUserJoined && this.spotsRemaining > 0) {
-        // Block paid matches until payment is implemented
+        // navigate to payment page 
         if (this.match.total_price !== 0) {
-          alert('Got to handle payment logic first.');
-          return;
+          console.log("heklo");
+          this.$router.push({ name: 'Pay', params: { matchid: this.match.id } });
+
+          this.showPayPage = true;
+          return ;
         }
         const paymentSuccess = true;
         try {
