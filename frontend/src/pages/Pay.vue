@@ -16,7 +16,7 @@
         </div>
 
         <!-- Step 1: Match info -->
-        <div v-if="currentStep === 1 && match" class="info-grid">
+        <div v-if="currentStep === 1 && match"  class="info-grid">
           <h2 class="section-title">Match Details</h2>
 
           <!-- Match details -->
@@ -28,7 +28,7 @@
               </svg>
               <h3>Match Information</h3>
             </div>
-            <div class="info-item-stacked">
+            <div class="info-item">
               <span class="label">Match Name</span>
               <span class="value">{{ match.name }}</span>
             </div>
@@ -79,6 +79,7 @@
         <div v-if="currentStep === 2 && match" class="payment-grid">
           <h2 class="section-title">Payment</h2>
 
+          <!-- Payment Summary -->
           <div class="info-section full-width">
             <div class="section-header">
               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -89,7 +90,7 @@
               </svg>
               <h3>Payment Summary</h3>
             </div>
-            
+          
             <div class="summary-items">
               <div class="summary-row">
                 <span class="summary-label">Court Rental</span>
@@ -124,6 +125,7 @@
             </div>
           </div>
 
+          <!-- Card Details -->
           <div class="info-section full-width">
             <div class="section-header">
               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -155,65 +157,6 @@
             
             <p v-if="message" class="payment-message">{{ message }}</p>
           </div>
-
-          <!-- <div class="<div class="section">
-              <h2 class="section-title">Payment Details</h2>
-              <p class="section-subtitle">Input your payment details to complete</p>
-              
-              <div class="form-group">
-                <label for="cardholderName">Cardholder Name</label>
-                <input 
-                  type="text" 
-                  id="cardholderName" 
-                  v-model="cardName"
-                  placeholder="Sally Lim"
-                  required
-                />
-              </div>
-
-              <div class="form-group">
-                <label for="cardNumber">Card Number</label>
-                <div id="card-element" class="card-input-wrapper">
-                  <input 
-                    type="text" 
-                    id="cardNumber" 
-                    v-model="cardNumber"
-                    placeholder="1234 5678 9012 3456"
-                    maxlength="19"
-                    @input="formatCardNumber"
-                  />
-                </div>
-              </div>
-
-              <button class="pay-button" @click="handlePayment" :disabled="loading">
-                {{ loading ? 'Processing...' : 'Pay' }}
-              </button>
-              
-              <p v-if="message" class="payment-message">{{ message }}</p>
-            </div>">
-            <div class="section-header">
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                <line x1="1" y1="10" x2="23" y2="10"></line>
-              </svg>
-              <h3>Card Detalis</h3>
-            </div>
-
-            <div class="mb-4">
-              <label class="form-label">Cardholder Name</label>
-              <input v-model="cardName" class="form-control" placeholder="Sally Lim" required>
-            </div>
-            <div>
-              <label class="form-label">Cardholder Number</label>
-              <div id="card-element" class="form-control"></div>
-            </div>
-            <div>
-              <button type="submit" class="btn btn-primary" :disabled="loading">
-                {{ loading ? "Processing..." : "Pay" }}
-              </button>
-              <p id="result" class="mt-3">{{ message }}</p>
-            </div>
-          </div> -->
         </div>
 
         <div class="form-navigation">
@@ -259,24 +202,7 @@ export default {
       message: "",
       amountPerPax: 0,
       cardName: "",
-      currentStep: 1,
-      showSuccessMessage: false,
-      isSubmitting: false,    
-      submitError: null,
-      
-      formData: {
-        matchName: '',
-        sport: '',
-        skillLevel: '',
-        location: '',
-        maxPlayers: 8,
-        date: '',
-        time: '',
-        duration: 60,
-        isPaid: false,
-        totalPrice: 0,
-        description: ''
-      },
+      currentStep: 1
     }
   },
   computed: {
@@ -366,118 +292,6 @@ export default {
     
     previousStep() {
       this.currentStep--;
-    },
-
-    async createMatch() {
-      if (!this.validateCurrentStep()) {
-        return;
-      }
-
-      this.isSubmitting = true;
-      this.submitError = null;
-
-      try {
-        // Get current user for authentication
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError || !user) {
-          throw new Error('You must be logged in to create a match');
-        }
-
-        // send this to backend
-        const matchData = {
-          name: this.formData.matchName,
-          sport_type: this.formData.sport,
-          skill_level: this.formData.skillLevel,
-          location: this.formData.location,
-          total_player_count: this.formData.maxPlayers,
-          date: this.formData.date,
-          time: this.formData.time,
-          duration: this.formData.duration,
-          total_price: this.formData.isPaid ? this.formData.totalPrice : 0,
-          description: this.formData.description,
-          host: user.id,
-          current_player_count: 0,
-          conversation_id: 0,
-          latitude: 1.3811339716891793,
-          longitude: 103.75191378557123
-        };
-
-        const response = await fetch('http://localhost:3000/matches', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-          },
-          body: JSON.stringify(matchData)
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to create match');
-        }
-
-        const data = await response.json();
-        const createdMatch = data.match;
-
-        // Automatically join the match as the host
-        const joinResponse = await fetch(`http://localhost:3000/matches/${createdMatch.id}/join`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-          },
-          body: JSON.stringify({
-            user_id: user.id,
-            payment_success: true // Host is automatically confirmed
-          })
-        });
-
-        if (!joinResponse.ok) {
-          console.error('Failed to add host to match');
-        }
-
-        // Show success message
-        this.showSuccessMessage = true;
-        
-        // Reset form and redirect after delay
-        setTimeout(() => {
-          this.resetForm();
-          this.$router.push('/my-matches'); // Redirect to My Matches page
-        }, 2000);
-
-      } catch (error) {
-        this.submitError = error.message || 'Failed to create match. Please try again.';
-        alert(`Error: ${error.message}`);
-      } finally {
-        this.isSubmitting = false;
-      }
-    },    
-    
-    resetForm() {
-      this.currentStep = 1;
-      this.formData = {
-        matchName: '',
-        sport: '',
-        skillLevel: '',
-        location: '',
-        maxPlayers: 8,
-        date: '',
-        time: '',
-        duration: 60,
-        isPaid: false,
-        totalPrice: 0,
-        description: ''
-      };
-    },
-    
-    closeSuccessMessage() {
-      this.showSuccessMessage = false;
-    },
-        
-    formatDateDisplay(dateStr) {
-      const date = new Date(dateStr);
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     }
   }
 }
@@ -513,10 +327,6 @@ export default {
   border-radius: 16px;
   padding: 2.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  /* background: white;
-  border-radius: 16px;
-  padding: 40px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08); */
 }
 
 .steps-indicator {
@@ -567,8 +377,8 @@ export default {
 }
 
 .step.completed .step-number {
-  background: var(--success-color);
-  color: white;
+  background: #e8ecef;
+  color: #999;
 }
 
 .step-label {
@@ -650,14 +460,6 @@ export default {
   transform: translateY(-2px);
 }
 
-.success-notification {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 3000;
-  animation: slideInRight 0.3s ease;
-}
-
 @keyframes slideInRight {
   from {
     opacity: 0;
@@ -667,59 +469,6 @@ export default {
     opacity: 1;
     transform: translateX(0);
   }
-}
-
-.notification-content {
-  background: white;
-  border-radius: 12px;
-  padding: 16px 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.notification-content .icon {
-  width: 40px;
-  height: 40px;
-  background: var(--success-color);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 1.2rem;
-}
-
-.message-text {
-  flex: 1;
-}
-
-.message-text .title {
-  margin: 0;
-  color: var(--secondary-color);
-  font-weight: 600;
-}
-
-.message-text .subtitle {
-  margin: 0;
-  color: #999;
-  font-size: 0.85rem;
-}
-
-.btn-close-notification {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #999;
-  transition: all 0.3s ease;
-}
-
-.btn-close-notification:hover {
-  color: var(--secondary-color);
-  transform: rotate(90deg);
 }
 
 .btn-success {
@@ -751,7 +500,7 @@ export default {
   cursor: not-allowed;
 }
 
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
   .creation-container {
     padding: 20px;
   }
@@ -785,97 +534,13 @@ export default {
     left: 20px;
     right: 20px;
   }
-}
+} */
+
 .review-container {
   max-width: 900px;
   margin: 0 auto;
   padding: 2rem;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-/* Stepper Styles */
-.stepper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 3rem;
-  padding: 0 1rem;
-}
-
-.step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.step-circle {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #e5e7eb;
-  color: #6b7280;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 1.125rem;
-  transition: all 0.3s ease;
-}
-
-.step.completed .step-circle {
-  background: #ff6b35;
-  color: white;
-}
-
-.step.active .step-circle {
-  background: #ff6b35;
-  color: white;
-  box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.2);
-}
-
-.step-label {
-  font-size: 0.875rem;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.step.completed .step-label,
-.step.active .step-label {
-  color: #1f2937;
-}
-
-.step-line {
-  flex: 1;
-  height: 2px;
-  background: #e5e7eb;
-  margin: 0 1rem;
-  max-width: 120px;
-}
-
-.step-line.completed {
-  background: #ff6b35;
-}
-
-/* Review Card */
-.review-card {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  padding: 2.5rem;
-}
-
-.review-title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 0.5rem 0;
-}
-
-.review-subtitle {
-  color: #6b7280;
-  margin: 0 0 2rem 0;
-  font-size: 1rem;
 }
 
 /* Info Grid */
@@ -913,12 +578,6 @@ export default {
   color: #1f2937;
 }
 
-.icon {
-  width: 20px;
-  height: 20px;
-  color: #ff6b35;
-}
-
 .info-item {
   display: flex;
   justify-content: space-between;
@@ -936,20 +595,6 @@ export default {
   border-radius: 8px;
   border: 2px solid #ff6b35;
   margin-top: 0.5rem;
-}
-
-.info-item.stacked {
-  flex-direction: column !important; /* force vertical stacking */
-  align-items: stretch !important;   /* make inputs full width */
-}
-
-.info-item.stacked .form-label {
-  margin-bottom: 0.5rem;
-}
-
-.info-item.stacked .form-control {
-  width: 100%;
-  margin-bottom: 0.75rem;
 }
 
 .label {
@@ -997,48 +642,9 @@ export default {
   font-weight: 700;
 }
 
-/* Action Buttons */
-.action-buttons {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-}
-
-.btn {
-  padding: 0.875rem 2rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-}
-
-.btn-secondary {
-  background: white;
-  color: #6b7280;
-  border: 2px solid #e5e7eb;
-}
-
-.btn-secondary:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
-}
-
-.btn-primary {
-  background: #ff6b35;
-  color: white;
-  box-shadow: 0 4px 6px -1px rgba(255, 107, 53, 0.3);
-}
-
-.btn-primary:hover {
-  background: #ff5722;
-  box-shadow: 0 6px 8px -1px rgba(255, 107, 53, 0.4);
-  transform: translateY(-1px);
-}
 
 /* Responsive Design */
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
   .review-container {
     padding: 1rem;
   }
@@ -1077,7 +683,7 @@ export default {
   .btn {
     width: 100%;
   }
-}
+} */
 .payment-card {
   max-width: 700px;
   margin: 0 auto;
@@ -1153,13 +759,6 @@ export default {
   padding: 1rem;
   border-radius: 8px;
   border: 2px solid #f97316;
-}
-
-/* Divider */
-.divider {
-  height: 1px;
-  background: linear-gradient(to right, transparent, #e2e8f0, transparent);
-  margin: 2rem 0;
 }
 
 /* Breakdown */
@@ -1299,192 +898,94 @@ export default {
 }
 
 form-group {
-      margin-bottom: 1.5rem;
-    }
+  margin-bottom: 1.5rem;
+}
 
-    .form-group label {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: #2c3e50;
-      margin-top:  1rem;
-      margin-bottom: 0.5rem;
-    }
+.form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #2c3e50;
+  margin-top:  1rem;
+  margin-bottom: 0.5rem;
+}
 
-    .form-group input {
-      width: 100%;
-      padding: 0.875rem 1rem;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 0.9375rem;
-      color: #2c3e50;
-      transition: all 0.2s ease;
-    }
+.form-group input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  color: #2c3e50;
+  transition: all 0.2s ease;
+}
 
-    .form-group input:focus {
-      outline: none;
-      border-color: #ff6b35;
-      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
-    }
+.form-group input:focus {
+  outline: none;
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
 
-    .form-group input::placeholder {
-      color: #9ca3af;
-    }
+.form-group input::placeholder {
+  color: #9ca3af;
+}
 
-    .pay-button {
-      display: block;
-      width: 100%;
-      max-width: 300px;
-      margin: 0 auto;
-      padding: 1rem 2rem;
-      background: #ff6b35;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
+.pay-button {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  background: #ff6b35;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 
-    .pay-button:hover {
-      background: #ff5722;
-      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
-      transform: translateY(-1px);
-    }
+.pay-button:hover {
+  background: #ff5722;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  transform: translateY(-1px);
+}
 
-    .pay-button:disabled {
-      background: #cbd5e0;
-      cursor: not-allowed;
-      transform: none;
-    }
+.pay-button:disabled {
+  background: #cbd5e0;
+  cursor: not-allowed;
+  transform: none;
+}
 
-    .payment-message {
-      text-align: center;
-      margin-top: 1rem;
-      font-size: 0.875rem;
-      color: #6b7280;
-    }
+.payment-message {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
 
-    .card-input-wrapper {
-      width: 100%;
-    }
+.card-input-wrapper {
+  width: 100%;
+}
 
-    .card-input-wrapper input {
-      width: 100%;
-      padding: 0.875rem 1rem;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 0.9375rem;
-      color: #2c3e50;
-      transition: all 0.2s ease;
-    }
+.card-input-wrapper input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  color: #2c3e50;
+  transition: all 0.2s ease;
+}
 
-    .card-input-wrapper input:focus {
-      outline: none;
-      border-color: #ff6b35;
-      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
-    }
+.card-input-wrapper input:focus {
+  outline: none;
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
 
-    .card-input-wrapper input::placeholder {
-      color: #9ca3af;
-    }
-
-
+.card-input-wrapper input::placeholder {
+  color: #9ca3af;
+}
 </style>
-
-
-<!-- <script>
-import { loadStripe } from "@stripe/stripe-js";
-import { useRoute } from 'vue-router';
-import { ref, onMounted } from 'vue';
-import { supabase } from '@/lib/supabase';
-
-export default {
-  data() {
-    return {
-      userMatch: null,
-      stripe: null,
-      elements: null,
-      card: null,
-      loading: false,
-      message: "",
-      amountPerPax: 0,
-      cardName: ""
-    };
-  },
-  computed: {
-    match() {
-      return this.userMatch || null;
-    }
-  },
-  async mounted() {
-    const matchId = this.$route.params.matchid;
-    console.log(this.$route.params.matchid);
-
-    this.stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-    this.elements = this.stripe.elements();
-    this.card = this.elements.create("card", {
-      style: {
-        base: {
-          fontSize: "16px",
-          color: "#32325d",
-          "::placeholder": { color: "#a0aec0" }
-        },
-      },
-    });
-    this.card.mount("#card-element");
-
-    await this.retrieveMatchDetails(matchId);
-  },
-  methods: {
-    async retrieveMatchDetails(matchid) {
-      try {
-        const { data, error } = await supabase
-          .from('matches')       
-          .select('*')
-          .eq('id', matchid)
-          .single();
-
-        if (error) throw error;
-        if (!data) throw new Error("No match found");
-
-        this.userMatch = data;
-        console.log("Match data:", data);
-
-         this.amountPerPax = Math.round((data.total_price / data.total_player_count) * 100);
-      } catch (err) {
-        console.error("Error fetching match:", err.message);
-      }
-    },
-    async handlePayment() {
-      this.loading = true;
-      this.message = "";
-
-      try {
-        const res = await fetch("http://localhost:3000/payments/create-payment-intent", { 
-          method: "POST", 
-          headers: { "Content-Type": "application/json" }, 
-          body: JSON.stringify({ amount: this.amountPerPax, currency: "sgd" })
-        });
-
-        const { clientSecret } = await res.json();
-
-        const { error, paymentIntent } = await this.stripe.confirmCardPayment(clientSecret, {
-          payment_method: {
-            card: this.card,
-            billing_details: { name: this.cardName },
-          },
-        });
-
-        if (error) this.message = error.message;
-        else if (paymentIntent.status === "succeeded") this.message = "Payment successful!";
-      } catch (err) {
-        this.message = "Error: " + err.message;
-      } finally {
-        this.loading = false;
-      }
-    },
-  },
-};
-</script> -->
