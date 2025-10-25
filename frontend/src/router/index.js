@@ -45,7 +45,7 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/pay',
+    path: '/pay/:matchid',
     name: 'Pay',
     component: Pay,
     meta: { requiresAuth: true }
