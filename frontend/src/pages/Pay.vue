@@ -156,6 +156,23 @@
             </button>
             
             <p v-if="message" class="payment-message">{{ message }}</p>
+
+            <div v-if="showSuccessModal" class="modal-overlay">
+              <div class="modal-content">
+                <h2>✅ Payment Successful!</h2>
+                <p>You’ve been successfully added to the match.</p>
+                <button @click="handleSuccessOk">OK</button>
+              </div>
+            </div>
+
+            <!-- Payment Confirmation Modal -->
+            <!-- <PaymentConfirmationModal
+              v-if="showSuccessModal" 
+              :isOpen="showMatchDetail"
+              :match="selectedMatch"
+              :currentUser="currentUser"
+              @close="handleSuccessOk"
+            /> -->
           </div>
         </div>
 
@@ -202,7 +219,8 @@ export default {
       message: "",
       amountPerPax: 0,
       cardName: "",
-      currentStep: 1
+      currentStep: 1,
+      currentUser: null
     }
   },
   computed: {
@@ -213,6 +231,9 @@ export default {
   async mounted() {
     const matchId = this.$route.params.matchid;
     console.log(this.$route.params.matchid);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    this.currentUser = user;
 
     await this.retrieveMatchDetails(matchId);
   },
@@ -271,12 +292,38 @@ export default {
         });
 
         if (error) this.message = error.message;
-        else if (paymentIntent.status === "succeeded") this.message = "Payment successful!";
+        else if (paymentIntent.status === "succeeded") {
+          this.message = "Payment successful!";
+          this.showSuccessModal = true;
+          // this.$emit('paid');
+
+          try {
+            const res = await fetch(`http://localhost:3000/matches/${this.match.id}/join`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                user_id: this.currentUser.id,
+                payment_success: true
+              })
+            });
+            const result = await res.json();
+
+            if (!result.success) {
+              console.error("Failed to join match in DB:", result.error);
+            }
+          } catch (err) {
+            console.error("Error joining match in DB:", err);
+          }
+        } 
       } catch (err) {
         this.message = "Error: " + err.message;
       } finally {
         this.loading = false;
       }
+    },
+    handleSuccessOk() {
+      this.showSuccessModal = false;
+      this.$router.push({ name: 'Browser' }); 
     },
     getStepLabel(step) {
       const labels = ['Match Details', 'Payment'];
@@ -951,5 +998,28 @@ form-group {
 
 .card-input-wrapper input::placeholder {
   color: #9ca3af;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,0.5); /* semi-transparent background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* make sure it’s on top of everything */
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 </style>

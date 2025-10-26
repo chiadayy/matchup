@@ -30,7 +30,6 @@
             </div>
             <div class="info-item">
               <span class="info-label">📅 Date & Time</span>
-              <!-- <span class="info-value">{{ match.date.split(" ")[0] }} at {{ match.date.split(" ")[1] }}</span> -->
               <span class="info-value">{{ match.date }} at {{ match.time }}</span>
             </div>
             <div class="info-item">
@@ -77,7 +76,7 @@
                 <img :src="player.profile_image" :alt="player.name" class="player-avatar">
                 <div class="player-details">
                   <div class="player-name">
-                    {{ player.profiles.name }}
+                    {{ player.name }}
                     <span v-if="player.isOrganizer" class="badge badge-organizer">Organizer</span>
                   </div>
                   <div class="player-stats">
@@ -102,7 +101,7 @@
             </div>
 
             <!-- Empty Slots -->
-            <!-- <div 
+            <div 
               v-for="slot in emptySlots" 
               :key="'empty-' + slot"
               class="player-item empty-slot"
@@ -113,15 +112,15 @@
                   <div class="player-name text-muted">Waiting for player...</div>
                 </div>
               </div>
-            </div> -->
+            </div>
           </div>
         </div>
 
         <!-- Match Description -->
-        <!-- <div v-if="match.description" class="description-card">
+        <div v-if="match.description" class="description-card">
           <h3 class="section-title">Description</h3>
           <p class="match-description">{{ match.description }}</p>
-        </div> -->
+        </div>
       </div>
 
       <!-- Modal Footer -->
@@ -140,15 +139,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Payment Page -->
-    <PayPage
-      v-if="showPayPage"
-      :match="selectedMatch"
-      :currentUser="currentUser"
-      @close="closePayPage"
-      @paid="handlePaidMatch"
-    />
   </div>
 </template>
 
@@ -169,19 +159,24 @@ export default {
       type: Object,
       required: true
     },
-    currentUser: {
-      type: Object,
-      default: () => ({
-        id: '1',
-        name: 'John Doe',
-        profilePic: 'https://i.pravatar.cc/150?img=12'
-      })
-    }
+    // currentUser: {
+    //   type: Object,
+    //   default: () => ({
+    //     id: '1',
+    //     name: 'John Doe',
+    //     profilePic: 'https://i.pravatar.cc/150?img=12'
+    //   })
+    // }
   },
   data() {
     return {
-      matchPlayers: []
+      matchPlayers: [],
+      currentUser: null,
+      showJoinSuccessModal: false
     };
+  },
+  mounted() {
+    this.fetchCurrentUser();
   },
   computed: {
     currentPlayers() {
@@ -204,20 +199,41 @@ export default {
     }
   },
   methods: {
+    async fetchCurrentUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      try {
+        const { data: user_profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error("Failed to fetch current user's profile:", error);
+          return;
+        }
+
+        this.currentUser = user_profile;
+
+      } catch (err) {
+        console.error("Error fetching current user's profile:", err);
+      }
+    },
     async getPlayers() {
       try {
         const { data, error } = await supabase
         .from('users_matches')
-        .select(`*, profiles(*)`)
-        .eq("match_id", this.match.id);
+        .select('profiles(*)')
+        .eq("match_id", this.match.id)
+        .eq("payment_success", true);
 
         if (error) {
           console.error("Failed to fetch players data", error);
           return;
         }
         else {
-          console.log(data);
-          this.matchPlayers = data;
+          // this.matchPlayers = data;
+          this.matchPlayers = data.map(u => u.profiles);
         }
       }
       catch (err) {
@@ -248,9 +264,7 @@ export default {
       if (!this.isUserJoined && this.spotsRemaining > 0) {
         // navigate to payment page 
         if (this.match.total_price !== 0) {
-          console.log("heklo");
           this.$router.push({ name: 'Pay', params: { matchid: this.match.id } });
-
           this.showPayPage = true;
           return ;
         }
@@ -267,12 +281,15 @@ export default {
           const result = await response.json();
           if (result.success) {
             this.matchPlayers.push({
-              ...this.currentUser,
-              attendance: 95,
-              skillLevel: 'Intermediate',
-              isOrganizer: false
+              ...this.currentUser
+              // ...this.currentUser,
+              // attendance: 95,
+              // skillLevel: 'Intermediate',
+              // isOrganizer: false
             });
             this.$emit('join', this.match.id);
+            console.log("hihi", this.matchPlayers);
+
           } else {
             alert('Failed to join match: ' + result.error);
           }
@@ -304,24 +321,24 @@ export default {
         }
       }
     },
-    // async fetchMatchPlayers() {
-    //   try {
-    //     const response = await fetch(`http://localhost:3000/matches/${this.match.id}/users`);
-    //     const result = await response.json();
-    //     this.matchPlayers = Array.isArray(result)
-    //       ? result.map(u => ({
-    //           id: u.user_id,
-    //           name: `User ${u.user_id.substring(0, 6)}`, 
-    //           profilePic: 'https://i.pravatar.cc/150?u=' + u.user_id, 
-    //           attendance: 100, 
-    //           skillLevel: 'Unknown', 
-    //           isOrganizer: false 
-    //         }))
-    //       : [];
-    //   } catch (err) {
-    //     console.error('Failed to fetch match players:', err);
-    //   }
-    // },
+    async fetchMatchPlayers() {
+      try {
+        const response = await fetch(`http://localhost:3000/matches/${this.match.id}/users`);
+        const result = await response.json();
+        this.matchPlayers = Array.isArray(result)
+          ? result.map(u => ({
+              id: u.user_id,
+              name: `User ${u.user_id.substring(0, 6)}`, 
+              profilePic: 'https://i.pravatar.cc/150?u=' + u.user_id, 
+              attendance: 100, 
+              skillLevel: 'Unknown', 
+              isOrganizer: false 
+            }))
+          : [];
+      } catch (err) {
+        console.error('Failed to fetch match players:', err);
+      }
+    },
     messagePlayer(player) {
       this.$emit('message', player);
       // Or open chat directly
