@@ -140,15 +140,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Payment Page -->
-    <PayPage
-      v-if="showPayPage"
-      :match="selectedMatch"
-      :currentUser="currentUser"
-      @close="closePayPage"
-      @paid="handlePaidMatch"
-    />
   </div>
 </template>
 
@@ -334,34 +325,34 @@ export default {
       // Or open chat directly
       // this.$router.push(`/messages/${player.id}`);
     },
-    async handlePaidMatch() {
-      try {
-        const { data, error } = await fetch (
-          `${import.meta.env.VITE_API_BASE_URL}/matches/${this.match.id}/join`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              user_id: this.currentUser.id,
-              payment_success: true
-            })
-          }
-        ).then(r => r.json());
+    // async handlePaidMatch() {
+    //   try {
+    //     const { data, error } = await fetch (
+    //       `${import.meta.env.VITE_API_BASE_URL}/matches/${this.match.id}/join`,
+    //       {
+    //         method: 'POST',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         body: JSON.stringify({
+    //           user_id: this.currentUser.id,
+    //           payment_success: true
+    //         })
+    //       }
+    //     ).then(r => r.json());
 
-        if (error) throw new Error(error.message);
+    //     if (error) throw new Error(error.message);
 
-        // Update UI 
-        this.matchPlayers.push({
-          ...this.currentUser
-        });
+    //     // Update UI 
+    //     this.matchPlayers.push({
+    //       ...this.currentUser
+    //     });
 
-        alert("✅ Payment successful! You have joined the match.");
+    //     alert("✅ Payment successful! You have joined the match.");
 
-      } catch (err) {
-        console.error("❌ Auto-join failed:", err);
-        alert("Something went wrong while joining the match.");
-      }
-    }
+    //   } catch (err) {
+    //     console.error("❌ Auto-join failed:", err);
+    //     alert("Something went wrong while joining the match.");
+    //   }
+    // }
   },
   watch: {
     'match.id': {
