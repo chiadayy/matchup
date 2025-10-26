@@ -169,19 +169,24 @@ export default {
       type: Object,
       required: true
     },
-    currentUser: {
-      type: Object,
-      default: () => ({
-        id: '1',
-        name: 'John Doe',
-        profilePic: 'https://i.pravatar.cc/150?img=12'
-      })
-    }
+    // currentUser: {
+    //   type: Object,
+    //   default: () => ({
+    //     id: '1',
+    //     name: 'John Doe',
+    //     profilePic: 'https://i.pravatar.cc/150?img=12'
+    //   })
+    // }
   },
   data() {
     return {
-      matchPlayers: []
+      matchPlayers: [],
+      currentUser: null,
+      showJoinSuccessModal: false
     };
+  },
+  mounted() {
+    this.fetchCurrentUser();
   },
   computed: {
     currentPlayers() {
@@ -204,6 +209,10 @@ export default {
     }
   },
   methods: {
+    async fetchCurrentUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      this.currentUser = user.id;
+    },
     async getPlayers() {
       try {
         const { data, error } = await supabase
@@ -248,9 +257,7 @@ export default {
       if (!this.isUserJoined && this.spotsRemaining > 0) {
         // navigate to payment page 
         if (this.match.total_price !== 0) {
-          console.log("heklo");
           this.$router.push({ name: 'Pay', params: { matchid: this.match.id } });
-
           this.showPayPage = true;
           return ;
         }
@@ -260,19 +267,21 @@ export default {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              user_id: this.currentUser.id,
+              user_id: this.currentUser,
               payment_success: paymentSuccess
             })
           });
           const result = await response.json();
           if (result.success) {
             this.matchPlayers.push({
-              ...this.currentUser,
-              attendance: 95,
-              skillLevel: 'Intermediate',
-              isOrganizer: false
+              ...this.currentUser
+              // ...this.currentUser,
+              // attendance: 95,
+              // skillLevel: 'Intermediate',
+              // isOrganizer: false
             });
             this.$emit('join', this.match.id);
+            this.showJoinSuccessModal = true;
           } else {
             alert('Failed to join match: ' + result.error);
           }
@@ -304,28 +313,56 @@ export default {
         }
       }
     },
-    // async fetchMatchPlayers() {
-    //   try {
-    //     const response = await fetch(`http://localhost:3000/matches/${this.match.id}/users`);
-    //     const result = await response.json();
-    //     this.matchPlayers = Array.isArray(result)
-    //       ? result.map(u => ({
-    //           id: u.user_id,
-    //           name: `User ${u.user_id.substring(0, 6)}`, 
-    //           profilePic: 'https://i.pravatar.cc/150?u=' + u.user_id, 
-    //           attendance: 100, 
-    //           skillLevel: 'Unknown', 
-    //           isOrganizer: false 
-    //         }))
-    //       : [];
-    //   } catch (err) {
-    //     console.error('Failed to fetch match players:', err);
-    //   }
-    // },
+    async fetchMatchPlayers() {
+      try {
+        const response = await fetch(`http://localhost:3000/matches/${this.match.id}/users`);
+        const result = await response.json();
+        this.matchPlayers = Array.isArray(result)
+          ? result.map(u => ({
+              id: u.user_id,
+              name: `User ${u.user_id.substring(0, 6)}`, 
+              profilePic: 'https://i.pravatar.cc/150?u=' + u.user_id, 
+              attendance: 100, 
+              skillLevel: 'Unknown', 
+              isOrganizer: false 
+            }))
+          : [];
+      } catch (err) {
+        console.error('Failed to fetch match players:', err);
+      }
+    },
     messagePlayer(player) {
       this.$emit('message', player);
       // Or open chat directly
       // this.$router.push(`/messages/${player.id}`);
+    },
+    async handlePaidMatch() {
+      try {
+        const { data, error } = await fetch (
+          `${import.meta.env.VITE_API_BASE_URL}/matches/${this.match.id}/join`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: this.currentUser.id,
+              payment_success: true
+            })
+          }
+        ).then(r => r.json());
+
+        if (error) throw new Error(error.message);
+
+        // Update UI 
+        this.matchPlayers.push({
+          ...this.currentUser.id
+        });
+
+        alert("✅ Payment successful! You have joined the match.");
+
+      } catch (err) {
+        console.error("❌ Auto-join failed:", err);
+        alert("Something went wrong while joining the match.");
+      }
     }
   },
   watch: {

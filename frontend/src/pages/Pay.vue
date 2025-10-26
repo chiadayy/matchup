@@ -156,6 +156,14 @@
             </button>
             
             <p v-if="message" class="payment-message">{{ message }}</p>
+
+            <div v-if="showSuccessModal" class="modal-overlay">
+              <div class="modal-content">
+                <h2>✅ Payment Successful!</h2>
+                <p>You’ve been successfully added to the match.</p>
+                <button @click="handleSuccessOk">OK</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -271,12 +279,20 @@ export default {
         });
 
         if (error) this.message = error.message;
-        else if (paymentIntent.status === "succeeded") this.message = "Payment successful!";
+        else if (paymentIntent.status === "succeeded") {
+          this.message = "Payment successful!";
+          this.showSuccessModal = true;
+          this.$emit('paid');
+        } 
       } catch (err) {
         this.message = "Error: " + err.message;
       } finally {
         this.loading = false;
       }
+    },
+    handleSuccessOk() {
+      this.showSuccessModal = false;
+      this.$router.push({ name: 'Browser' }); 
     },
     getStepLabel(step) {
       const labels = ['Match Details', 'Payment'];
