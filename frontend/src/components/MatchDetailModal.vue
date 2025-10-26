@@ -30,7 +30,6 @@
             </div>
             <div class="info-item">
               <span class="info-label">📅 Date & Time</span>
-              <!-- <span class="info-value">{{ match.date.split(" ")[0] }} at {{ match.date.split(" ")[1] }}</span> -->
               <span class="info-value">{{ match.date }} at {{ match.time }}</span>
             </div>
             <div class="info-item">
@@ -102,7 +101,7 @@
             </div>
 
             <!-- Empty Slots -->
-            <!-- <div 
+            <div 
               v-for="slot in emptySlots" 
               :key="'empty-' + slot"
               class="player-item empty-slot"
@@ -113,15 +112,15 @@
                   <div class="player-name text-muted">Waiting for player...</div>
                 </div>
               </div>
-            </div> -->
+            </div>
           </div>
         </div>
 
         <!-- Match Description -->
-        <!-- <div v-if="match.description" class="description-card">
+        <div v-if="match.description" class="description-card">
           <h3 class="section-title">Description</h3>
           <p class="match-description">{{ match.description }}</p>
-        </div> -->
+        </div>
       </div>
 
       <!-- Modal Footer -->
