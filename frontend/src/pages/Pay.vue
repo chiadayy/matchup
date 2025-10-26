@@ -206,7 +206,6 @@ import { loadStripe } from "@stripe/stripe-js";
 import { useRoute } from 'vue-router';
 import { ref, onMounted } from 'vue';
 import { supabase } from '@/lib/supabase';
-import PaymentConfirmationModal from '@/components/PaymentConfirmationModal.vue';
 
 export default {
   name: 'GameCreation',

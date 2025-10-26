@@ -77,7 +77,7 @@
                 <img :src="player.profile_image" :alt="player.name" class="player-avatar">
                 <div class="player-details">
                   <div class="player-name">
-                    {{ player.profiles.name }}
+                    {{ player.name }}
                     <span v-if="player.isOrganizer" class="badge badge-organizer">Organizer</span>
                   </div>
                   <div class="player-stats">
@@ -196,27 +196,45 @@ export default {
       return Math.max(0, this.spotsRemaining);
     },
     isUserJoined() {
-      return this.matchPlayers.some(p => p.user_id === this.currentUser.id);
+      return this.matchPlayers.some(p => p.id === this.currentUser.id);
     }
   },
   methods: {
     async fetchCurrentUser() {
       const { data: { user } } = await supabase.auth.getUser();
-      this.currentUser = user;
+      try {
+        const { data: user_profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error("Failed to fetch current user's profile:", error);
+          return;
+        }
+
+        this.currentUser = user_profile;
+
+      } catch (err) {
+        console.error("Error fetching current user's profile:", err);
+      }
     },
     async getPlayers() {
       try {
         const { data, error } = await supabase
         .from('users_matches')
-        .select(`*, profiles(*)`)
-        .eq("match_id", this.match.id);
+        .select('profiles(*)')
+        .eq("match_id", this.match.id)
+        .eq("payment_success", true);
 
         if (error) {
           console.error("Failed to fetch players data", error);
           return;
         }
         else {
-          this.matchPlayers = data;
+          // this.matchPlayers = data;
+          this.matchPlayers = data.map(u => u.profiles);
         }
       }
       catch (err) {
@@ -271,6 +289,8 @@ export default {
               // isOrganizer: false
             });
             this.$emit('join', this.match.id);
+            console.log("hihi", this.matchPlayers);
+
           } else {
             alert('Failed to join match: ' + result.error);
           }
@@ -324,35 +344,7 @@ export default {
       this.$emit('message', player);
       // Or open chat directly
       // this.$router.push(`/messages/${player.id}`);
-    },
-    // async handlePaidMatch() {
-    //   try {
-    //     const { data, error } = await fetch (
-    //       `${import.meta.env.VITE_API_BASE_URL}/matches/${this.match.id}/join`,
-    //       {
-    //         method: 'POST',
-    //         headers: { 'Content-Type': 'application/json' },
-    //         body: JSON.stringify({
-    //           user_id: this.currentUser.id,
-    //           payment_success: true
-    //         })
-    //       }
-    //     ).then(r => r.json());
-
-    //     if (error) throw new Error(error.message);
-
-    //     // Update UI 
-    //     this.matchPlayers.push({
-    //       ...this.currentUser
-    //     });
-
-    //     alert("✅ Payment successful! You have joined the match.");
-
-    //   } catch (err) {
-    //     console.error("❌ Auto-join failed:", err);
-    //     alert("Something went wrong while joining the match.");
-    //   }
-    // }
+    }
   },
   watch: {
     'match.id': {

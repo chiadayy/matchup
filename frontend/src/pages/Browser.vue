@@ -997,7 +997,7 @@ export default {
       // await joinMatch(matchId)
       
       // Update UI
-      alert('Successfully joined the match!')
+      // alert('Successfully joined the match!')
     },
     handleLeaveMatch(matchId) {
       console.log('Left match:', matchId)
@@ -1005,7 +1005,7 @@ export default {
       // await leaveMatch(matchId)
       
       // Update UI
-      alert('You have left the match')
+      // alert('You have left the match')
     },
     handleMessagePlayer(player) {
       console.log('Message player:', player)
