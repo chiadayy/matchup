@@ -205,13 +205,13 @@ export default {
       return Math.max(0, this.spotsRemaining);
     },
     isUserJoined() {
-      return this.matchPlayers.some(p => p.id === this.currentUser.id);
+      return this.matchPlayers.some(p => p.user_id === this.currentUser.id);
     }
   },
   methods: {
     async fetchCurrentUser() {
       const { data: { user } } = await supabase.auth.getUser();
-      this.currentUser = user.id;
+      this.currentUser = user;
     },
     async getPlayers() {
       try {
@@ -225,7 +225,6 @@ export default {
           return;
         }
         else {
-          console.log(data);
           this.matchPlayers = data;
         }
       }
@@ -267,7 +266,7 @@ export default {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              user_id: this.currentUser,
+              user_id: this.currentUser.id,
               payment_success: paymentSuccess
             })
           });
@@ -281,7 +280,6 @@ export default {
               // isOrganizer: false
             });
             this.$emit('join', this.match.id);
-            this.showJoinSuccessModal = true;
           } else {
             alert('Failed to join match: ' + result.error);
           }
@@ -354,7 +352,7 @@ export default {
 
         // Update UI 
         this.matchPlayers.push({
-          ...this.currentUser.id
+          ...this.currentUser
         });
 
         alert("✅ Payment successful! You have joined the match.");
