@@ -160,7 +160,7 @@ watch(() => props.games, () => {
 
 watch(() => props.center, (newCenter) => {
   if (map && newCenter) {
-    map.setCenter(newCenter)
+    map.panTo(newCenter)
   }
 })
 
@@ -170,38 +170,56 @@ watch(() => props.shouldZoom, (shouldZoom) => {
   }
 })
 
-watch(() => props.zoomLevel, (newZoom) => {
-  if (map && newZoom !== null) {
+watch(() => props.zoom, (newZoom) => {
+  if (map && newZoom !== null && newZoom !== undefined) {
     map.setZoom(newZoom)
   }
 })
 
 watch(() => props.searchedLocation, async (newLocation) => {
+  console.log('🔍 Searched location changed:', newLocation)
+
   if (map && newLocation) {
+    console.log('✅ Creating red marker at:', newLocation.lat, newLocation.lng)
+
     // Remove existing search marker
     if (searchMarker) {
       searchMarker.map = null
     }
 
-    const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary('marker')
+    try {
+      const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary('marker')
 
-    // Create a custom pin for the searched location
-    const pinBackground = new PinElement({
-      background: '#10b981',
-      borderColor: '#059669',
-      glyphColor: '#fff',
-      scale: 1.3
-    })
+      // Create a custom RED pin for the searched location
+      const pinBackground = new PinElement({
+        background: '#ef4444',
+        borderColor: '#dc2626',
+        glyphColor: '#fff',
+        scale: 1.3
+      })
 
-    searchMarker = new AdvancedMarkerElement({
-      map,
-      position: { lat: newLocation.lat, lng: newLocation.lng },
-      title: newLocation.name,
-      content: pinBackground.element
-    })
+      searchMarker = new AdvancedMarkerElement({
+        map,
+        position: { lat: newLocation.lat, lng: newLocation.lng },
+        title: newLocation.name,
+        content: pinBackground.element
+      })
 
-    // Zoom in when search location is set
-    map.setZoom(15)
+      console.log('✅ Red marker created successfully')
+
+      // Pan to the searched location and zoom in
+      map.panTo({ lat: newLocation.lat, lng: newLocation.lng })
+      map.setZoom(15)
+    } catch (error) {
+      console.error('❌ Error creating search marker:', error)
+    }
+  } else if (map && !newLocation) {
+    console.log('🗑️ Clearing search marker')
+    // Clear the search marker when location is cleared
+    if (searchMarker) {
+      searchMarker.map = null
+      searchMarker = null
+    }
   }
 }, { deep: true })
 
@@ -244,26 +262,37 @@ async function updateMarkers(AdvancedMarkerElement) {
     // Create info window content
     const contentString = `
       <div style="
-        font-family: 'Inter', system-ui, sans-serif;
-        padding: 16px;
-        max-width: 280px;
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        color: #f8fafc;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        padding: 20px;
+        max-width: 320px;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        color: #1e293b;
+        border-radius: 16px;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+        border: 1px solid rgba(226, 232, 240, 0.8);
       ">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-          <span style="font-size: 36px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">${game.icon}</span>
-          <div>
-            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #f1f5f9; line-height: 1.3;">${game.title}</h3>
-            <p style="margin: 4px 0 0; font-size: 12px; color: #94a3b8;">📍 ${game.venue}</p>
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+          <div style="
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: ${game.color || '#3b82f6'};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          ">${game.icon}</div>
+          <div style="flex: 1; min-width: 0;">
+            <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${game.title}</h3>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #64748b; font-weight: 500;">📍 ${game.venue}</p>
           </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
-          <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #cbd5e1;">
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px;">
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #475569; background: #f1f5f9; padding: 8px 12px; border-radius: 8px;">
             <span>🕒</span>
-            <span>${new Date(game.startTimeISO).toLocaleString('en-US', {
+            <span style="font-weight: 600;">${new Date(game.startTimeISO).toLocaleString('en-US', {
               weekday: 'short',
               month: 'short',
               day: 'numeric',
@@ -274,17 +303,17 @@ async function updateMarkers(AdvancedMarkerElement) {
 
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <span style="
-              font-size: 11px;
-              padding: 4px 10px;
-              border-radius: 12px;
-              background: ${game.skillLevel === 'Beginner' ? 'rgba(34, 197, 94, 0.2)' :
-                          game.skillLevel === 'Intermediate' ? 'rgba(59, 130, 246, 0.2)' :
-                          game.skillLevel === 'Advanced' ? 'rgba(239, 68, 68, 0.2)' :
-                          'rgba(168, 85, 247, 0.2)'};
-              color: ${game.skillLevel === 'Beginner' ? '#4ade80' :
-                      game.skillLevel === 'Intermediate' ? '#60a5fa' :
-                      game.skillLevel === 'Advanced' ? '#f87171' :
-                      '#c084fc'};
+              font-size: 12px;
+              padding: 6px 12px;
+              border-radius: 20px;
+              background: ${game.skillLevel === 'Beginner' ? 'rgba(34, 197, 94, 0.15)' :
+                          game.skillLevel === 'Intermediate' ? 'rgba(59, 130, 246, 0.15)' :
+                          game.skillLevel === 'Advanced' ? 'rgba(239, 68, 68, 0.15)' :
+                          'rgba(168, 85, 247, 0.15)'};
+              color: ${game.skillLevel === 'Beginner' ? '#16a34a' :
+                      game.skillLevel === 'Intermediate' ? '#2563eb' :
+                      game.skillLevel === 'Advanced' ? '#dc2626' :
+                      '#9333ea'};
               border: 1px solid ${game.skillLevel === 'Beginner' ? 'rgba(34, 197, 94, 0.3)' :
                                  game.skillLevel === 'Intermediate' ? 'rgba(59, 130, 246, 0.3)' :
                                  game.skillLevel === 'Advanced' ? 'rgba(239, 68, 68, 0.3)' :
@@ -294,15 +323,15 @@ async function updateMarkers(AdvancedMarkerElement) {
               ${game.skillLevel}
             </span>
             <span style="
-              font-size: 11px;
-              padding: 4px 10px;
-              border-radius: 12px;
-              background: ${game.price === 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(251, 191, 36, 0.2)'};
-              color: ${game.price === 0 ? '#10b981' : '#fbbf24'};
+              font-size: 12px;
+              padding: 6px 12px;
+              border-radius: 20px;
+              background: ${game.price === 0 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(251, 191, 36, 0.15)'};
+              color: ${game.price === 0 ? '#059669' : '#d97706'};
               border: 1px solid ${game.price === 0 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(251, 191, 36, 0.3)'};
               font-weight: 700;
             ">
-              ${game.price === 0 ? 'FREE' : `$${game.price}`}
+              ${game.price === 0 ? '💸 FREE' : `💰 $${game.price}`}
             </span>
           </div>
         </div>
@@ -311,23 +340,27 @@ async function updateMarkers(AdvancedMarkerElement) {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 10px 12px;
-          background: rgba(30, 41, 59, 0.6);
-          border-radius: 8px;
-          border: 1px solid rgba(71, 85, 105, 0.5);
+          padding: 12px 14px;
+          background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+          border-radius: 10px;
+          border: 1px solid #e2e8f0;
         ">
-          <span style="font-size: 12px; color: #cbd5e1; font-weight: 600;">
+          <span style="font-size: 13px; color: #475569; font-weight: 600;">
             ${game.joined}/${game.capacity} joined
           </span>
           <span style="
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 700;
-            color: ${game.joined >= game.capacity ? '#f87171' :
-                    game.joined / game.capacity >= 0.8 ? '#fbbf24' : '#4ade80'};
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: ${game.joined >= game.capacity ? 'rgba(239, 68, 68, 0.15)' :
+                        game.joined / game.capacity >= 0.8 ? 'rgba(251, 191, 36, 0.15)' : 'rgba(34, 197, 94, 0.15)'};
+            color: ${game.joined >= game.capacity ? '#dc2626' :
+                    game.joined / game.capacity >= 0.8 ? '#d97706' : '#16a34a'};
           ">
             ${game.joined >= game.capacity ? 'FULL' :
-              game.capacity - game.joined === 1 ? '1 spot left' :
-              `${game.capacity - game.joined} spots left`}
+              game.capacity - game.joined === 1 ? '1 spot' :
+              `${game.capacity - game.joined} spots`}
           </span>
         </div>
       </div>

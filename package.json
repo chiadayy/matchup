@@ -1,7 +1,12 @@
 {
   "dependencies": {
+    "@fullcalendar/bootstrap5": "^6.1.19",
+    "@fullcalendar/daygrid": "^6.1.19",
+    "@fullcalendar/interaction": "^6.1.19",
+    "@fullcalendar/vue3": "^6.1.19",
     "@stripe/stripe-js": "^8.0.0",
     "@talkjs/react": "^0.1.11",
+    "bootstrap-icons": "^1.13.1",
     "stripe": "^19.1.0",
     "talkjs": "^0.42.1"
   }

@@ -7,9 +7,49 @@
         <p class="results-count">Showing <span>{{ filteredMatches.length }}</span> matches</p>
       </div>
 
+      <!-- Weather Banner -->
+      <div v-if="weatherBannerData && !weatherBannerDismissed" class="weather-banner-wrapper">
+        <div class="weather-banner" :class="getWeatherBannerClass(weatherBannerData.condition)">
+          <button class="weather-banner-dismiss" @click="weatherBannerDismissed = true">×</button>
+
+          <div class="weather-banner-main">
+            <div class="weather-banner-icon">
+              {{ getWeatherIcon(weatherBannerData.condition) }}
+            </div>
+            <div class="weather-banner-content">
+              <div class="weather-banner-location">
+                <span class="location-icon">📍</span>
+                <span class="location-text">{{ weatherBannerData.locationName }}</span>
+              </div>
+              <div class="weather-banner-stats">
+                <span class="weather-temp">{{ weatherBannerData.temp }}°C</span>
+                <span class="weather-divider">•</span>
+                <span class="weather-condition">{{ weatherBannerData.condition }}</span>
+                <span class="weather-divider">•</span>
+                <span class="weather-humidity">{{ weatherBannerData.humidity }}% Humidity</span>
+              </div>
+              <div class="weather-banner-suggestion">
+                <span class="suggestion-icon">💡</span>
+                <span class="suggestion-text">{{ getWeatherSuggestion(weatherBannerData) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="weatherBannerData.advice" class="weather-banner-advice">
+            <span class="advice-icon">💬</span>
+            <span class="advice-text">"{{ weatherBannerData.advice }}"</span>
+          </div>
+        </div>
+      </div>
+
       <div class="row py-4">
         <div class="map-wrapper">
-          <MapView :games="mapGames" :center="{ lat: 1.3521, lng: 103.8198 }" :zoom="11" />
+          <MapView
+            :games="mapGames"
+            :center="mapCenter"
+            :zoom="mapZoom"
+            :searchedLocation="searchedLocationForMap"
+          />
         </div>
       </div>
 
@@ -162,23 +202,59 @@
                 <input
                   type="text"
                   class="location-search-input"
-                  placeholder="🔍 Search by area or venue..."
+                  placeholder="🔍 Search by area or venue... (Press Enter to use exact location)"
                   v-model="locationSearch"
                   @input="handleLocationSearch"
+                  @keyup.enter="useCustomLocation"
                   @focus="showLocationSuggestions = true"
                   @blur="hideLocationSuggestions"
                 />
 
                 <!-- Auto-complete Dropdown -->
-                <div v-if="showLocationSuggestions && filteredLocationSuggestions.length > 0"
+                <div v-if="showLocationSuggestions && (addressSuggestions.length > 0 || filteredLocationSuggestions.length > 0 || locationSearch.trim())"
                      class="location-suggestions">
+                  <!-- Loading indicator -->
+                  <div v-if="isLoadingAddresses" class="location-suggestion-loading">
+                    <span class="loading-spinner">🔄</span> Searching for exact addresses...
+                  </div>
+
+                  <!-- Exact Address Suggestions from OneMap API -->
+                  <div v-if="addressSuggestions.length > 0 && !isLoadingAddresses" class="address-suggestions-section">
+                    <div class="suggestions-label">📍 Exact Addresses</div>
+                    <div
+                      v-for="(address, index) in addressSuggestions"
+                      :key="'addr-' + index"
+                      class="location-suggestion-item location-suggestion-address"
+                      @mousedown.prevent="selectAddressSuggestion(address)"
+                    >
+                      <div class="address-main">{{ address.building || address.road }}</div>
+                      <div class="address-detail">{{ address.address }}</div>
+                    </div>
+                  </div>
+
+                  <!-- Separator if both types exist -->
+                  <div v-if="addressSuggestions.length > 0 && filteredLocationSuggestions.length > 0 && !isLoadingAddresses" class="suggestions-separator"></div>
+
+                  <!-- General Area Suggestions -->
+                  <div v-if="filteredLocationSuggestions.length > 0 && !isLoadingAddresses">
+                    <div v-if="addressSuggestions.length > 0" class="suggestions-label">🗺️ General Areas</div>
+                    <div
+                      v-for="suggestion in filteredLocationSuggestions"
+                      :key="suggestion"
+                      class="location-suggestion-item"
+                      @mousedown.prevent="selectLocationSuggestion(suggestion)"
+                    >
+                      📍 {{ suggestion }}
+                    </div>
+                  </div>
+
+                  <!-- Custom location option at the bottom -->
                   <div
-                    v-for="suggestion in filteredLocationSuggestions"
-                    :key="suggestion"
-                    class="location-suggestion-item"
-                    @mousedown.prevent="selectLocationSuggestion(suggestion)"
+                    v-if="locationSearch.trim() && !isLoadingAddresses && !filteredLocationSuggestions.includes(locationSearch.trim())"
+                    class="location-suggestion-item location-suggestion-custom"
+                    @mousedown.prevent="useCustomLocation"
                   >
-                    📍 {{ suggestion }}
+                    <span class="custom-icon">✨</span> Use "{{ locationSearch }}" as custom location
                   </div>
                 </div>
               </div>
@@ -197,7 +273,7 @@
                   :key="loc"
                   class="filter-pill"
                   :class="{ active: location === loc }"
-                  @click="location = loc; locationSearch = ''; filterMatches()"
+                  @click="location = loc; locationSearch = ''; filterMatches(); fetchWeatherBanner()"
                 >
                   {{ loc }}
                 </button>
@@ -262,50 +338,39 @@
 
               <div class="match-header">
                 <div>
-                  <h3 class="match-title">{{ match.id }} Match</h3>
-                  <p class="sport-type">{{ match.sport_type }}</p>
+                  <h3 class="match-title">{{ match.sport_type }} @ {{ match.location }}</h3>
+                  <p class="sport-type">{{ match.skill_level }}</p>
                 </div>
                 <span :class="['match-price', match.total_price === 0 ? 'price-free' : 'price-paid']">
                   {{ match.total_price === 0 ? 'Free' : `$${match.total_price}` }}
                 </span>
               </div>
 
-              <!-- Compact Weather Tag -->
-              <div class="weather-section" @click.stop>
-                <!-- <WeatherBadge
-                  :lat="getMatchCoords('Hougang').lat"
-                  :lon="getMatchCoords('Hougang').lng"
-                  :eventTimeISO="getMatchISO(match)"
-                  :locationName="match.location"
-                  :compact="true"
-                /> -->
-                <WeatherBadge
-                  :lat="match.latitude"
-                  :lon="match.longitude"
-                  :eventTimeISO="getMatchISO(match)"
-                  :locationName="match.location"
-                />
-              </div>
-
               <div class="match-details">
                 <p><strong>Skill level:</strong> {{ match.skill_level }}</p>
                 <p><strong>Date and Time:</strong> {{ match.date }} {{ match.time }}</p>
+                <p><strong>Distance:</strong> <span class="distance-badge">📍 {{ getMatchDistance(match) }} km away</span></p>
                 <div class="player-progress">
-                  <span class="player-count">{{ match.current_player_count }} players</span>
+                  <span class="player-count">{{ match.current_player_count }}/{{ match.total_player_count }} players</span>
                   <div class="progress-bar">
                     <div
                       class="progress-fill"
-                      :style="{ width: getPlayerPercentage(match.current_player_count) + '%', backgroundColor: getSportColor(match.sport_type) }"
+                      :style="{ width: getPlayerPercentage(match) + '%', backgroundColor: getSportColor(match.sport_type) }"
                     ></div>
                   </div>
                 </div>
               </div>
-              <button
+              <!-- <button
                 class="btn-join-match"
                 :class="{ 'pulse-btn': getAvailableSpots(match.current_player_count) < 3 }"
                 @click.stop="handleJoinMatch(match.id)"
+              > -->
+              <button
+                class="btn-join-match"
+                :class="{ 'pulse-btn': getAvailableSpots(match.current_player_count) < 3 }"
+                @click="openMatchDetail(match)"
               >
-                {{ getAvailableSpots(match.current_player_count) === 0 ? 'Full' : 'Join Match' }}
+                {{ getAvailableSpots(match) === 0 ? 'Full' : 'Join Match' }}
               </button>
             </div>
           </div>
@@ -337,6 +402,7 @@
 
     <!-- Match Detail Modal -->
     <MatchDetailModal
+      v-if="showMatchDetail" 
       :isOpen="showMatchDetail"
       :match="selectedMatch"
       :currentUser="currentUser"
@@ -365,28 +431,6 @@ export default {
   data() {
     return {
       matches: [],
-      allMatches: [
-        { id: 1, sport: "Basketball", skill: "Beginner", location: "Hougang", date: "8/10/25", time: "6pm", price: 0, players: "7/8", organizer: "Alex Chen", description: "Casual basketball game for beginners. Bring your own water!" },
-        { id: 2, sport: "Tennis", skill: "Beginner", location: "Sengkang", date: "8/10/25", time: "7pm", price: 15, players: "2/4", organizer: "Sarah Tan", description: "Evening tennis doubles. Court fees included." },
-        { id: 3, sport: "Basketball", skill: "Beginner", location: "Hougang", date: "8/10/25", time: "6pm", price: 0, players: "7/8", organizer: "Mike Wong" },
-        { id: 4, sport: "Basketball", skill: "Any Level", location: "Hougang", date: "8/10/25", time: "6pm", price: 0, players: "7/8", organizer: "David Lee" },
-        { id: 5, sport: "Football", skill: "Intermediate", location: "Punggol", date: "9/10/25", time: "5pm", price: 10, players: "18/22", organizer: "James Lim" },
-        { id: 6, sport: "Badminton", skill: "Advanced", location: "Tampines", date: "9/10/25", time: "8pm", price: 0, players: "3/4", organizer: "Emma Ng" },
-        { id: 7, sport: "Basketball", skill: "Intermediate", location: "Bedok", date: "10/10/25", time: "7pm", price: 5, players: "9/10", organizer: "Tom Chen" },
-        { id: 8, sport: "Tennis", skill: "Any Level", location: "Hougang", date: "10/10/25", time: "6pm", price: 0, players: "1/4", organizer: "Lisa Wong" },
-        { id: 9, sport: "Football", skill: "Beginner", location: "Sengkang", date: "11/10/25", time: "4pm", price: 12 , players: "15/22", organizer: "Ryan Tan" },
-        { id: 10, sport: "Badminton", skill: "Intermediate", location: "Punggol", date: "11/10/25", time: "9pm", price: 8, players: "2/4", organizer: "Amy Lee" },
-        { id: 11, sport: "Basketball", skill: "Advanced", location: "Tampines", date: "12/10/25", time: "7pm", price: 0, players: "8/10", organizer: "Kevin Ng" },
-        { id: 12, sport: "Tennis", skill: "Intermediate", location: "Bedok", date: "12/10/25", time: "5pm", price: 20, players: "3/4", organizer: "Sophie Tan" },
-        { id: 13, sport: "Football", skill: "Any Level", location: "Hougang", date: "13/10/25", time: "6pm", price: 0, players: "20/22", organizer: "Ben Lim" },
-        { id: 14, sport: "Basketball", skill: "Advanced", location: "Sengkang", date: "13/10/25", time: "8pm", price: 15, players: "6/10", organizer: "Carol Wong" },
-        { id: 15, sport: "Tennis", skill: "Intermediate", location: "Punggol", date: "14/10/25", time: "7pm", price: 10, players: "3/4", organizer: "Daniel Koh" },
-        { id: 16, sport: "Badminton", skill: "Any Level", location: "Tampines", date: "14/10/25", time: "9pm", price: 0, players: "1/4", organizer: "Fiona Ng" },
-        { id: 17, sport: "Football", skill: "Intermediate", location: "Bedok", date: "15/10/25", time: "5pm", price: 18, players: "14/22", organizer: "Gary Lim" },
-        { id: 18, sport: "Basketball", skill: "Beginner", location: "Hougang", date: "15/10/25", time: "6pm", price: 0, players: "5/8", organizer: "Helen Tan" },
-        { id: 19, sport: "Tennis", skill: "Advanced", location: "Sengkang", date: "16/10/25", time: "7pm", price: 25, players: "2/4", organizer: "Ian Chen" },
-        { id: 20, sport: "Badminton", skill: "Any Level", location: "Punggol", date: "16/10/25", time: "8pm", price: 12, players: "3/4", organizer: "Julia Wong" }
-      ],
       filteredMatches: [],
       currentPage: 1,
       itemsPerPage: 8,
@@ -410,6 +454,10 @@ export default {
       // Location search
       locationSearch: '',
       showLocationSuggestions: false,
+      addressSuggestions: [], // Geocoded address suggestions
+      isLoadingAddresses: false,
+      selectedLocationCoords: null, // Store exact coordinates of selected location
+      searchTimeout: null, // Debounce timer for geocoding API
       allLocationSuggestions: [
         // Pre-set locations
         'Hougang', 'Sengkang', 'Punggol', 'Tampines', 'Bedok',
@@ -428,12 +476,19 @@ export default {
       showMatchDetail: false,
       selectedMatch: null,
 
+      // Weather banner
+      weatherBannerData: null,
+      weatherBannerDismissed: false,
+
       // Current user (replace with real auth)
       currentUser: {
         id: '1',
         name: 'John Doe',
         profilePic: 'https://i.pravatar.cc/150?img=12'
-      }
+      },
+
+      // User's current location
+      userCurrentLocation: null
     }
   },
   computed: {
@@ -444,6 +499,50 @@ export default {
              hasSkillFilter ||
              hasLocationFilter ||
              this.priceFilter.length > 0;
+    },
+
+    // Map center - use searched location if available, otherwise default
+    mapCenter() {
+      if (this.selectedLocationCoords) {
+        return this.selectedLocationCoords;
+      } else if (this.location && this.location !== 'Near Me') {
+        return this.getMatchCoords(this.location);
+      }
+      return { lat: 1.3521, lng: 103.8198 }; // Default Singapore
+    },
+
+    // Map zoom - zoom in when location is searched
+    mapZoom() {
+      return (this.selectedLocationCoords || this.location) ? 15 : 11;
+    },
+
+    // Searched location for red marker
+    searchedLocationForMap() {
+      console.log('🎯 Computing searchedLocationForMap:', {
+        selectedLocationCoords: this.selectedLocationCoords,
+        location: this.location
+      })
+
+      if (this.selectedLocationCoords) {
+        const result = {
+          lat: this.selectedLocationCoords.lat,
+          lng: this.selectedLocationCoords.lng,
+          name: this.location || 'Searched Location'
+        };
+        console.log('📍 Returning exact coords:', result)
+        return result;
+      } else if (this.location && this.location !== 'Near Me' && this.location !== '') {
+        const coords = this.getMatchCoords(this.location);
+        const result = {
+          lat: coords.lat,
+          lng: coords.lng,
+          name: this.location
+        };
+        console.log('📍 Returning location coords:', result)
+        return result;
+      }
+      console.log('❌ Returning null')
+      return null;
     },
     filteredLocationSuggestions() {
       if (!this.locationSearch.trim()) {
@@ -469,7 +568,17 @@ export default {
         'Sengkang': { lat: 1.3917, lng: 103.8951 },
         'Punggol': { lat: 1.4043, lng: 103.9021 },
         'Tampines': { lat: 1.3529, lng: 103.9446 },
-        'Bedok': { lat: 1.3236, lng: 103.9273 }
+        'Bedok': { lat: 1.3236, lng: 103.9273 },
+        'Serangoon CC': { lat: 1.3537, lng: 103.8721 },
+        'Choa Chu Kang CC': { lat: 1.3853, lng: 103.7459 },
+        'Bukit Merah CC': { lat: 1.2827, lng: 103.8179 },
+        'Woodlands': { lat: 1.4382, lng: 103.7891 },
+        'Yishun': { lat: 1.4304, lng: 103.8354 },
+        'Ang Mo Kio': { lat: 1.3691, lng: 103.8454 },
+        'Bishan': { lat: 1.3526, lng: 103.8352 },
+        'Toa Payoh': { lat: 1.3343, lng: 103.8567 },
+        'Jurong East': { lat: 1.3329, lng: 103.7436 },
+        'Clementi': { lat: 1.3162, lng: 103.7649 }
       };
 
       // Sport icons and colors
@@ -481,22 +590,16 @@ export default {
       };
 
       return this.filteredMatches.map(match => {
-        const coords = { lat: match.latitude, lng: match.longitude } || { lat: 1.3521, lng: 103.8198 };
-        const config = sportConfig[match.sport] || { icon: '🏃', color: '#3b82f6' };
+        const coords = locationCoords[match.location] || { lat: 1.3521, lng: 103.8198 };
+        const config = sportConfig[match.sport_type] || { icon: '🏃', color: '#3b82f6' };
 
-        // Parse players "7/8" to joined and capacity
-        // const [joined, capacity] = match.total_player_count.split('/').map(Number);
         const [joined, capacity] = "7/8".split('/').map(Number);
 
         // Create ISO timestamp from date and time
         const dateStr = match.date; // "2025-10-20" 
         const timeStr = match.time // "14:00:00"
         const [year, month, date] = dateStr.split('-').map(Number);
-        // const hour = timeStr.includes('pm') && !timeStr.startsWith('12')
-        //   ? parseInt(timeStr) + 12
-        //   : parseInt(timeStr);
-        // const startTimeISO = new Date(2000 + year, month - 1, day, hour, 0).toISOString();
-        const startTimeISO = new Date(`${match.date}T${match.time}`).toISOString();
+        const startTimeISO = new Date(`${dateStr}T${timeStr}`).toISOString();
 
         return {
           id: match.id,
@@ -518,9 +621,61 @@ export default {
   },
   async mounted() {
     await this.getAllMatches();
-    this.filterMatches()
+    await this.getUserCurrentLocation();
+    this.filterMatches();
+    await this.fetchWeatherBanner();
   },
   methods: {
+    // Get user's current location
+    async getUserCurrentLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            this.userCurrentLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+          },
+          (error) => {
+            console.warn('Could not get user location:', error);
+            // Default to Singapore if geolocation fails
+            this.userCurrentLocation = { lat: 1.3521, lng: 103.8198 };
+          }
+        );
+      } else {
+        // Default to Singapore if geolocation not supported
+        this.userCurrentLocation = { lat: 1.3521, lng: 103.8198 };
+      }
+    },
+
+    // Calculate distance from current/searched location to match
+    getMatchDistance(match) {
+      // Determine reference location: searched location > user location > default
+      let refLocation;
+      if (this.selectedLocationCoords) {
+        // User searched for an exact address
+        refLocation = this.selectedLocationCoords;
+      } else if (this.location && this.location !== 'Near Me') {
+        // User selected a predefined location
+        refLocation = this.getMatchCoords(this.location);
+      } else if (this.userCurrentLocation) {
+        // Use user's current location
+        refLocation = this.userCurrentLocation;
+      } else {
+        // Default to Singapore
+        refLocation = { lat: 1.3521, lng: 103.8198 };
+      }
+
+      const matchCoords = this.getMatchCoords(match.location);
+      const distance = this.calculateDistance(
+        refLocation.lat,
+        refLocation.lng,
+        matchCoords.lat,
+        matchCoords.lng
+      );
+      return distance.toFixed(1); // Return with 1 decimal place
+    },
+
     async getAllMatches() {
       try {
         const { data, error } = await supabase
@@ -532,8 +687,6 @@ export default {
           return;
         } 
         else {
-          console.log("hi");
-          console.log(data);
           this.matches = data;
         }
       }
@@ -548,12 +701,24 @@ export default {
         this.filteredMatches = this.filteredMatches.filter(m => this.selectedSports.includes(m.sport_type))
       }
 
-      if (this.skillLevel) {
-        this.filteredMatches = this.filteredMatches.filter(m => m.skill === this.skillLevel)
+      if (this.skillLevel && this.skillLevel !== 'Any Level') {
+        this.filteredMatches = this.filteredMatches.filter(m => m.skill_level === this.skillLevel)
       }
 
+        // Location filtering with 5km radius
       if (this.location) {
-        this.filteredMatches = this.filteredMatches.filter(m => m.location === this.location)
+        // Use exact coordinates if available (from address search), otherwise use predefined coords
+        const searchCoords = this.selectedLocationCoords || this.getMatchCoords(this.location);
+        this.filteredMatches = this.filteredMatches.filter(m => {
+          const matchCoords = this.getMatchCoords(m.location);
+          const distance = this.calculateDistance(
+            searchCoords.lat,
+            searchCoords.lng,
+            matchCoords.lat,
+            matchCoords.lng
+          );
+          return distance <= 5; // Within 5km
+        });
       } else if (this.locationSearch.trim()) {
         const query = this.locationSearch.toLowerCase();
         this.filteredMatches = this.filteredMatches.filter(m =>
@@ -613,16 +778,94 @@ export default {
     },
 
     // Location search methods
-    handleLocationSearch() {
+    async handleLocationSearch() {
       this.location = '';
+
+      // Clear suggestions if search is empty
+      if (!this.locationSearch.trim()) {
+        this.addressSuggestions = [];
+        this.filterMatches();
+        return;
+      }
+
+      // Debounce the geocoding API call
+      clearTimeout(this.searchTimeout);
+      this.searchTimeout = setTimeout(async () => {
+        await this.fetchAddressSuggestions();
+      }, 500);
+
       this.filterMatches();
+    },
+
+    async fetchAddressSuggestions() {
+      const query = this.locationSearch.trim();
+      if (query.length < 3) return;
+
+      this.isLoadingAddresses = true;
+
+      try {
+        // Use OneMap Search API for Singapore addresses
+        const response = await fetch(
+          `https://www.onemap.gov.sg/api/common/elastic/search?searchVal=${encodeURIComponent(query)}&returnGeom=Y&getAddrDetails=Y&pageNum=1`
+        );
+
+        if (!response.ok) {
+          console.error('OneMap API failed:', response.status);
+          this.addressSuggestions = [];
+          return;
+        }
+
+        const data = await response.json();
+
+        if (data.found > 0) {
+          // Transform OneMap results to address suggestions with coordinates
+          this.addressSuggestions = data.results.slice(0, 6).map(result => ({
+            address: result.ADDRESS,
+            building: result.BUILDING || '',
+            road: result.ROAD_NAME || '',
+            postalCode: result.POSTAL || '',
+            lat: parseFloat(result.LATITUDE),
+            lng: parseFloat(result.LONGITUDE),
+            displayName: result.ADDRESS
+          }));
+        } else {
+          this.addressSuggestions = [];
+        }
+      } catch (error) {
+        console.error('Error fetching address suggestions:', error);
+        this.addressSuggestions = [];
+      } finally {
+        this.isLoadingAddresses = false;
+      }
     },
 
     selectLocationSuggestion(suggestion) {
       this.locationSearch = '';
       this.location = suggestion;
+      this.selectedLocationCoords = null;
       this.showLocationSuggestions = false;
       this.filterMatches();
+      this.fetchWeatherBanner(); // Update weather for new location
+    },
+
+    selectAddressSuggestion(addressObj) {
+      this.location = addressObj.displayName;
+      this.selectedLocationCoords = { lat: addressObj.lat, lng: addressObj.lng };
+      this.locationSearch = '';
+      this.showLocationSuggestions = false;
+      this.addressSuggestions = [];
+      this.filterMatches();
+      this.fetchWeatherBanner(); // Update weather for exact address
+    },
+
+    useCustomLocation() {
+      if (!this.locationSearch.trim()) return;
+      this.location = this.locationSearch.trim();
+      this.selectedLocationCoords = null;
+      this.locationSearch = '';
+      this.showLocationSuggestions = false;
+      this.filterMatches();
+      this.fetchWeatherBanner(); // Update weather for custom location
     },
 
     hideLocationSuggestions() {
@@ -737,10 +980,10 @@ export default {
 
     // Modal methods
     openMatchDetail(match) {
-      this.selectedMatch = match
-      this.showMatchDetail = true
-      // Prevent body scroll when modal is open
-      document.body.style.overflow = 'hidden'
+        this.selectedMatch = match;
+        this.showMatchDetail = true;
+        // prevent scrolling
+        document.body.style.overflow = 'hidden';
     },
     closeMatchDetail() {
       this.showMatchDetail = false
@@ -754,7 +997,7 @@ export default {
       // await joinMatch(matchId)
       
       // Update UI
-      alert('Successfully joined the match!')
+      // alert('Successfully joined the match!')
     },
     handleLeaveMatch(matchId) {
       console.log('Left match:', matchId)
@@ -762,7 +1005,7 @@ export default {
       // await leaveMatch(matchId)
       
       // Update UI
-      alert('You have left the match')
+      // alert('You have left the match')
     },
     handleMessagePlayer(player) {
       console.log('Message player:', player)
@@ -788,31 +1031,175 @@ export default {
         'Sengkang': { lat: 1.3917, lng: 103.8951 },
         'Punggol': { lat: 1.4043, lng: 103.9021 },
         'Tampines': { lat: 1.3529, lng: 103.9446 },
-        'Bedok': { lat: 1.3236, lng: 103.9273 }
+        'Bedok': { lat: 1.3236, lng: 103.9273 },
+        'Serangoon CC': { lat: 1.3537, lng: 103.8721 },
+        'Choa Chu Kang CC': { lat: 1.3853, lng: 103.7459 },
+        'Bukit Merah CC': { lat: 1.2827, lng: 103.8179 },
+        'Woodlands': { lat: 1.4382, lng: 103.7891 },
+        'Yishun': { lat: 1.4304, lng: 103.8354 },
+        'Ang Mo Kio': { lat: 1.3691, lng: 103.8454 },
+        'Bishan': { lat: 1.3526, lng: 103.8352 },
+        'Toa Payoh': { lat: 1.3343, lng: 103.8567 },
+        'Jurong East': { lat: 1.3329, lng: 103.7436 },
+        'Clementi': { lat: 1.3162, lng: 103.7649 }
       };
       return locationCoords[location] || { lat: 1.3521, lng: 103.8198 };
+    },
+
+    // Calculate distance between two coordinates using Haversine formula
+    calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371; // Radius of Earth in kilometers
+      const dLat = this.toRadians(lat2 - lat1);
+      const dLon = this.toRadians(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(this.toRadians(lat1)) *
+        Math.cos(this.toRadians(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distance = R * c; // Distance in kilometers
+      return distance;
+    },
+
+    toRadians(degrees) {
+      return degrees * (Math.PI / 180);
     },
 
     getMatchISO(match) {
       const dateStr = match.date;
       const timeStr = match.time;
       const [year, month, date] = dateStr.split('/').map(Number);
-      // const hour = timeStr.includes('pm') && !timeStr.startsWith('12')
-      //   ? parseInt(timeStr) + 12
-      //   : parseInt(timeStr);
-      // return new Date(2000 + year, month - 1, day, hour, 0).toISOString();
       const startTimeISO = new Date(`${dateStr}T${timeStr}`).toISOString();
       return startTimeISO;
     },
 
-    getPlayerPercentage(players) {
-      const [joined, capacity] = "7/8".split('/').map(Number);
+    getPlayerPercentage(match) {
+      const joined = match.current_player_count;
+      const capacity = match.total_player_count;
+      if (!capacity || capacity === 0) return 0;
       return (joined / capacity) * 100;
     },
 
-    getAvailableSpots(players) {
-      const [joined, capacity] = "7/8".split('/').map(Number);
+    getAvailableSpots(match) {
+      const capacity = match.total_player_count;
+      const joined = match.current_player_count;
       return capacity - joined;
+    },
+
+    // Weather Banner Methods
+    async fetchWeatherBanner() {
+      try {
+        // Get user's location or use Singapore default
+        const locationName = this.location || this.locationSearch || 'Singapore';
+        // Use exact coordinates if available (from address search), otherwise use predefined coords
+        const coords = this.selectedLocationCoords || this.getMatchCoords(locationName);
+
+        // Fetch weather from OpenWeatherMap API
+        const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
+        const response = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${coords.lat}&lon=${coords.lng}&units=metric&appid=${API_KEY}`
+        );
+
+        if (!response.ok) {
+          console.error('Weather API failed:', response.status);
+          return;
+        }
+
+        const data = await response.json();
+
+        this.weatherBannerData = {
+          locationName: locationName === 'Singapore' ? 'Singapore' : locationName,
+          temp: Math.round(data.main.temp),
+          condition: data.weather[0].description.charAt(0).toUpperCase() + data.weather[0].description.slice(1),
+          humidity: data.main.humidity,
+          rain: data.rain ? Math.round((data.rain['1h'] || 0) / 10 * 100) : 0,
+          advice: this.getWeatherAdvice(data)
+        };
+      } catch (error) {
+        console.error('Error fetching weather banner:', error);
+      }
+    },
+
+    getWeatherIcon(condition) {
+      const c = condition.toLowerCase();
+      if (c.includes('rain') || c.includes('drizzle')) return '🌧️';
+      if (c.includes('cloud')) return '☁️';
+      if (c.includes('clear')) return '☀️';
+      if (c.includes('snow')) return '❄️';
+      if (c.includes('thunder')) return '⛈️';
+      if (c.includes('mist') || c.includes('fog')) return '🌫️';
+      return '🌤️';
+    },
+
+    getWeatherBannerClass(condition) {
+      const c = condition.toLowerCase();
+
+      // Thunderstorm - distinct dark purple/electric theme
+      if (c.includes('thunder') || c.includes('storm')) return 'weather-banner-thunderstorm';
+
+      // Heavy Rain - darker blue with rain animation
+      if (c.includes('heavy rain') || c.includes('downpour')) return 'weather-banner-heavy-rain';
+
+      // Light Rain/Drizzle - softer blue
+      if (c.includes('rain') || c.includes('drizzle')) return 'weather-banner-rainy';
+
+      // Snow - white/icy blue theme
+      if (c.includes('snow') || c.includes('sleet')) return 'weather-banner-snowy';
+
+      // Fog/Mist - gray misty theme
+      if (c.includes('fog') || c.includes('mist') || c.includes('haze')) return 'weather-banner-foggy';
+
+      // Overcast/Heavy Clouds - darker gray
+      if (c.includes('overcast')) return 'weather-banner-overcast';
+
+      // Partly Cloudy - mix of blue and yellow
+      if (c.includes('partly') || c.includes('few clouds') || c.includes('scattered')) return 'weather-banner-partly-cloudy';
+
+      // Cloudy - light gray/blue
+      if (c.includes('cloud')) return 'weather-banner-cloudy';
+
+      // Clear/Sunny - bright yellow/orange
+      if (c.includes('clear') || c.includes('sunny')) return 'weather-banner-sunny';
+
+      // Default - neutral teal
+      return 'weather-banner-default';
+    },
+
+    getWeatherSuggestion(weatherData) {
+      const temp = weatherData.temp;
+      const condition = weatherData.condition.toLowerCase();
+      const humidity = weatherData.humidity;
+
+      if (condition.includes('rain') || condition.includes('drizzle')) {
+        return 'Perfect for indoor sports like badminton!';
+      } else if (temp > 32) {
+        return 'Hot day! Stay hydrated and consider indoor courts.';
+      } else if (temp < 24) {
+        return 'Great weather for outdoor activities!';
+      } else if (humidity > 80) {
+        return 'High humidity - indoor sports recommended!';
+      } else if (condition.includes('clear')) {
+        return 'Perfect weather for sports!';
+      }
+      return 'Good conditions for all sports!';
+    },
+
+    getWeatherAdvice(data) {
+      const condition = data.weather[0].description.toLowerCase();
+      const temp = Math.round(data.main.temp);
+      const rain = data.rain ? data.rain['1h'] : 0;
+
+      if (rain > 2) {
+        return 'Looks like rain later — maybe book an indoor court?';
+      } else if (temp > 32) {
+        return 'Pretty hot out there — bring extra water!';
+      } else if (condition.includes('cloud') && !condition.includes('clear')) {
+        return 'Cloudy conditions — perfect timing for outdoor games!';
+      } else if (condition.includes('clear')) {
+        return 'Clear skies ahead — great day for sports!';
+      }
+      return null;
     }
   },
   beforeUnmount() {
@@ -853,6 +1240,8 @@ export default {
   border: none;
   position: sticky;
   top: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
   transition: box-shadow 0.3s ease;
 }
 
@@ -1001,7 +1390,7 @@ export default {
 .sport-icon-badge {
   position: absolute;
   top: 16px;
-  right: 16px;
+  left: 16px;
   width: 40px;
   height: 40px;
   border-radius: 10px;
@@ -1011,10 +1400,451 @@ export default {
   font-size: 20px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 1;
 }
 
 .match-card:hover .sport-icon-badge {
   transform: scale(1.15) rotate(-5deg);
+}
+
+/* Weather Banner Styles - Futuristic/Ambient Design */
+.weather-banner-wrapper {
+  margin-bottom: 24px;
+  animation: slideInFromTop 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.weather-banner {
+  position: relative;
+  border-radius: 24px;
+  padding: 32px 36px;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.weather-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+  opacity: 0.5;
+  animation: ambientPulse 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes ambientPulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.02); }
+}
+
+.weather-banner-sunny {
+  background: linear-gradient(135deg,
+    rgba(254, 243, 199, 0.9) 0%,
+    rgba(253, 230, 138, 0.85) 50%,
+    rgba(252, 211, 77, 0.9) 100%);
+  box-shadow:
+    0 8px 32px rgba(251, 191, 36, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 0 60px rgba(252, 211, 77, 0.2);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.weather-banner-cloudy {
+  background: linear-gradient(135deg,
+    rgba(224, 231, 255, 0.9) 0%,
+    rgba(199, 210, 254, 0.85) 50%,
+    rgba(165, 180, 252, 0.9) 100%);
+  box-shadow:
+    0 8px 32px rgba(129, 140, 248, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 0 60px rgba(165, 180, 252, 0.2);
+  border: 1px solid rgba(129, 140, 248, 0.3);
+}
+
+.weather-banner-rainy {
+  background: linear-gradient(135deg,
+    rgba(219, 234, 254, 0.9) 0%,
+    rgba(191, 219, 254, 0.85) 50%,
+    rgba(147, 197, 253, 0.9) 100%);
+  box-shadow:
+    0 8px 32px rgba(96, 165, 250, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 0 60px rgba(147, 197, 253, 0.2);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  animation: rainShimmer 3s ease-in-out infinite;
+}
+
+@keyframes rainShimmer {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.05); }
+}
+
+.weather-banner-default {
+  background: linear-gradient(135deg,
+    rgba(240, 253, 250, 0.9) 0%,
+    rgba(204, 251, 241, 0.85) 50%,
+    rgba(153, 246, 228, 0.9) 100%);
+  box-shadow:
+    0 8px 32px rgba(94, 234, 212, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 0 60px rgba(153, 246, 228, 0.2);
+  border: 1px solid rgba(94, 234, 212, 0.3);
+}
+
+/* Thunderstorm - Dark purple with electric accents */
+.weather-banner-thunderstorm {
+  background: linear-gradient(135deg,
+    rgba(88, 28, 135, 0.95) 0%,
+    rgba(109, 40, 217, 0.9) 50%,
+    rgba(147, 51, 234, 0.95) 100%);
+  box-shadow:
+    0 8px 32px rgba(147, 51, 234, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 80px rgba(168, 85, 247, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  animation: thunderPulse 2s ease-in-out infinite;
+}
+
+@keyframes thunderPulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.15); box-shadow: 0 8px 40px rgba(147, 51, 234, 0.5), 0 0 100px rgba(168, 85, 247, 0.4); }
+}
+
+/* Heavy Rain - Deep blue with intense rain animation */
+.weather-banner-heavy-rain {
+  background: linear-gradient(135deg,
+    rgba(29, 78, 216, 0.95) 0%,
+    rgba(37, 99, 235, 0.9) 50%,
+    rgba(59, 130, 246, 0.95) 100%);
+  box-shadow:
+    0 8px 32px rgba(59, 130, 246, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 0 60px rgba(96, 165, 250, 0.25);
+  border: 1px solid rgba(96, 165, 250, 0.4);
+  animation: heavyRainShimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes heavyRainShimmer {
+  0%, 100% { filter: brightness(1) saturate(1); }
+  50% { filter: brightness(1.1) saturate(1.15); }
+}
+
+/* Snow - Icy white/blue theme */
+.weather-banner-snowy {
+  background: linear-gradient(135deg,
+    rgba(240, 249, 255, 0.98) 0%,
+    rgba(224, 242, 254, 0.95) 50%,
+    rgba(186, 230, 253, 0.98) 100%);
+  box-shadow:
+    0 8px 32px rgba(125, 211, 252, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 0 70px rgba(186, 230, 253, 0.25);
+  border: 1px solid rgba(186, 230, 253, 0.5);
+  animation: snowGlimmer 3s ease-in-out infinite;
+}
+
+@keyframes snowGlimmer {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.08); }
+}
+
+/* Foggy/Misty - Gray with mysterious blur */
+.weather-banner-foggy {
+  background: linear-gradient(135deg,
+    rgba(241, 245, 249, 0.95) 0%,
+    rgba(226, 232, 240, 0.9) 50%,
+    rgba(203, 213, 225, 0.95) 100%);
+  box-shadow:
+    0 8px 32px rgba(148, 163, 184, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 0 80px rgba(203, 213, 225, 0.3);
+  border: 1px solid rgba(203, 213, 225, 0.4);
+  animation: fogDrift 4s ease-in-out infinite;
+}
+
+@keyframes fogDrift {
+  0%, 100% { filter: blur(0px); opacity: 0.95; }
+  50% { filter: blur(0.5px); opacity: 1; }
+}
+
+/* Overcast - Darker gray clouds */
+.weather-banner-overcast {
+  background: linear-gradient(135deg,
+    rgba(226, 232, 240, 0.95) 0%,
+    rgba(203, 213, 225, 0.9) 50%,
+    rgba(148, 163, 184, 0.95) 100%);
+  box-shadow:
+    0 8px 32px rgba(100, 116, 139, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 0 60px rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+/* Partly Cloudy - Mix of sun and clouds */
+.weather-banner-partly-cloudy {
+  background: linear-gradient(135deg,
+    rgba(254, 249, 195, 0.92) 0%,
+    rgba(224, 231, 255, 0.88) 50%,
+    rgba(254, 240, 138, 0.92) 100%);
+  box-shadow:
+    0 8px 32px rgba(234, 179, 8, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 0 65px rgba(254, 240, 138, 0.2);
+  border: 1px solid rgba(250, 204, 21, 0.35);
+  animation: partlyCloudyShift 5s ease-in-out infinite;
+}
+
+@keyframes partlyCloudyShift {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(5deg); }
+}
+
+/* Text color overrides for dark backgrounds */
+.weather-banner-thunderstorm .location-text,
+.weather-banner-thunderstorm .weather-temp,
+.weather-banner-thunderstorm .weather-condition,
+.weather-banner-thunderstorm .weather-humidity,
+.weather-banner-thunderstorm .suggestion-text,
+.weather-banner-thunderstorm .advice-text {
+  color: rgba(255, 255, 255, 0.95) !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.95);
+}
+
+.weather-banner-thunderstorm .weather-temp {
+  background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.85) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.weather-banner-thunderstorm .weather-divider {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.weather-banner-thunderstorm .weather-banner-dismiss {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.weather-banner-thunderstorm .weather-banner-dismiss:hover {
+  color: rgba(255, 255, 255, 1);
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.weather-banner-thunderstorm .weather-banner-suggestion {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.weather-banner-thunderstorm .weather-banner-advice {
+  border-top-color: rgba(255, 255, 255, 0.25);
+}
+
+.weather-banner-dismiss {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 22px;
+  font-weight: 300;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  line-height: 1;
+  z-index: 10;
+}
+
+.weather-banner-dismiss:hover {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.weather-banner-main {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.weather-banner-icon {
+  font-size: 64px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+  animation: floatIcon 3s ease-in-out infinite;
+}
+
+@keyframes floatIcon {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.weather-banner-content {
+  flex: 1;
+}
+
+.weather-banner-location {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.location-icon {
+  font-size: 18px;
+  opacity: 0.8;
+}
+
+.location-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+  letter-spacing: -0.3px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.weather-banner-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.weather-temp {
+  font-size: 36px;
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.95);
+  letter-spacing: -1px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.75) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.weather-divider {
+  color: rgba(0, 0, 0, 0.3);
+  font-weight: 400;
+  font-size: 20px;
+}
+
+.weather-condition {
+  font-size: 17px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.8);
+  letter-spacing: -0.2px;
+}
+
+.weather-humidity {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.7);
+  letter-spacing: -0.1px;
+}
+
+.weather-banner-suggestion {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.weather-banner-suggestion:hover {
+  transform: translateX(4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.suggestion-icon {
+  font-size: 18px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.suggestion-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+  letter-spacing: -0.1px;
+}
+
+.weather-banner-advice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.advice-icon {
+  font-size: 20px;
+  opacity: 0.9;
+}
+
+.advice-text {
+  font-size: 15px;
+  font-style: italic;
+  color: rgba(0, 0, 0, 0.75);
+  font-weight: 500;
+  letter-spacing: -0.1px;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .weather-banner {
+    padding: 18px 20px;
+  }
+
+  .weather-banner-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .weather-banner-icon {
+    font-size: 36px;
+  }
+
+  .weather-temp {
+    font-size: 24px;
+  }
+
+  .weather-banner-stats {
+    font-size: 14px;
+  }
 }
 
 .weather-section {
@@ -1027,20 +1857,34 @@ export default {
 
 .match-header {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
   align-items: start;
   margin-bottom: 15px;
+  gap: 12px;
+  margin-left: 52px;
+}
+
+.match-header > div:first-child {
+  flex: 1;
+  min-width: 0;
 }
 
 .match-title {
   font-size: 1.3rem;
   font-weight: bold;
   color: var(--dark-bg);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .match-price {
   font-size: 1.2rem;
   font-weight: bold;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .price-free {
@@ -1066,6 +1910,20 @@ export default {
 
 .match-details p {
   margin: 5px 0;
+}
+
+.distance-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border: 1px solid #93c5fd;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #1e40af;
+  white-space: nowrap;
 }
 
 .player-progress {
@@ -1548,6 +2406,96 @@ export default {
   background: #fff7ed;
   color: #FF6B35;
   padding-left: 18px;
+}
+
+.location-suggestion-custom {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-bottom: 2px solid #fbbf24 !important;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.location-suggestion-custom:hover {
+  background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
+  color: #78350f;
+  padding-left: 18px;
+}
+
+.location-suggestion-custom .custom-icon {
+  font-size: 1.1rem;
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  50% { transform: scale(1.2) rotate(15deg); opacity: 0.8; }
+}
+
+/* Address Suggestions Styling */
+.location-suggestion-loading {
+  padding: 14px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.address-suggestions-section {
+  padding: 4px 0;
+}
+
+.suggestions-label {
+  padding: 8px 14px 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.suggestions-separator {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 4px 0;
+}
+
+.location-suggestion-address {
+  padding: 12px 14px !important;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-left: 3px solid #0ea5e9 !important;
+}
+
+.location-suggestion-address:hover {
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  border-left-color: #0284c7 !important;
+}
+
+.address-main {
+  font-weight: 600;
+  color: #0c4a6e;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.address-detail {
+  font-size: 0.8rem;
+  color: #475569;
+  line-height: 1.3;
 }
 
 /* Filter Pills (Generic) */
