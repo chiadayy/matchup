@@ -54,8 +54,8 @@
               </div>
             </div>
 
-            <div class="form-row">
-              <div class="form-group">
+            <!-- <div class="form-row"> -->
+              <!-- <div class="form-group">
                 <label class="form-label">Location</label>
                 <input 
                   type="text" 
@@ -64,9 +64,9 @@
                   placeholder="e.g., Hougang Sports Complex"
                   required
                 >
-              </div>
+              </div> -->
 
-              <div class="form-group">
+              <div class="form-group" style="width: 50%;">
                 <label class="form-label">Maximum Players</label>
                 <input 
                   type="number" 
@@ -77,6 +77,46 @@
                   required
                 >
               </div>
+              <div class="form-group">
+                <label class="form-label">Pick Location on Map</label>
+                <div ref="pickerMap" style="width:100%;height:400px;border-radius:12px;overflow:hidden;margin-bottom:1em;"></div>
+                <div>
+                  <label>
+                    Latitude:
+                    <input v-model="formData.latitude"/>
+                  </label>
+                  <label style="margin-left: 1em;">
+                    Longitude:
+                    <input v-model="formData.longitude"/>
+                  </label>
+                </div>
+                <div style="margin-top:1em;">
+<input
+  type="text"
+  class="form-control"
+  placeholder="Search for a location..."
+  v-model="searchQuery"
+  @input="() => { searchPlace(); updateLocationFromSearch(); }"
+  @keydown.down.prevent="moveSelection(1)"
+  @keydown.up.prevent="moveSelection(-1)"
+  @keydown.enter.prevent="selectPrediction(selectedIndex)"
+/>
+
+<div v-if="predictions.length" class="suggestions-dropdown">
+  <div
+    v-for="(prediction, index) in predictions"
+    :key="prediction.place_id"
+    :class="{ 'suggestion-item': true, active: index === selectedIndex }"
+    @click="selectPrediction(index)"
+    @mouseover="hoverPrediction(index)"
+  >
+    {{ prediction.description }}
+  </div>
+</div>
+
+<button class="btn btn-primary" style="margin-top:8px;" @click="searchPlace">Search</button>
+                </div>
+              <!-- </div> -->
             </div>
           </div>
 
@@ -259,6 +299,7 @@
 
 <script>
 import { supabase } from '@/lib/supabase'
+import { ref, onMounted } from 'vue'
 
 export default {
   name: 'GameCreation',
@@ -268,6 +309,15 @@ export default {
       showSuccessMessage: false,
       isSubmitting: false,    
       submitError: null,
+      searchQuery: '',
+      map: null,
+      marker: null,
+      autocompleteService: null,
+      placesService: null,
+      highlightCircle: null,
+      predictions: [],
+      selectedIndex: -1,
+      geocoder: null,
       
       formData: {
         matchName: '',
@@ -280,9 +330,14 @@ export default {
         duration: 60,
         isPaid: false,
         totalPrice: 0,
-        description: ''
+        description: '',
+        latitude: '',
+        longitude: '',
       },
     }
+  },
+  mounted() {
+    this.initMapPicker();
   },
   methods: {
     getStepLabel(step) {
@@ -303,7 +358,11 @@ export default {
     validateCurrentStep() {
       switch (this.currentStep) {
         case 1:
-          return this.formData.matchName && this.formData.sport && this.formData.skillLevel && this.formData.location;
+          return this.formData.matchName && this.formData.sport && this.formData.skillLevel && this.formData.location  &&
+          this.formData.latitude !== '' &&
+          this.formData.longitude !== '' &&
+          !isNaN(Number(this.formData.latitude)) &&
+          !isNaN(Number(this.formData.longitude));
         case 2:
           return this.formData.date && this.formData.time && this.formData.duration;
         case 3:
@@ -349,8 +408,8 @@ export default {
           host: user.id,
           current_player_count: 0,
           conversation_id: 0,
-          latitude: 1.3811339716891793,
-          longitude: 103.75191378557123
+          latitude: this.formData.latitude,
+          longitude: this.formData.longitude
         };
 
         const response = await fetch('http://localhost:3000/matches', {
@@ -410,7 +469,137 @@ export default {
     formatDateDisplay(dateStr) {
       const date = new Date(dateStr);
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    },
+
+async initMapPicker() {
+  if (typeof google === 'undefined' || !google.maps) {
+    console.error('Google Maps API not loaded.');
+    return;
+  }
+  const { Map } = await google.maps.importLibrary('maps');
+  this.map = new google.maps.Map(this.$refs.pickerMap, {
+    center: { lat: 1.3521, lng: 103.8198 },
+    zoom: 12,
+    mapId: "1d622eb16f09ac0b3984b1bd"
+  });
+  const { AdvancedMarkerElement } = await google.maps.importLibrary('marker');
+  this.marker = new AdvancedMarkerElement({
+    map: this.map,
+    position: null,
+    title: 'Selected Location'
+  });
+  this.map.addListener('click', (e) => {
+    this.setLatLng(e.latLng.lat(), e.latLng.lng());
+    this.marker.position = e.latLng;  
+  });
+
+  if (google.maps.places) {
+    this.autocompleteService = new google.maps.places.AutocompleteService();
+    this.placesService = new google.maps.places.PlacesService(this.map);
+    this.geocoder = new google.maps.Geocoder();
+  } else {
+    console.error('Google Maps Places library not loaded.');
+  }
+},
+
+setLatLng(lat, lng) {
+  this.formData.latitude = lat;
+  this.formData.longitude = lng;
+
+  if (this.geocoder) {
+    const latlng = { lat, lng };
+    this.geocoder.geocode({ location: latlng }, (results, status) => {
+      if (status === 'OK' && results && results.length > 0) {
+        // Use the first result's formatted address as location name
+        this.formData.location = results[0].formatted_address;
+        this.searchQuery = results[0].formatted_address; // update search bar input
+      } else {
+        console.warn('Geocoder failed due to: ' + status);
+        // Optionally clear or fallback location name
+      }
+    });
+  }
+},
+    
+searchPlace() {
+
+  if (!this.searchQuery || !this.autocompleteService) {
+    this.predictions = [];
+    return;
+  }
+  this.autocompleteService.getPlacePredictions(
+{
+  input: this.searchQuery,
+  componentRestrictions: { country: 'SG' }
+},
+    (preds, status) => {
+      if (status !== google.maps.places.PlacesServiceStatus.OK || !preds) {
+        this.predictions = [];
+        return;
+      }
+      this.predictions = preds; // save predictions for showing dropdown  
+      this.selectedIndex = -1;   // reset keyboard selection
     }
+  );
+}
+,
+highlightArea(radiusMeters = 500) {
+  // Remove previous circle if exists
+  if (this.highlightCircle) {
+    this.highlightCircle.setMap(null);
+  }
+
+  // Create new circle centered at latitude/longitude
+  this.highlightCircle = new google.maps.Circle({
+    strokeColor: '#FF6B35',
+    strokeOpacity: 0.8,
+    strokeWeight: 2,
+    fillColor: '#FF6B35',
+    fillOpacity: 0.25,
+    map: this.map,
+    center: { lat: this.formData.latitude, lng: this.formData.longitude },
+    radius: radiusMeters
+  });
+},
+
+hoverPrediction(index) {
+  this.selectedIndex = index;
+},
+moveSelection(direction) {
+  const max = this.predictions.length - 1;
+  if (direction === 1 && this.selectedIndex < max) this.selectedIndex++;
+  else if (direction === -1 && this.selectedIndex > 0) this.selectedIndex--;
+},
+selectPrediction(index) {
+  if (index < 0 || index >= this.predictions.length) return;
+  const prediction = this.predictions[index];
+  this.formData.location = prediction.description;
+  this.searchQuery = prediction.description;
+  this.predictions = [];
+
+  this.fetchPlaceDetails(prediction.place_id);
+},
+fetchPlaceDetails(placeId) {
+  this.placesService.getDetails({ placeId }, (placeResult, status) => {
+    if (status !== google.maps.places.PlacesServiceStatus.OK || !placeResult.geometry) {
+      alert('Could not get location details');
+      return;
+    }
+    const location = placeResult.geometry.location;
+    this.map.setCenter(location);
+    this.map.setZoom(15);
+    this.marker.position = location;
+    this.setLatLng(location.lat(), location.lng());
+    this.highlightArea(500);
+  });
+},
+updateLocationFromSearch() {
+  this.formData.location = this.searchQuery;
+}
+
+
+
+
   }
 }
 </script>
@@ -851,6 +1040,25 @@ export default {
 .btn:disabled {
   cursor: not-allowed;
 }
+
+.suggestions-dropdown {
+  border: 1px solid #ccc;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #fff;
+  position: absolute;
+  z-index: 1000;
+  width: 100%;
+}
+.suggestion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.suggestion-item.active,
+.suggestion-item:hover {
+  background-color: #f0f0f0;
+}
+
 
 @media (max-width: 768px) {
   .creation-container {

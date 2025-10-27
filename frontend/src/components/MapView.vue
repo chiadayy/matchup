@@ -89,7 +89,7 @@ onMounted(async () => {
     map = new Map(mapEl.value, {
       center: initialCenter,
       zoom: props.zoom,
-      mapId: '1d85aa34bdd69f6c32c5d842'
+      mapId: '1d622eb16f09ac0b3984b1bd'
     })
 
     // Create InfoWindow instance
