@@ -7,29 +7,64 @@
           <div class="col-md-3 text-center">
             <!-- View Mode -->
             <div v-if="!isEditMode">
-              <img 
-                :src="userProfile.profilePicture || 'https://via.placeholder.com/200'" 
-                alt="Profile" 
-                class="profile-picture"
-              >
-            </div>
-            <!-- Edit Mode -->
-            <div v-else>
-              <div class="form-group mb-3">
-                <label class="form-label">Profile Picture URL</label>
-                <input 
-                  type="text" 
-                  class="form-control" 
-                  v-model="editForm.profilePicture"
-                  placeholder="Paste image URL here"
+              <div v-if="profileData.profile_image != null">
+                <img
+                  :src="profileData.profile_image"
+                  alt="Profile"
+                  class="profile-picture"
                 >
               </div>
-              <div v-if="editForm.profilePicture" class="text-center">
+              <div v-else>
+                <!-- Default profile icon -->
+                <div class="profile-picture bg-secondary">
+                  <svg>...</svg>
+                </div>
+              </div>
+            </div>
+            <!-- Edit Mode -->
+            <div v-else class="col-md">
+              <div class="form-group mb-3">
+                <label class="form-label fw-bold">Profile Picture</label>
+                
+                <!-- File Input -->
+                <input 
+                  type="file" 
+                  class="form-control" 
+                  @change="handleFileSelect"
+                  accept="image/*"
+                  ref="fileInput"
+                >
+                <small class="text-muted">Max size: 5MB. Accepts: JPG, PNG, GIF, WebP</small>
+              </div>
+
+              <!-- Loading Indicator -->
+              <div v-if="uploadingImage" class="text-center my-3">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Uploading...</span>
+                </div>
+                <p class="mt-2 text-muted">Uploading image...</p>
+              </div>
+
+              <!-- Preview -->
+              <div v-else-if="editFormData.profile_image" class="text-center">
                 <img 
-                  :src="editForm.profilePicture" 
+                  :src="editFormData.profile_image" 
                   alt="Preview" 
                   class="img-preview"
                 >
+                <button 
+                  type="button" 
+                  class="btn btn-sm btn-outline-danger mt-2"
+                  @click="removeProfileImage"
+                >
+                  Remove Image
+                </button>
+              </div>
+              
+              <div v-else class="text-center">
+                <div class="border border-3 py-5 rounded" style="background: #f0f0f0;">
+                  <span style="color: #999;">📷 No image selected</span>
+                </div>
               </div>
             </div>
           </div>
@@ -38,23 +73,23 @@
             <div class="profile-info">
               <!-- View Mode -->
               <div v-if="!isEditMode">
-                <h1 class="fw-bold mb-2">{{ userProfile.displayName }}</h1>
-                <p class="text-muted mb-3">Member since {{ formatDate(userProfile.createdAt) }}</p>
+                <h1 class="fw-bold mb-2">{{ profileData.name }}</h1>
+                <p class="text-muted mb-3">Member since {{ formatDate(profileData.created_at) }}</p>
                 
                 <div class="stats-row mb-4">
                   <div class="stat-item">
-                    <div class="stat-value">{{ userProfile.totalMatches }}</div>
+                    <div class="stat-value">{{ profileData.totalMatches}}</div> <!--NOT DONE-->
                     <div class="stat-label">Matches Played</div>
                   </div>
-                  <div class="stat-item">
+                  <!-- <div class="stat-item">
                     <div class="stat-value">{{ attendanceRate }}%</div>
                     <div class="stat-label">Attendance Rate</div>
-                  </div>
+                  </div> -->
                 </div>
 
                 <div class="badges-row mb-4">
                   <span 
-                    v-for="sport in userProfile.favoriteSports" 
+                    v-for="sport in profileData.favourites" 
                     :key="sport"
                     class="sport-badge"
                   >
@@ -64,7 +99,7 @@
 
                 <div class="about-section mb-4">
                   <h4 class="fw-bold mb-2">About</h4>
-                  <p class="text-muted">{{ userProfile.description || 'No description added yet.' }}</p>
+                  <p class="text-muted">{{ profileData.description || 'No description added yet.' }}</p>
                 </div>
 
                 <button v-if="isOwnProfile" class="btn btn-edit" @click="enterEditMode">
@@ -78,7 +113,7 @@
                   <input 
                     type="text" 
                     class="form-control" 
-                    v-model="editForm.displayName"
+                    v-model="editFormData.name"
                     placeholder="Your display name"
                   >
                 </div>
@@ -87,7 +122,7 @@
                   <label class="form-label">Personal Description</label>
                   <textarea 
                     class="form-control" 
-                    v-model="editForm.description"
+                    v-model="editFormData.description"
                     placeholder="Tell us about yourself..."
                     rows="4"
                   ></textarea>
@@ -100,13 +135,12 @@
                       <input 
                         type="checkbox" 
                         :value="sport"
-                        v-model="editForm.favoriteSports"
+                        v-model="editFormData.favourites"
                       >
                       <span>{{ sportEmojis[sport] }} {{ sport }}</span>
                     </label>
                   </div>
                 </div>
-
                 <div class="edit-actions">
                   <button class="btn btn-secondary" @click="cancelEditMode">Cancel</button>
                   <button class="btn btn-primary" @click="saveProfileChanges">Save Changes</button>
@@ -117,77 +151,7 @@
         </div>
       </div>
 
-      <!-- Match History Section (only show in view mode) -->
-      <div v-if="!isEditMode" class="match-history-section">
-        <div class="section-header">
-          <h2 class="fw-bold">Match History</h2>
-          <div class="filter-buttons">
-            <button 
-              v-for="filter in ['all', 'attended', 'missed']"
-              :key="filter"
-              class="filter-btn"
-              :class="{ active: selectedFilter === filter }"
-              @click="selectedFilter = filter"
-            >
-              {{ capitalizeFirst(filter) }}
-            </button>
-          </div>
-        </div>
-
-        <div v-if="filteredMatches.length === 0" class="no-matches">
-          <p class="text-muted">No match history found</p>
-        </div>
-
-        <div v-else class="matches-grid">
-          <div 
-            v-for="match in filteredMatches"
-            :key="match.id"
-            class="match-card"
-            :class="getMatchStatusClass(match)"
-          >
-            <div class="match-header">
-              <div class="match-sport">
-                <span class="sport-emoji">{{ sportEmojis[match.sport] }}</span>
-                <div>
-                  <h4 class="fw-bold mb-1">{{ match.sport }}</h4>
-                  <p class="text-muted small mb-0">{{ match.location }}</p>
-                </div>
-              </div>
-              <div class="match-status-badge" :class="getStatusBadgeClass(match)">
-                {{ getStatusLabel(match) }}
-              </div>
-            </div>
-
-            <div class="match-details">
-              <div class="detail-item">
-                <span class="detail-label">Date & Time</span>
-                <span class="detail-value">{{ formatDate(match.date) }} at {{ match.time }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Skill Level</span>
-                <span class="detail-value">{{ match.skillLevel }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Players</span>
-                <span class="detail-value">{{ match.playersJoined }}/{{ match.maxPlayers }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Price</span>
-                <span :class="match.price === 0 ? 'text-success' : 'text-danger'" class="fw-bold">
-                  {{ match.price === 0 ? 'Free' : `$${match.price}` }}
-                </span>
-              </div>
-            </div>
-
-            <div class="match-footer">
-              <div class="attendance-status" :class="getAttendanceStatusClass(match)">
-                <span class="status-icon">{{ getAttendanceIcon(match) }}</span>
-                <span class="status-text">{{ getAttendanceStatus(match) }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      
     </div>
 
     <!-- Notification Modal -->
@@ -211,14 +175,19 @@
 </template>
 
 <script>
+import { supabase } from '@/lib/supabase';
+
 export default {
   name: 'Profile',
+  
   data() {
     return {
-      userId: this.$route.params.id || JSON.parse(localStorage.getItem('user') || '{}').id,
-      isOwnProfile: !this.$route.params.id || this.$route.params.id === JSON.parse(localStorage.getItem('user') || '{}').id,
+      userId: null,
+      isOwnProfile: true,
       isEditMode: false,
-      selectedFilter: 'all',
+      uploadingImage: false,
+      selectedFile: null,
+      oldImagePath: null,
       showNotification: false,
       notificationType: 'success',
       notificationMessage: '',
@@ -231,156 +200,314 @@ export default {
         'Badminton': '🏸',
         'Volleyball': '🏐'
       },
-      userProfile: {
-        id: 1,
-        displayName: 'John Doe',
-        profilePicture: 'https://i.pravatar.cc/150?img=12',
-        description: 'Passionate about basketball and tennis. Always looking for friendly matches!',
-        favoriteSports: ['Basketball', 'Tennis'],
-        totalMatches: 24,
-        matchesAttended: 23,
-        createdAt: '2024-08-15'
-      },
-      editForm: {
-        displayName: '',
+      profileData: {
+        name: '',
+        favourites: [],
+        profile_image: null,
         description: '',
-        favoriteSports: [],
-        profilePicture: ''
+        created_at: '',
+        totalMatches: 0
       },
-      matchHistory: [
-        {
-          id: 1,
-          sport: 'Basketball',
-          location: 'Hougang',
-          date: '2025-10-10',
-          time: '6:00 PM',
-          skillLevel: 'Beginner',
-          maxPlayers: 8,
-          playersJoined: 7,
-          price: 0,
-          attended: true
-        },
-        {
-          id: 2,
-          sport: 'Tennis',
-          location: 'Sengkang',
-          date: '2025-10-12',
-          time: '7:00 PM',
-          skillLevel: 'Intermediate',
-          maxPlayers: 4,
-          playersJoined: 2,
-          price: 15,
-          attended: true
-        },
-        {
-          id: 3,
-          sport: 'Football',
-          location: 'Bedok',
-          date: '2025-10-15',
-          time: '5:00 PM',
-          skillLevel: 'Advanced',
-          maxPlayers: 22,
-          playersJoined: 18,
-          price: 0,
-          attended: false
-        },
-        {
-          id: 4,
-          sport: 'Basketball',
-          location: 'Punggol',
-          date: '2025-09-25',
-          time: '6:00 PM',
-          skillLevel: 'Intermediate',
-          maxPlayers: 10,
-          playersJoined: 8,
-          price: 0,
-          attended: true
-        },
-        {
-          id: 5,
-          sport: 'Badminton',
-          location: 'Tampines',
-          date: '2025-09-18',
-          time: '8:00 PM',
-          skillLevel: 'Beginner',
-          maxPlayers: 4,
-          playersJoined: 3,
-          price: 10,
-          attended: false
-        }
-      ]
+      editFormData: {
+        name: '',
+        description: '',
+        favourites: [],
+        profile_image: null
+      },
+      isLoading: true,
+      loadError: null,
+      
     }
   },
   computed: {
     attendanceRate() {
-      if (this.userProfile.totalMatches === 0) return 0
-      return Math.round((this.userProfile.matchesAttended / this.userProfile.totalMatches) * 100)
+      
+      return 0
     },
-    filteredMatches() {
-      let filtered = this.matchHistory
-
-      switch (this.selectedFilter) {
-        case 'attended':
-          filtered = filtered.filter(m => m.attended === true)
-          break
-        case 'missed':
-          filtered = filtered.filter(m => m.attended === false)
-          break
-        default:
-          break
+    
+  },
+  async mounted() {
+    this.userId = this.$route.params.id;
+    await this.loadCurrentUser();
+  },
+  watch: {
+    '$route.params.id': {
+      async handler(newId) {
+        this.userId = newId;
+        await this.loadCurrentUser();
       }
-
-      return filtered.sort((a, b) => new Date(b.date) - new Date(a.date))
     }
   },
   methods: {
-    enterEditMode() {
-      this.editForm = {
-        displayName: this.userProfile.displayName,
-        description: this.userProfile.description,
-        favoriteSports: [...this.userProfile.favoriteSports],
-        profilePicture: this.userProfile.profilePicture
-      }
-      this.isEditMode = true
-    },
-    cancelEditMode() {
-      this.isEditMode = false
-    },
-    saveProfileChanges() {
-      this.userProfile.displayName = this.editForm.displayName
-      this.userProfile.description = this.editForm.description
-      this.userProfile.favoriteSports = this.editForm.favoriteSports
-      this.userProfile.profilePicture = this.editForm.profilePicture
+    async loadCurrentUser() {
+      this.isLoading = true;
+      this.loadError = null;
 
-      this.showSuccessNotification('Profile updated successfully!')
-      this.isEditMode = false
-    },
-    showSuccessNotification(message) {
-      this.notificationMessage = message
-      this.notificationType = 'success'
-      this.showNotification = true
-      this.startNotificationTimer()
-    },
-    showErrorNotification(message) {
-      this.notificationMessage = message
-      this.notificationType = 'error'
-      this.showNotification = true
-      this.startNotificationTimer()
-    },
-    startNotificationTimer() {
-      if (this.notificationTimer) {
-        clearTimeout(this.notificationTimer)
+      try {
+        const { data: authData, error: authError } = await supabase.auth.getUser();
+        if (authError) throw authError;
+
+        const profileIdToLoad = this.userId || authData.user.id;
+        this.isOwnProfile = profileIdToLoad === authData.user.id;
+
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', profileIdToLoad)
+          .single();
+
+        if (profileError) throw profileError;
+
+        const { count, error: matchCountError } = await supabase
+          .from('users_matches')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', profileIdToLoad)
+          .eq('payment_success', true);
+
+        if (matchCountError) console.error(matchCountError);
+
+        this.profileData = {
+          ...profileData,
+          totalMatches: count || 0
+        };
+
+      } catch (err) {
+        console.error('Error loading user:', err);
+        this.loadError = 'Failed to load profile. Please try again.';
+      } finally {
+        this.isLoading = false;
       }
-      this.notificationTimer = setTimeout(() => {
-        this.closeNotification()
-      }, 20000)
     },
-    closeNotification() {
-      this.showNotification = false
-      if (this.notificationTimer) {
-        clearTimeout(this.notificationTimer)
+    handleFileSelect(event) {
+    const file = event.target.files[0];
+    
+    if (!file) return;
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      this.showErrorNotification('Image must be smaller than 5MB');
+      this.$refs.fileInput.value = ''; // Clear input
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      this.showErrorNotification('Please select an image file');
+      this.$refs.fileInput.value = '';
+      return;
+    }
+
+    this.selectedFile = file;
+    
+    // Show preview immediately
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.editFormData.profile_image = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  },
+
+  removeProfileImage() {
+    this.selectedFile = null;
+    this.editFormData.profile_image = null;
+    if (this.$refs.fileInput) {
+      this.$refs.fileInput.value = '';
+    }
+  },
+
+  async uploadProfileImage(userId) {
+    if (!this.selectedFile) return this.profileData.profile_image;
+
+    try {
+      this.uploadingImage = true;
+
+      // Delete old image if it exists
+      if (this.oldImagePath) {
+        await this.deleteOldProfileImage(this.oldImagePath);
+      }
+
+      // Create unique filename
+      const fileExt = this.selectedFile.name.split('.').pop();
+      const timestamp = Date.now();
+      const filePath = `${userId}/${timestamp}.${fileExt}`;
+
+      console.log('Uploading to path:', filePath);
+
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('profile_images')
+        .upload(filePath, this.selectedFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('profile_images')
+        .getPublicUrl(filePath);
+
+      return urlData.publicUrl;
+
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    } finally {
+      this.uploadingImage = false;
+    }
+  },
+
+  async deleteOldProfileImage(imageUrl) {
+    try {
+      // Extract file path from URL
+      const urlParts = imageUrl.split('/profile_images/');
+      if (urlParts.length < 2) return;
+
+      const filePath = urlParts[1];
+
+      // Delete from storage
+      const { error } = await supabase.storage
+        .from('profile_images')
+        .remove([filePath]);
+
+      if (error) {
+        console.error('Error deleting old image:', error);
+      } else {
+        console.log('Old image deleted successfully');
+      }
+    } catch (error) {
+      console.error('Error in deleteOldProfileImage:', error);
+    }
+  },
+
+  enterEditMode() {
+    const favouritesArray = Array.isArray(this.profileData.favourites) 
+      ? this.profileData.favourites 
+      : [];
+
+    this.editFormData = {
+      name: this.profileData.name || '',
+      description: this.profileData.description || '',
+      favourites: [...favouritesArray],
+      profile_image: this.profileData.profile_image || null
+    };
+    
+    // Store old image path for deletion later
+    this.oldImagePath = this.profileData.profile_image;
+    
+    this.isEditMode = true;
+  },
+
+  cancelEditMode() {
+    this.isEditMode = false;
+    this.selectedFile = null;
+    this.oldImagePath = null;
+    this.editFormData = {
+      name: '',
+      description: '',
+      favourites: [],
+      profile_image: null
+    };
+    if (this.$refs.fileInput) {
+      this.$refs.fileInput.value = '';
+    }
+  },
+
+  async saveProfileChanges() {
+    try {
+
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (!authData.user) throw new Error('Not authenticated');
+
+          console.log('Auth data:', authData); // Debug
+    console.log('Auth error:', authError); // Debug
+
+    if (authError) {
+      console.error('Auth error:', authError);
+      throw new Error('Authentication error: ' + authError.message);
+    }
+    
+    if (!authData.user) {
+      throw new Error('Not authenticated - no user found');
+    }
+
+    console.log('✅ User authenticated:', authData.user.id);
+    console.log('User role:', authData.user.role);
+      // Upload new image if selected
+      let imageUrl = this.profileData.profile_image;
+      
+      if (this.selectedFile) {
+        imageUrl = await this.uploadProfileImage(authData.user.id);
+      } else if (this.editFormData.profile_image === null && this.oldImagePath) {
+        // User removed the image
+        await this.deleteOldProfileImage(this.oldImagePath);
+        imageUrl = null;
+      }
+
+      // Update profile in database
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: this.editFormData.name,
+          description: this.editFormData.description,
+          favourites: this.editFormData.favourites,
+          profile_image: imageUrl
+        })
+        .eq('id', authData.user.id);
+
+      if (error) throw error;
+
+      // Update local data
+      this.profileData = {
+        ...this.profileData,
+        name: this.editFormData.name,
+        description: this.editFormData.description,
+        favourites: [...this.editFormData.favourites],
+        profile_image: imageUrl
+      };
+
+      // Reset form state
+      this.selectedFile = null;
+      this.oldImagePath = null;
+
+      this.showSuccessNotification('Profile updated successfully!');
+      this.isEditMode = false;
+
+      } catch (err) {
+        console.error('Error saving profile:', err);
+        this.showErrorNotification('Failed to update profile. Please try again.');
       }
     },
+
+
+    //Notification
+    // showSuccessNotification(message) {
+    //   this.notificationMessage = message
+    //   this.notificationType = 'success'
+    //   this.showNotification = true
+    //   this.startNotificationTimer()
+    // },
+    // showErrorNotification(message) {
+    //   this.notificationMessage = message
+    //   this.notificationType = 'error'
+    //   this.showNotification = true
+    //   this.startNotificationTimer()
+    // },
+    // startNotificationTimer() {
+    //   if (this.notificationTimer) {
+    //     clearTimeout(this.notificationTimer)
+    //   }
+    //   this.notificationTimer = setTimeout(() => {
+    //     this.closeNotification()
+    //   }, 20000)
+    // },
+    // closeNotification() {
+    //   this.showNotification = false
+    //   if (this.notificationTimer) {
+    //     clearTimeout(this.notificationTimer)
+    //   }
+    // },
     formatDate(dateStr) {
       const date = new Date(dateStr)
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -388,24 +515,7 @@ export default {
     capitalizeFirst(str) {
       return str.charAt(0).toUpperCase() + str.slice(1)
     },
-    getMatchStatusClass(match) {
-      return match.attended ? 'status-attended' : 'status-missed'
-    },
-    getStatusBadgeClass(match) {
-      return match.attended ? 'badge-success' : 'badge-danger'
-    },
-    getStatusLabel(match) {
-      return match.attended ? 'Attended' : 'No Show'
-    },
-    getAttendanceStatusClass(match) {
-      return match.attended ? 'attendance-attended' : 'attendance-missed'
-    },
-    getAttendanceIcon(match) {
-      return match.attended ? '✓' : '✕'
-    },
-    getAttendanceStatus(match) {
-      return match.attended ? 'Attended' : 'Did not attend'
-    }
+    
   }
 }
 </script>

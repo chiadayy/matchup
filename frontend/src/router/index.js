@@ -71,17 +71,20 @@ const routes = [
   {
     path: '/profile',
     name: 'Profile',
-    component: Profile
+    component: Profile,
+    meta: { requiresAuth: true }
   },
   {
     path: '/browser',
     name: 'Browser',
-    component: Browser
+    component: Browser,
+    meta: { requiresAuth: true }
   },
   {
     path: '/calendar',
     name: 'Calendar',
-    component: Calendar
+    component: Calendar,
+    meta: { requiresAuth: true }
   }
 ]
 

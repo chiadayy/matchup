@@ -26,28 +26,28 @@
               Browser
             </router-link>
 
-            <!-- Calendar - visible to regular users and organizers -->
+            <!-- Calendar - visible to regular users -->
             <router-link 
-              v-if="isLoggedIn && (userRole === 'regular' || userRole === 'organizer')"
+              v-if="isLoggedIn && userRole === 'regular'"
               to="/calendar" 
               class="footer-link"
             >
               Calendar
             </router-link>
 
-            <!-- My Matches - visible to regular users and organizers -->
+            <!-- My Matches - visible to regular users -->
             <router-link 
-              v-if="isLoggedIn && (userRole === 'regular' || userRole === 'organizer')"
+              v-if="isLoggedIn && userRole === 'regular'"
               to="/my-matches" 
               class="footer-link"
             >
               My Matches
             </router-link>
 
-            <!-- Game Creation - visible to organizers only -->
+            <!-- Game Creation - visible to regular users -->
             <router-link 
-              v-if="isLoggedIn && userRole === 'organizer'"
-              to="/game-creation" 
+              v-if="isLoggedIn && userRole === 'regular'"
+              to="/create-game" 
               class="footer-link"
             >
               Game Creation
@@ -83,7 +83,7 @@ export default {
     },
     userRole: {
       type: String,
-      enum: ['admin', 'organizer', 'regular'],
+      enum: ['admin', 'regular'],
       default: 'regular'
     }
   },
