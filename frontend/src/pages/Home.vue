@@ -423,6 +423,7 @@ export default {
         { sport: 'Basketball', skill: 'Intermediate', date: '10/10/25 6pm', distance: '2.9km', price: 'Free', isFree: true, location: 'Bedok' }
       ],
       featuredMatches: [
+        // Fallback matches in case DB fetch fails
         {
           id: 'fm1',
           sport: 'Basketball',
@@ -702,31 +703,46 @@ export default {
         console.log('Received matches from DB:', data);
 
         if (data.success && data.matches && data.matches.length > 0) {
-          // Transform Supabase data to match your UI format
-          const dbMatches = data.matches.map(match => ({
-            id: match.id,
-            sport: match.sport_type,
-            skill: match.skill_level,
-            location: match.location,
-            date: this.formatDateTime(match.date, match.time),
-            price: match.total_price,
-            players: `${match.current_player_count}/${match.total_player_count}`,
-            // Add extra data for modal
-            name: match.name,
-            description: match.description,
-            duration: match.duration,
-            host: match.host
-          }));
+          // Transform Supabase data to featured matches format
+          const dbMatches = data.matches.map(match => {
+            const sportConfig = this.getSportConfigForMatch(match.sport_type);
+            const badge = this.getMatchBadge(match);
 
-          this.featuredMatches = dbMatches;
+            return {
+              id: match.id,
+              sport: match.sport_type,
+              icon: sportConfig.icon,
+              color: sportConfig.color,
+              badge: badge,
+              title: match.name || `${match.sport_type} Match`,
+              host: match.host || 'Anonymous Host',
+              venue: match.location,
+              time: this.formatDateTimeForDisplay(match.date, match.time),
+              skillLevel: match.skill_level,
+              joined: match.current_player_count,
+              capacity: match.total_player_count,
+              price: parseFloat(match.total_price) || 0,
+              image: sportConfig.image,
+              // Extra data for modal
+              name: match.name,
+              description: match.description,
+              duration: match.duration,
+              date: this.formatDateTime(match.date, match.time),
+              players: `${match.current_player_count}/${match.total_player_count}`
+            };
+          });
 
-          console.log('Combined matches:', this.featuredMatches);
+          // Take first 8 matches for carousel, or all if less than 8
+          this.featuredMatches = dbMatches.slice(0, 8);
+
+          console.log('Featured matches loaded:', this.featuredMatches);
         } else {
-          console.log('No matches found in DB');
+          console.log('No matches found in DB, using default featured matches');
         }
 
       } catch (error) {
         console.error('Error fetching matches:', error);
+        console.log('Using default featured matches due to error');
       }
     },
     // Format date and time for display
@@ -877,6 +893,128 @@ export default {
         'Badminton': '#ec4899'
       };
       return colors[sport] || '#3b82f6';
+    },
+
+    getSportConfigForMatch(sportType) {
+      const sportConfigs = {
+        'Basketball': {
+          icon: '🏀',
+          color: '#f97316',
+          image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&h=600&fit=crop'
+        },
+        'Badminton': {
+          icon: '🏸',
+          color: '#ec4899',
+          image: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&h=600&fit=crop'
+        },
+        'Football': {
+          icon: '⚽',
+          color: '#10b981',
+          image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&h=600&fit=crop'
+        },
+        'Soccer': {
+          icon: '⚽',
+          color: '#10b981',
+          image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&h=600&fit=crop'
+        },
+        'Futsal': {
+          icon: '⚽',
+          color: '#10b981',
+          image: 'https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=800&h=600&fit=crop'
+        },
+        'Tennis': {
+          icon: '🎾',
+          color: '#84cc16',
+          image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&h=600&fit=crop'
+        },
+        'Volleyball': {
+          icon: '🏐',
+          color: '#06b6d4',
+          image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&h=600&fit=crop'
+        }
+      };
+
+      return sportConfigs[sportType] || {
+        icon: '🏃',
+        color: '#3b82f6',
+        image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&h=600&fit=crop'
+      };
+    },
+
+    getMatchBadge(match) {
+      const capacity = match.total_player_count;
+      const joined = match.current_player_count;
+      const percentage = (joined / capacity) * 100;
+
+      // Almost full if 80% or more capacity
+      if (percentage >= 80) {
+        return 'Almost Full';
+      }
+
+      // Check if match is starting soon (within next 24 hours)
+      const matchDateTime = new Date(`${match.date}T${match.time}`);
+      const now = new Date();
+      const hoursUntilMatch = (matchDateTime - now) / (1000 * 60 * 60);
+
+      if (hoursUntilMatch > 0 && hoursUntilMatch <= 24) {
+        return 'Starting Soon';
+      }
+
+      // Check if it's a new match (created recently)
+      const createdAt = new Date(match.created_at);
+      const hoursSinceCreated = (now - createdAt) / (1000 * 60 * 60);
+
+      if (hoursSinceCreated <= 48) {
+        return 'New';
+      }
+
+      // Check if popular (more than 60% capacity)
+      if (percentage >= 60) {
+        return 'Popular';
+      }
+
+      // Check if it's a weekend match
+      const matchDay = matchDateTime.getDay();
+      if (matchDay === 0 || matchDay === 6) {
+        return 'Weekend';
+      }
+
+      return 'Featured';
+    },
+
+    formatDateTimeForDisplay(date, time) {
+      try {
+        const matchDate = new Date(date);
+        const now = new Date();
+
+        // Reset time components for date comparison
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const matchDateOnly = new Date(matchDate.getFullYear(), matchDate.getMonth(), matchDate.getDate());
+
+        // Format time
+        const timeParts = time.split(':');
+        let hours = parseInt(timeParts[0]);
+        const minutes = timeParts[1];
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12;
+        const formattedTime = `${hours}:${minutes} ${ampm}`;
+
+        // Check if today, tomorrow, or show day name
+        if (matchDateOnly.getTime() === today.getTime()) {
+          return `Today, ${formattedTime}`;
+        } else if (matchDateOnly.getTime() === tomorrow.getTime()) {
+          return `Tomorrow, ${formattedTime}`;
+        } else {
+          const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+          const dayName = daysOfWeek[matchDate.getDay()];
+          return `${dayName}, ${formattedTime}`;
+        }
+      } catch (error) {
+        console.error('Error formatting date/time:', error);
+        return 'TBD';
+      }
     }
   }
 };
