@@ -2578,4 +2578,232 @@ export default {
     transform: translateY(0);
   }
 }
+
+/* Additional Responsive Styles for Zoom and Resize */
+.browser-page {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 100%;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* Responsive text sizing */
+@media (max-width: 1400px) {
+  .page-header h1 {
+    font-size: 2rem;
+  }
+
+  .match-title {
+    font-size: 1.2rem;
+  }
+
+  .shortcuts-container {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 1200px) {
+  .container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .match-container {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .map-wrapper {
+    height: 350px;
+  }
+
+  .weather-banner {
+    padding: 24px 28px;
+  }
+
+  .shortcut-btn {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 991px) {
+  .page-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .map-wrapper {
+    height: 300px;
+  }
+
+  .match-card {
+    min-height: 340px;
+  }
+
+  .smart-shortcuts {
+    padding: 16px;
+  }
+
+  .shortcuts-container {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .page-header {
+    margin-bottom: 16px;
+  }
+
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .results-count {
+    font-size: 0.9rem;
+  }
+
+  .match-container {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .match-card {
+    min-height: auto;
+    padding: 16px;
+  }
+
+  .match-title {
+    font-size: 1.1rem;
+  }
+
+  .match-price {
+    font-size: 1.1rem;
+  }
+
+  .map-wrapper {
+    height: 250px;
+  }
+
+  .shortcuts-container {
+    gap: 6px;
+  }
+
+  .shortcut-btn {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+  }
+
+  .shortcut-icon {
+    font-size: 1rem;
+  }
+
+  .filter-pills-wrapper {
+    padding: 12px;
+  }
+
+  .active-filters {
+    padding: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 576px) {
+  .container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .page-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .match-card {
+    padding: 14px;
+  }
+
+  .match-header {
+    margin-left: 48px;
+  }
+
+  .sport-icon-badge {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .map-wrapper {
+    height: 220px;
+  }
+
+  .smart-shortcuts {
+    padding: 12px;
+  }
+
+  .shortcuts-label {
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+  }
+
+  .shortcut-btn {
+    padding: 5px 10px;
+    font-size: 0.7rem;
+    gap: 6px;
+  }
+
+  .pagination-container {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .weather-banner-stats {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .weather-divider {
+    display: none;
+  }
+}
+
+/* High zoom levels (zoom > 150%) */
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .results-count {
+    font-size: 0.85rem;
+  }
+
+  .match-title {
+    font-size: 1rem;
+    white-space: normal;
+  }
+
+  .match-details {
+    font-size: 0.9rem;
+  }
+
+  .shortcut-btn {
+    flex: 1 1 45%;
+    justify-content: center;
+  }
+
+  .shortcuts-container {
+    justify-content: space-between;
+  }
+}
 </style>

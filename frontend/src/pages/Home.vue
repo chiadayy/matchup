@@ -126,18 +126,18 @@
         </div>
       </div>
 
-      <!-- Game Highlights Carousel -->
+      <!-- Featured Matches Carousel -->
       <div class="row mb-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div>
-            <h3 class="fw-bold mb-1">🔥 Top Moments</h3>
-            <p class="text-muted mb-0" style="font-size: 0.9rem;">Epic plays and highlights from our community</p>
+            <h3 class="fw-bold mb-1">🎯 Featured Matches</h3>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">Upcoming and curated matches for you to join</p>
           </div>
           <div class="carousel-controls">
             <button class="carousel-nav-btn" @click="prevSlide" :disabled="isTransitioning">
               ←
             </button>
-            <span class="carousel-indicator">{{ currentSlide + 1 }} / {{ tipsCarouselSlides.length }}</span>
+            <span class="carousel-indicator">{{ currentSlide + 1 }} / {{ featuredMatchesSlides.length }}</span>
             <button class="carousel-nav-btn" @click="nextSlide" :disabled="isTransitioning">
               →
             </button>
@@ -147,38 +147,53 @@
         <div class="carousel-container">
           <div class="carousel-track" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
             <div
-              v-for="(slide, slideIndex) in tipsCarouselSlides"
+              v-for="(slide, slideIndex) in featuredMatchesSlides"
               :key="slideIndex"
               class="carousel-slide"
             >
               <div class="row g-4">
                 <div
-                  v-for="tip in slide"
-                  :key="tip.id"
+                  v-for="match in slide"
+                  :key="match.id"
                   class="col-xl-3 col-lg-6 col-md-6 col-sm-12"
                 >
-                  <div class="tips-card">
-                    <div class="tips-image-container">
-                      <img :src="tip.image" :alt="tip.title" class="tips-image" />
-                      <div class="tips-overlay"></div>
-                      <div class="tips-icon" :style="{ backgroundColor: tip.color }">
-                        {{ tip.icon }}
-                      </div>
+                  <div class="featured-match-card" @click="openMatchDetail(match)">
+                    <div class="featured-match-header">
+                      <img :src="match.image" :alt="match.sport" class="featured-match-image" />
+                      <div class="featured-match-overlay" :style="{ background: `linear-gradient(180deg, transparent 0%, ${match.color}99 100%)` }"></div>
+                      <div class="featured-match-sport-icon">{{ match.icon }}</div>
+                      <div class="featured-match-badge">{{ match.badge }}</div>
                     </div>
-                    <div class="tips-card-content">
-                      <div class="tips-category" :style="{ color: tip.color }">
-                        {{ tip.category }}
+                    <div class="featured-match-content">
+                      <div class="featured-match-sport" :style="{ color: match.color }">
+                        {{ match.sport }}
                       </div>
-                      <h5 class="tips-title">{{ tip.title }}</h5>
-                      <p class="tips-description">{{ tip.description }}</p>
-                      <div class="highlight-meta">
-                        <div class="meta-item">
-                          <span class="meta-icon">👤</span>
-                          <span class="meta-text">{{ tip.player }}</span>
+                      <h5 class="featured-match-title">{{ match.title }}</h5>
+                      <div class="featured-match-details">
+                        <div class="match-detail-item">
+                          <span class="detail-icon">👤</span>
+                          <span class="detail-text">{{ match.host }}</span>
                         </div>
-                        <div class="meta-item">
-                          <span class="meta-icon">📍</span>
-                          <span class="meta-text">{{ tip.location }}</span>
+                        <div class="match-detail-item">
+                          <span class="detail-icon">📍</span>
+                          <span class="detail-text">{{ match.venue }}</span>
+                        </div>
+                        <div class="match-detail-item">
+                          <span class="detail-icon">🕒</span>
+                          <span class="detail-text">{{ match.time }}</span>
+                        </div>
+                        <div class="match-detail-item">
+                          <span class="detail-icon">🎯</span>
+                          <span class="detail-text">{{ match.skillLevel }}</span>
+                        </div>
+                      </div>
+                      <div class="featured-match-footer">
+                        <div class="match-capacity">
+                          <span class="capacity-icon">👥</span>
+                          <span class="capacity-text">{{ match.joined }}/{{ match.capacity }}</span>
+                        </div>
+                        <div class="match-price" :class="{ free: match.price === 0 }">
+                          {{ match.price === 0 ? 'Free' : `$${match.price}` }}
                         </div>
                       </div>
                     </div>
@@ -192,98 +207,6 @@
         <!-- Auto-slide progress bar -->
         <div class="auto-slide-progress">
           <div class="progress-bar-fill" :style="{ width: autoSlideProgress + '%' }"></div>
-        </div>
-      </div>
-
-      <!-- Community Activity Feed -->
-      <div class="row mb-5">
-        <div class="col-12">
-          <div class="activity-feed-container">
-            <h3 class="fw-bold mb-4">What's Happening 🔥</h3>
-
-            <!-- Activity Feed with Grouped Time Categories -->
-            <div class="activity-feed-grouped">
-              <div
-                v-for="(category, index) in Object.keys(groupedActivities)"
-                :key="category"
-                class="activity-time-group"
-              >
-                <div class="time-category-header">
-                  <span class="time-category-label">{{ category }}</span>
-                  <div class="time-category-line"></div>
-                </div>
-
-                <div class="activity-cards-container">
-                  <div
-                    v-for="(activity, activityIndex) in groupedActivities[category]"
-                    :key="activity.id"
-                    class="activity-card"
-                    :class="{ 'activity-card-new': activity.isNew }"
-                    :style="{
-                      animationDelay: `${activityIndex * 0.1}s`,
-                      borderLeftColor: activity.color
-                    }"
-                  >
-                    <!-- Sport-specific colored left border -->
-                    <div class="activity-card-border" :style="{ background: activity.color }"></div>
-
-                    <!-- Card Content -->
-                    <div class="activity-card-header">
-                      <!-- User Avatar/Initials -->
-                      <div class="activity-user-avatar" :style="{
-                        background: `linear-gradient(135deg, ${activity.color} 0%, ${adjustColorBrightness(activity.color, -20)} 100%)`
-                      }">
-                        <span class="avatar-initials">{{ activity.userInitials }}</span>
-                      </div>
-
-                      <!-- Activity Info -->
-                      <div class="activity-card-info">
-                        <div class="activity-card-text">
-                          <strong class="activity-user-name">{{ activity.user }}</strong>
-                          <span class="activity-action">{{ activity.action }}</span>
-                        </div>
-                        <div class="activity-card-meta">
-                          <span class="activity-time">{{ activity.time }}</span>
-                          <span class="activity-badge-pill" :style="{
-                            background: `${activity.color}15`,
-                            color: activity.color
-                          }">
-                            {{ activity.badge }}
-                          </span>
-                        </div>
-                      </div>
-
-                      <!-- Thumbnail Preview (if available) -->
-                      <div v-if="activity.thumbnail" class="activity-thumbnail">
-                        <img :src="activity.thumbnail" :alt="activity.badge" />
-                      </div>
-                    </div>
-
-                    <!-- Social Proof Metrics -->
-                    <div class="activity-card-footer">
-                      <div class="activity-reactions">
-                        <button class="reaction-btn">
-                          <span class="reaction-icon">❤️</span>
-                          <span class="reaction-count">{{ activity.reactions.likes }}</span>
-                        </button>
-                        <button class="reaction-btn">
-                          <span class="reaction-icon">💬</span>
-                          <span class="reaction-count">{{ activity.reactions.comments }}</span>
-                        </button>
-                        <button class="reaction-btn">
-                          <span class="reaction-icon">👀</span>
-                          <span class="reaction-count">{{ activity.reactions.views }}</span>
-                        </button>
-                      </div>
-                      <div class="activity-sport-icon" :style="{ color: activity.color }">
-                        {{ activity.iconText }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -492,112 +415,142 @@ export default {
           color: '#ec4899'
         }
       ],
-      communityActivities: [
-        {
-          id: 1,
-          user: 'Alex',
-          userInitials: 'AK',
-          action: 'joined a badminton match in Bedok',
-          time: '2 minutes ago',
-          timeCategory: 'Today',
-          iconText: 'BD',
-          color: '#ec4899',
-          badge: 'Joined',
-          thumbnail: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=80&h=80&fit=crop',
-          reactions: { likes: 12, comments: 5, views: 23 },
-          isNew: true
-        },
-        {
-          id: 2,
-          user: 'Bryan',
-          userInitials: 'BT',
-          action: 'created a futsal game for Saturday',
-          time: '15 minutes ago',
-          timeCategory: 'Today',
-          iconText: 'FS',
-          color: '#10b981',
-          badge: 'Created',
-          thumbnail: 'https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=80&h=80&fit=crop',
-          reactions: { likes: 18, comments: 8, views: 45 },
-          isNew: true
-        },
-        {
-          id: 3,
-          user: 'Jane',
-          userInitials: 'JL',
-          action: 'hosted a new tennis match near you',
-          time: '1 hour ago',
-          timeCategory: 'Today',
-          iconText: 'TN',
-          color: '#84cc16',
-          badge: 'Hosting',
-          thumbnail: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=80&h=80&fit=crop',
-          reactions: { likes: 9, comments: 3, views: 31 },
-          isNew: false
-        },
-        {
-          id: 4,
-          user: 'Michael',
-          userInitials: 'MC',
-          action: 'completed a basketball game in Tampines',
-          time: '2 hours ago',
-          timeCategory: 'Today',
-          iconText: 'BB',
-          color: '#f97316',
-          badge: 'Completed',
-          thumbnail: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=80&h=80&fit=crop',
-          reactions: { likes: 25, comments: 12, views: 67 },
-          isNew: false
-        },
-        {
-          id: 5,
-          user: 'Sarah',
-          userInitials: 'ST',
-          action: 'earned the "Consistent Player" badge',
-          time: '3 hours ago',
-          timeCategory: 'Today',
-          iconText: '★',
-          color: '#f59e0b',
-          badge: 'Achievement',
-          thumbnail: null,
-          reactions: { likes: 34, comments: 15, views: 89 },
-          isNew: false
-        },
-        {
-          id: 6,
-          user: 'David',
-          userInitials: 'DW',
-          action: 'joined a football match in Hougang',
-          time: '5 hours ago',
-          timeCategory: 'Yesterday',
-          iconText: 'FB',
-          color: '#10b981',
-          badge: 'Joined',
-          thumbnail: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=80&h=80&fit=crop',
-          reactions: { likes: 7, comments: 2, views: 19 },
-          isNew: false
-        },
-        {
-          id: 7,
-          user: 'Rachel',
-          userInitials: 'RW',
-          action: 'won a tennis tournament in Sengkang',
-          time: '1 day ago',
-          timeCategory: 'Yesterday',
-          iconText: 'TN',
-          color: '#84cc16',
-          badge: 'Champion',
-          thumbnail: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=80&h=80&fit=crop',
-          reactions: { likes: 52, comments: 28, views: 145 },
-          isNew: false
-        }
-      ],
       nearbyMatches: [
         { sport: 'Basketball', skill: 'Beginner', date: '8/10/25 6pm', distance: '2.3km', price: 'Free', isFree: true, location: 'Hougang' },
         { sport: 'Tennis', skill: 'Intermediate', date: '8/10/25 7pm', distance: '3.5km', price: '$15', isFree: false, location: 'Sengkang' },
         { sport: 'Football', skill: 'Advanced', date: '9/10/25 5pm', distance: '1.8km', price: 'Free', isFree: true, location: 'Punggol' },
         { sport: 'Badminton', skill: 'Beginner', date: '9/10/25 8pm', distance: '4.2km', price: '$10', isFree: false, location: 'Tampines' },
         { sport: 'Basketball', skill: 'Intermediate', date: '10/10/25 6pm', distance: '2.9km', price: 'Free', isFree: true, location: 'Bedok' }
+      ],
+      featuredMatches: [
+        {
+          id: 'fm1',
+          sport: 'Basketball',
+          icon: '🏀',
+          color: '#f97316',
+          badge: 'Popular',
+          title: 'Evening Hoops Session',
+          host: 'Marcus Chen',
+          venue: 'Bukit Timah Sports Hall',
+          time: 'Today, 6:00 PM',
+          skillLevel: 'Intermediate',
+          joined: 7,
+          capacity: 10,
+          price: 0,
+          image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&h=600&fit=crop'
+        },
+        {
+          id: 'fm2',
+          sport: 'Badminton',
+          icon: '🏸',
+          color: '#ec4899',
+          badge: 'Almost Full',
+          title: 'Competitive Badminton',
+          host: 'Sarah Tan',
+          venue: 'Bedok Sports Complex',
+          time: 'Tomorrow, 7:00 PM',
+          skillLevel: 'Advanced',
+          joined: 9,
+          capacity: 10,
+          price: 10,
+          image: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&h=600&fit=crop'
+        },
+        {
+          id: 'fm3',
+          sport: 'Football',
+          icon: '⚽',
+          color: '#10b981',
+          badge: 'New',
+          title: '5-a-side Football',
+          host: 'Aaron Lim',
+          venue: 'Hougang Stadium',
+          time: 'Sat, 5:00 PM',
+          skillLevel: 'Beginner',
+          joined: 4,
+          capacity: 10,
+          price: 0,
+          image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&h=600&fit=crop'
+        },
+        {
+          id: 'fm4',
+          sport: 'Tennis',
+          icon: '🎾',
+          color: '#84cc16',
+          badge: 'Featured',
+          title: 'Sunday Tennis Social',
+          host: 'Rachel Wong',
+          venue: 'Sengkang Tennis Courts',
+          time: 'Sun, 8:00 AM',
+          skillLevel: 'Intermediate',
+          joined: 5,
+          capacity: 8,
+          price: 15,
+          image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&h=600&fit=crop'
+        },
+        {
+          id: 'fm5',
+          sport: 'Basketball',
+          icon: '🏀',
+          color: '#f97316',
+          badge: 'Weekend',
+          title: 'Saturday Morning Ball',
+          host: 'Jason Lee',
+          venue: 'Tampines Hub',
+          time: 'Sat, 9:00 AM',
+          skillLevel: 'Beginner',
+          joined: 6,
+          capacity: 12,
+          price: 0,
+          image: 'https://images.unsplash.com/photo-1608245449230-4ac19066d2d0?w=800&h=600&fit=crop'
+        },
+        {
+          id: 'fm6',
+          sport: 'Volleyball',
+          icon: '🏐',
+          color: '#06b6d4',
+          badge: 'New',
+          title: 'Beach Volleyball Fun',
+          host: 'Celine Ng',
+          venue: 'Punggol Beach',
+          time: 'Sat, 4:00 PM',
+          skillLevel: 'Beginner',
+          joined: 3,
+          capacity: 10,
+          price: 0,
+          image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&h=600&fit=crop'
+        },
+        {
+          id: 'fm7',
+          sport: 'Futsal',
+          icon: '⚽',
+          color: '#10b981',
+          badge: 'Popular',
+          title: 'Futsal League Match',
+          host: 'Bryan Tan',
+          venue: 'Yishun Futsal Arena',
+          time: 'Fri, 8:00 PM',
+          skillLevel: 'Advanced',
+          joined: 8,
+          capacity: 10,
+          price: 12,
+          image: 'https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=800&h=600&fit=crop'
+        },
+        {
+          id: 'fm8',
+          sport: 'Badminton',
+          icon: '🏸',
+          color: '#ec4899',
+          badge: 'Featured',
+          title: 'Doubles Tournament',
+          host: 'Alex Koh',
+          venue: 'Clementi Sports Hall',
+          time: 'Sun, 2:00 PM',
+          skillLevel: 'Intermediate',
+          joined: 6,
+          capacity: 12,
+          price: 8,
+          image: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&h=600&fit=crop'
+        }
       ]
     };
   },
@@ -633,18 +586,6 @@ export default {
       // Pick message based on time of day
       const index = hour % messages.length;
       return messages[index];
-    },
-
-    // Group activities by time category
-    groupedActivities() {
-      const groups = {};
-      this.communityActivities.forEach(activity => {
-        if (!groups[activity.timeCategory]) {
-          groups[activity.timeCategory] = [];
-        }
-        groups[activity.timeCategory].push(activity);
-      });
-      return groups;
     },
 
     mapGames() {
@@ -695,6 +636,17 @@ export default {
 
       for (let i = 0; i < this.gameHighlights.length; i += highlightsPerSlide) {
         slides.push(this.gameHighlights.slice(i, i + highlightsPerSlide));
+      }
+
+      return slides;
+    },
+    featuredMatchesSlides() {
+      // Split featured matches into slides of 4 matches each
+      const slides = [];
+      const matchesPerSlide = 4;
+
+      for (let i = 0; i < this.featuredMatches.length; i += matchesPerSlide) {
+        slides.push(this.featuredMatches.slice(i, i + matchesPerSlide));
       }
 
       return slides;
@@ -847,10 +799,10 @@ export default {
 
     // Carousel methods
     nextSlide() {
-      if (this.isTransitioning || this.carouselSlides.length === 0) return;
+      if (this.isTransitioning || this.featuredMatchesSlides.length === 0) return;
 
       this.isTransitioning = true;
-      this.currentSlide = (this.currentSlide + 1) % this.carouselSlides.length;
+      this.currentSlide = (this.currentSlide + 1) % this.featuredMatchesSlides.length;
 
       setTimeout(() => {
         this.isTransitioning = false;
@@ -860,11 +812,11 @@ export default {
     },
 
     prevSlide() {
-      if (this.isTransitioning || this.carouselSlides.length === 0) return;
+      if (this.isTransitioning || this.featuredMatchesSlides.length === 0) return;
 
       this.isTransitioning = true;
       this.currentSlide = this.currentSlide === 0
-        ? this.carouselSlides.length - 1
+        ? this.featuredMatchesSlides.length - 1
         : this.currentSlide - 1;
 
       setTimeout(() => {
@@ -925,19 +877,7 @@ export default {
         'Badminton': '#ec4899'
       };
       return colors[sport] || '#3b82f6';
-    },
-
-    adjustColorBrightness(color, percent) {
-      const num = parseInt(color.replace('#', ''), 16);
-      const amt = Math.round(2.55 * percent);
-      const R = Math.max(0, Math.min(255, (num >> 16) + amt));
-      const G = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amt));
-      const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
-      return '#' + (0x1000000 + (R << 16) + (G << 8) + B).toString(16).slice(1);
-    },
-
-
-    
+    }
   }
 };
 </script>
@@ -1740,6 +1680,168 @@ body {
 
 .organiser-of-week .featured-quote {
     border-left-color: #10b981;
+}
+
+/* ========== FEATURED MATCH CARDS ========== */
+.featured-match-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid transparent;
+}
+
+.featured-match-card:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    border-color: currentColor;
+}
+
+.featured-match-header {
+    position: relative;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.featured-match-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+}
+
+.featured-match-card:hover .featured-match-image {
+    transform: scale(1.1);
+}
+
+.featured-match-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.featured-match-sport-icon {
+    font-size: 3rem;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+    position: relative;
+    z-index: 2;
+}
+
+.featured-match-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #1d1d1f;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 2;
+}
+
+.featured-match-content {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.featured-match-sport {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.featured-match-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1d1d1f;
+    margin: 0 0 16px 0;
+    line-height: 1.4;
+}
+
+.featured-match-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex: 1;
+}
+
+.match-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.match-detail-item .detail-icon {
+    font-size: 0.9rem;
+    width: 20px;
+    text-align: center;
+}
+
+.match-detail-item .detail-text {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.featured-match-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 16px;
+    border-top: 1px solid #f3f4f6;
+}
+
+.match-capacity {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    color: #1d1d1f;
+}
+
+.capacity-icon {
+    font-size: 1rem;
+}
+
+.capacity-text {
+    font-size: 0.9rem;
+}
+
+.match-price {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    background: #fed7aa;
+    color: #9a3412;
+}
+
+.match-price.free {
+    background: #d1fae5;
+    color: #065f46;
 }
 
 /* ========== TIPS CARDS (NOW GAME HIGHLIGHTS) ========== */
