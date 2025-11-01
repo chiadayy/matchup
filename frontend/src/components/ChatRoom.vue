@@ -36,31 +36,75 @@ export default {
   },
 
   methods: {
+    async fetchUserProfile(userId) {
+      const response = await fetch(`http://localhost:3000/users/${userId}`);
+      return await response.json();
+    },
+
+    async fetchMatchParticipants() {
+      const response = await fetch(`http://localhost:3000/matches/${this.matchId}/users`);
+      const participants = await response.json();
+      
+      // Fetch full profiles for all participants
+      const profiles = await Promise.all(
+        participants.map(p => this.fetchUserProfile(p.user_id))
+      );
+      
+      return profiles;
+    },
+
     async initializeTalkJS() {
-      await Talk.ready;
+      try {
+        await Talk.ready;
 
-      const me = new Talk.User({
-        id: this.currentUserId,
-        name: "Me",
-        email: `${this.currentUserId}@test.com`,
-      });
+        // Fetch current user and all participants
+        const [currentUserProfile, allParticipants] = await Promise.all([
+          this.fetchUserProfile(this.currentUserId),
+          this.fetchMatchParticipants()
+        ]);
 
-      const appId = import.meta.env.VITE_TALKJS_APP_ID;
-      if (!appId) {
-        console.error("TalkJS App ID not configured");
-        return;
+        const appId = import.meta.env.VITE_TALKJS_APP_ID;
+        if (!appId) {
+          console.error("TalkJS App ID not configured");
+          return;
+        }
+
+        // Create TalkJS User for current user
+        const me = new Talk.User({
+          id: currentUserProfile.id,
+          name: currentUserProfile.name,
+          email: `${currentUserProfile.id}@test.com`,
+          photoUrl: currentUserProfile.profile_image || `https://ui-avatars.com/api/?name=${currentUserProfile.name}&background=1a1a1a&color=fff`,
+          role: currentUserProfile.role
+        });
+
+        const session = new Talk.Session({
+          appId: appId,
+          me: me,
+        });
+
+        const conversation = session.getOrCreateConversation(this.conversationId);
+
+        // Add all participants to the conversation
+        allParticipants.forEach(participant => {
+          if (participant.id !== this.currentUserId) {
+            const user = new Talk.User({
+              id: participant.id,
+              name: participant.name,
+              email: `${participant.id}@test.com`,
+              photoUrl: participant.profile_image || `https://ui-avatars.com/api/?name=${participant.name}&background=2d2d2d&color=fff`,
+              role: participant.role
+            });
+            conversation.setParticipant(user);
+          }
+        });
+
+        const chatbox = session.createChatbox();
+        chatbox.select(conversation);
+        chatbox.mount(document.getElementById("talkjs-container"));
+      } catch (error) {
+        console.error("Error initializing TalkJS:", error);
       }
-
-      const session = new Talk.Session({
-        appId: appId,
-        me: me,
-      });
-
-      const conversation = session.getOrCreateConversation(this.conversationId);
-
-      const chatbox = session.createChatbox();
-      chatbox.select(conversation);
-      chatbox.mount(document.getElementById("talkjs-container"));
     },
   },
 };
