@@ -204,10 +204,10 @@
           </div>
         </div>
 
-        <!-- Auto-slide progress bar -->
+        <!-- Auto-slide progress bar
         <div class="auto-slide-progress">
           <div class="progress-bar-fill" :style="{ width: autoSlideProgress + '%' }"></div>
-        </div>
+        </div> -->
       </div>
 
       <!-- Matches Near You -->
@@ -656,7 +656,7 @@ export default {
   async mounted() {
     window.addEventListener('scroll', this.handleScroll);
 
-    this.startAutoSlide();
+    // this.startAutoSlide();
 
     await this.fetchMatchesFromDB();
     await this.loadCurrentUser()
@@ -728,7 +728,15 @@ export default {
               description: match.description,
               duration: match.duration,
               date: this.formatDateTime(match.date, match.time),
-              players: `${match.current_player_count}/${match.total_player_count}`
+              players: `${match.current_player_count}/${match.total_player_count}`,
+              
+              // ADD THESE - raw properties the modal expects
+              sport_type: match.sport_type,
+              location: match.location,
+              skill_level: match.skill_level,
+              total_price: parseFloat(match.total_price) || 0,
+              total_player_count: match.total_player_count,
+              current_player_count: match.current_player_count
             };
           });
 
@@ -824,7 +832,7 @@ export default {
         this.isTransitioning = false;
       }, 500);
 
-      this.resetAutoSlide();
+      // this.resetAutoSlide();
     },
 
     prevSlide() {
@@ -839,7 +847,7 @@ export default {
         this.isTransitioning = false;
       }, 500);
 
-      this.resetAutoSlide();
+      // this.resetAutoSlide();
     },
 
     startAutoSlide() {
