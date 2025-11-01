@@ -138,6 +138,17 @@
           <button class="btn-leave" @click="leaveMatch">Leave Match</button>
         </div>
       </div>
+
+      <!-- leave confirmation -->
+      <div v-if="showLeaveConfirm" class="modal-overlay">
+        <div class="confirm-box">
+          <p>Are you sure you want to leave this match?</p>
+          <div class="confirm-actions">
+            <button @click="confirmLeave">Yes, leave</button>
+            <button @click="showLeaveConfirm = false">Cancel</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -172,7 +183,9 @@ export default {
     return {
       matchPlayers: [],
       currentUser: null,
-      showJoinSuccessModal: false
+      // showJoinSuccessModal: false,
+      showLeaveConfirm: false,  
+      leavingMatchId: null
     };
   },
   mounted() {
@@ -288,7 +301,6 @@ export default {
               // isOrganizer: false
             });
             this.$emit('join', this.match.id);
-            console.log("hihi", this.matchPlayers);
 
           } else {
             alert('Failed to join match: ' + result.error);
@@ -298,28 +310,35 @@ export default {
         }
       }
     },
-    async leaveMatch() {
-      if (confirm('Are you sure you want to leave this match?')) {
-        try {
-          const response = await fetch(`http://localhost:3000/matches/${this.match.id}/leave`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              user_id: this.currentUser.id
-            })
-          });
-          const result = await response.json();
-          if (result.success) {
-            // Remove current user from matchPlayers list
-            this.matchPlayers = this.matchPlayers.filter(p => p.id !== this.currentUser.id);
-            this.$emit('leave', this.match.id);
-          } else {
-            alert('Failed to leave match: ' + (result.error || 'Unknown error'));
-          }
-        } catch (err) {
-          alert('Error leaving match: ' + err.message);
+    leaveMatch(match) {
+      this.leavingMatchId = this.match.id;
+      this.showLeaveConfirm = true;
+    },
+    async confirmLeave() {
+      // if (confirm('Are you sure you want to leave this match?')) {
+      try {
+        const response = await fetch(`http://localhost:3000/matches/${this.match.id}/leave`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: this.currentUser.id
+          })
+        });
+        const result = await response.json();
+        if (result.success) {
+          // Remove current user from matchPlayers list
+          this.matchPlayers = this.matchPlayers.filter(p => p.id !== this.currentUser.id);
+          this.$emit('leave', this.match.id);
+        } else {
+          console.log('Failed to leave match: ' + (result.error || 'Unknown error'));
         }
+      } catch (err) {
+        console.log('Error leaving match: ' + err.message);
+      } finally {
+        this.showLeaveConfirm = false; // hide popup
+        this.leavingMatchId = null;
       }
+      // }
     },
     async fetchMatchPlayers() {
       try {
@@ -799,5 +818,92 @@ export default {
 .modal-body::-webkit-scrollbar-thumb {
   background: #FF6B35;
   border-radius: 10px;
+}
+.confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2100;
+  animation: fadeIn 0.2s ease;
+}
+
+.confirm-box {
+  background: white;
+  padding: 32px;
+  border-radius: 20px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+.confirm-box p {
+  font-size: 1.1rem;
+  color: #2C3E50;
+  margin-bottom: 24px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.confirm-actions button {
+  padding: 14px 28px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 120px;
+}
+
+.confirm-actions button:first-child {
+  background: #dc3545;
+  color: white;
+}
+
+.confirm-actions button:first-child:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+.confirm-actions button:last-child {
+  background: #f8f9fa;
+  color: #495057;
+  border: 2px solid #dee2e6;
+}
+
+.confirm-actions button:last-child:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+@media (max-width: 576px) {
+  .confirm-box {
+    padding: 24px;
+  }
+
+  .confirm-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .confirm-actions button {
+    width: 100%;
+  }
 }
 </style>
