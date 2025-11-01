@@ -101,7 +101,7 @@ router.post("/check-and-create", async (req, res) => {
       .single();
 
     if (matchError) throw matchError;
-    if (match.conversation_id) {
+    if (match.conversation_id && match.conversation_id !== 0 && match.conversation_id !== "0") {
       return res.json({ 
         message: "Chat already exists", 
         conversation_id: match.conversation_id 

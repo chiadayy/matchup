@@ -54,6 +54,11 @@ export default {
     },
 
     async initializeTalkJS() {
+      console.log('=== ChatRoom Debug ===');
+      console.log('matchId:', this.matchId);
+      console.log('conversationId:', this.conversationId);
+      console.log('currentUserId:', this.currentUserId);
+
       try {
         await Talk.ready;
 
@@ -62,6 +67,9 @@ export default {
           this.fetchUserProfile(this.currentUserId),
           this.fetchMatchParticipants()
         ]);
+
+        console.log('Current user profile:', currentUserProfile);
+        console.log('All participants:', allParticipants);
 
         const appId = import.meta.env.VITE_TALKJS_APP_ID;
         if (!appId) {
@@ -84,6 +92,7 @@ export default {
         });
 
         const conversation = session.getOrCreateConversation(this.conversationId);
+        console.log('Conversation created/retrieved:', this.conversationId);
 
         // Add all participants to the conversation
         allParticipants.forEach(participant => {
@@ -96,12 +105,14 @@ export default {
               role: participant.role
             });
             conversation.setParticipant(user);
+            console.log('Added participant:', participant.name);
           }
         });
 
         const chatbox = session.createChatbox();
         chatbox.select(conversation);
         chatbox.mount(document.getElementById("talkjs-container"));
+        console.log('TalkJS mounted successfully');
       } catch (error) {
         console.error("Error initializing TalkJS:", error);
       }

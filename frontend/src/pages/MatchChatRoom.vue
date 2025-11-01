@@ -207,12 +207,22 @@ export default {
           `http://localhost:3000/matches/${matchId.value}`
         );
         matchData.value = await matchResponse.json();
+        console.log('🎯 MATCH DATA:', matchData.value);
 
         // Check if chat exists, if not try to create it
-        if (!matchData.value.conversation_id) {
+        console.log('🔎 Raw conversation_id:', matchData.value.conversation_id);
+        console.log('🔎 Type:', typeof matchData.value.conversation_id);
+        console.log('🔎 Equals 0?', matchData.value.conversation_id === 0);
+        console.log('🔎 Equals "0"?', matchData.value.conversation_id === "0");
+        console.log('🔎 Is falsy (!)?', !matchData.value.conversation_id);
+        console.log('🔎 Full condition:', !matchData.value.conversation_id || matchData.value.conversation_id === 0);
+
+        if (!matchData.value.conversation_id || 
+          matchData.value.conversation_id === 0 || 
+          matchData.value.conversation_id === "0") {
           try {
             const createChatResponse = await fetch(
-              'http://localhost:3000/chatroom/check-and-create',
+              'http://localhost:3000/chat/check-and-create',
               {
                 method: 'POST',
                 headers: {
@@ -223,6 +233,7 @@ export default {
             );
 
             const createChatResult = await createChatResponse.json();
+            console.log('🔍 CHAT CREATION RESULT:', createChatResult); 
             
             if (createChatResult.conversation_id) {
               conversationId.value = createChatResult.conversation_id;
