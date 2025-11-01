@@ -370,7 +370,13 @@
                 :class="{ 'pulse-btn': getAvailableSpots(match.current_player_count) < 3 }"
                 @click="openMatchDetail(match)"
               >
-                {{ getAvailableSpots(match) === 0 ? 'Full' : 'Join Match' }}
+                <!-- {{ getAvailableSpots(match) === 0 ? 'Full' : 'Join Match' }} -->
+                  {{ getAvailableSpots(match) === 0
+                      ? 'Full'
+                      : userMatches[match.id]
+                        ? 'Joined'
+                        : 'Join Match'
+                  }}
               </button>
             </div>
           </div>
@@ -415,7 +421,7 @@
 </template>
 
 <script>
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase';
 import MatchDetailModal from '@/components/MatchDetailModal.vue';
 import MapView from '@/components/MapView.vue';
 import WeatherBadge from '@/components/WeatherBadge.vue';
@@ -450,6 +456,8 @@ export default {
       sortBy: 'date',
       activeShortcut: null,
       isFiltering: false,
+      currentUser: null,
+      userMatches: {}, 
 
       // Location search
       locationSearch: '',
@@ -481,11 +489,11 @@ export default {
       weatherBannerDismissed: false,
 
       // Current user (replace with real auth)
-      currentUser: {
-        id: '1',
-        name: 'John Doe',
-        profilePic: 'https://i.pravatar.cc/150?img=12'
-      },
+      // currentUser: {
+      //   id: '1',
+      //   name: 'John Doe',
+      //   profilePic: 'https://i.pravatar.cc/150?img=12'
+      // },
 
       // User's current location
       userCurrentLocation: null
@@ -623,6 +631,7 @@ export default {
     await this.getAllMatches();
     await this.getUserCurrentLocation();
     this.filterMatches();
+    await this.checkAllMatches();
     await this.fetchWeatherBanner();
   },
   methods: {
@@ -742,6 +751,43 @@ export default {
 
       this.currentPage = 1
     },
+    async ifUserInMatch(matchId) {
+      const { data: { user } } = await supabase.auth.getUser();
+     const { data, error } = await supabase
+        .from('users_matches')
+        .select('*')
+        .eq('match_id', matchId)
+        .eq('user_id', user.id);
+
+      return data.some(u => u.user_id === user.id);
+    },
+    async checkAllMatches() {
+      for (const match of this.matches) {
+        const joined = await this.ifUserInMatch(match.id);
+        this.userMatches[match.id] = joined;
+      }
+    },
+    // async ifUserInMatch(matchid) {
+    //   const { data: { user } } = await supabase.auth.getUser();
+    //   try {
+    //     const { data, error } = await supabase
+    //     .from('users_matches')
+    //     .eq("match_id", matchid);
+
+    //     if (error) {
+    //       console.error("Failed to fetch players data", error);
+    //       return;
+    //     }
+    //     else {
+    //       // this.matchPlayers = data;
+    //       return data.some(u => u.user_id === user.id);
+    //     }
+    //   }
+    //   catch (err) {
+    //     console.error("Unexpected error:", err);
+    //     return false;
+    //   }
+    // },
     formatMatchDate(match) {
       if (!match.match_date) return { date: '', time: '' };
 

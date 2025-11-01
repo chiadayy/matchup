@@ -164,15 +164,6 @@
                 <button @click="handleSuccessOk">OK</button>
               </div>
             </div>
-
-            <!-- Payment Confirmation Modal -->
-            <!-- <PaymentConfirmationModal
-              v-if="showSuccessModal" 
-              :isOpen="showMatchDetail"
-              :match="selectedMatch"
-              :currentUser="currentUser"
-              @close="handleSuccessOk"
-            /> -->
           </div>
         </div>
 
@@ -293,9 +284,7 @@ export default {
 
         if (error) this.message = error.message;
         else if (paymentIntent.status === "succeeded") {
-          this.message = "Payment successful!";
           this.showSuccessModal = true;
-          // this.$emit('paid');
 
           try {
             const res = await fetch(`http://localhost:3000/matches/${this.match.id}/join`, {
@@ -321,8 +310,29 @@ export default {
         this.loading = false;
       }
     },
-    handleSuccessOk() {
+    async handleSuccessOk() {
       this.showSuccessModal = false;
+      
+       const { error } = await supabase
+        .from('notifications')
+        .insert([
+          { 
+            user_id: this.currentUser.id,
+            title: "Payment",
+            message: "Payment for match successful",
+            read: false
+          }
+        ])
+
+      if (error) {
+        console.error('Error inserting notification:', error)
+        this.statusMessage = 'Failed to add notification.'
+      } else {
+        console.log('Inserted data:')
+        this.statusMessage = 'Notification added successfully!'
+      }
+
+      // redirect back to browser page 
       this.$router.push({ name: 'Browser' }); 
     },
     getStepLabel(step) {

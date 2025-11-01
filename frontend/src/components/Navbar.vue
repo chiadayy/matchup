@@ -166,29 +166,6 @@
         <!-- Desktop User Actions (Right side) -->
         <div class="navbar-actions desktop-actions">
 
-          <!-- Notification Bell -->
-          <!-- <div class="notification-bell" ref="bellContainer">
-            <button @click="toggleNotifications" class="bell-btn">
-              <i class="fas fa-bell"></i>
-              <span v-if="unreadCount" class="notif-count">
-                {{ unreadCount }}
-              </span>
-            </button> -->
-
-            <!-- Notification Popup -->
-            <!-- <div v-if="showNotifications" class="dropdown-menu-custom" ref="dropdownMenu">
-              <i class="fas fa-x notif-close" @click="closeNotifications"></i>
-              <div class="notif-header">Notifications</div>
-              <ul class="notif-list">
-                <li v-for="notif in notifications" :key="notif.id" class="notif-item">
-                  <div class="notif-msg">{{ notif.message }}</div>
-                  <div class="notif-time">{{ notif.created_at }}</div>
-                </li>
-                <li v-if="!notifications.length" class="notif-empty">No new notifications</li>
-              </ul>
-            </div>
-          </div> -->
-
           <div class="notification-container" ref="bellContainer">
             <!-- Bell Button -->
             <button @click="toggleNotifications" class="notification-btn">
@@ -226,7 +203,7 @@
                           <span v-if="!notification.read" class="notification-dot"></span>
                         </div>
                         <p class="notification-message">{{ notification.message }}</p>
-                        <p class="notification-time">{{ notification.created_at }}</p>
+                        <p class="notification-time">{{ new Date(notification.created_at).toLocaleString() }}</p>
                       </div>
                     </li>
                   </ul>
