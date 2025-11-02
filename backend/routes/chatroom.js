@@ -117,7 +117,7 @@ router.post("/check-and-create", async (req, res) => {
 
     if (usersError) throw usersError;
 
-    // 3. Check if both host and player confirmed
+    // 3. Check if we have at least 2 users (host + at least 1 player)
     const hostConfirmed = confirmedUsers.some(u => u.user_id === match.host);
     const playerConfirmed = confirmedUsers.some(u => u.user_id !== match.host);
 
@@ -129,14 +129,15 @@ router.post("/check-and-create", async (req, res) => {
       });
     }
 
-    // 4. Get player ID
-    const playerId = confirmedUsers.find(u => u.user_id !== match.host).user_id;
+    // 4. Get all participant IDs
+    const allParticipantIds = confirmedUsers.map(u => u.user_id);
 
-    // 5. Sync both users with TalkJS first
-    await syncUserWithTalkJS(match.host);
-    await syncUserWithTalkJS(playerId);
+    // 5. Sync all users with TalkJS
+    for (const userId of allParticipantIds) {
+      await syncUserWithTalkJS(userId);
+    }
 
-    // 6. Create TalkJS conversation
+    // 6. Create TalkJS conversation with all participants
     const conversationId = `match_${match_id}`;
     
     const talkJsResponse = await fetch(
@@ -148,7 +149,7 @@ router.post("/check-and-create", async (req, res) => {
           'Authorization': `Bearer ${TALKJS_SECRET_KEY}`
         },
         body: JSON.stringify({
-          participants: [match.host, playerId],
+          participants: allParticipantIds,
           subject: match.name
         })
       }
@@ -170,7 +171,8 @@ router.post("/check-and-create", async (req, res) => {
 
     res.json({ 
       message: "Chat created successfully",
-      conversation_id: conversationId 
+      conversation_id: conversationId,
+      participants_count: allParticipantIds.length
     });
 
   } catch (error) {
