@@ -269,7 +269,7 @@ export default {
       this.message = "";
 
       try {
-        const res = await fetch("http://localhost:3000/payments/create-payment-intent", { 
+        const res = await fetch("${import.meta.env.VITE_API_URL}/payments/create-payment-intent", { 
           method: "POST", 
           headers: { "Content-Type": "application/json" }, 
           body: JSON.stringify({ amount: this.amountPerPax, currency: "sgd" })
@@ -289,7 +289,7 @@ export default {
           this.showSuccessModal = true;
 
           try {
-            const res = await fetch(`http://localhost:3000/matches/${this.match.id}/join`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/matches/${this.match.id}/join`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({

@@ -295,7 +295,7 @@ export default {
         }
         const paymentSuccess = true;
         try {
-          const response = await fetch(`http://localhost:3000/matches/${this.match.id}/join`, {
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/matches/${this.match.id}/join`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -358,7 +358,7 @@ export default {
     async confirmLeave() {
       // if (confirm('Are you sure you want to leave this match?')) {
       try {
-        const response = await fetch(`http://localhost:3000/matches/${this.match.id}/leave`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/matches/${this.match.id}/leave`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -403,7 +403,7 @@ export default {
     },
     async fetchMatchPlayers() {
       try {
-        const response = await fetch(`http://localhost:3000/matches/${this.match.id}/users`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/matches/${this.match.id}/users`);
         const result = await response.json();
         this.matchPlayers = Array.isArray(result)
           ? result.map(u => ({

@@ -412,7 +412,7 @@ export default {
           longitude: this.formData.longitude
         };
 
-        const response = await fetch('http://localhost:3000/matches', {
+        const response = await fetch('${import.meta.env.VITE_API_URL}/matches', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -430,7 +430,7 @@ export default {
         const createdMatch = data.match;
 
         // Automatically join the match as the host
-        const joinResponse = await fetch(`http://localhost:3000/matches/${createdMatch.id}/join`, {
+        const joinResponse = await fetch(`${import.meta.env.VITE_API_URL}/matches/${createdMatch.id}/join`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

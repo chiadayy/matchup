@@ -693,7 +693,7 @@ export default {
       try {
         console.log('Fetching matches from backend...');
 
-        const response = await fetch('http://localhost:3000/matches');
+        const response = await fetch('${import.meta.env.VITE_API_URL}/matches');
 
         if (!response.ok) {
           throw new Error('Failed to fetch matches');

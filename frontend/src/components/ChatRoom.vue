@@ -37,12 +37,12 @@ export default {
 
   methods: {
     async fetchUserProfile(userId) {
-      const response = await fetch(`http://localhost:3000/users/${userId}`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/${userId}`);
       return await response.json();
     },
 
     async fetchMatchParticipants() {
-      const response = await fetch(`http://localhost:3000/matches/${this.matchId}/users`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/matches/${this.matchId}/users`);
       const participants = await response.json();
       
       // Fetch full profiles for all participants

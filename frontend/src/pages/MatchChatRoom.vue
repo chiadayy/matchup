@@ -178,7 +178,7 @@ export default {
 
     const fetchProfile = async (userId) => {
       try {
-        const response = await fetch(`http://localhost:3000/users/${userId}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/${userId}`);
         return await response.json();
       } catch (err) {
         console.error("Profile fetch failed:", err);
@@ -197,7 +197,7 @@ export default {
 
         // Fetch match data
         const matchResponse = await fetch(
-          `http://localhost:3000/matches/${matchId.value}`
+          `${import.meta.env.VITE_API_URL}/matches/${matchId.value}`
         );
         matchData.value = await matchResponse.json();
         console.log("🎯 MATCH DATA:", matchData.value);
@@ -221,7 +221,7 @@ export default {
         ) {
           try {
             const createChatResponse = await fetch(
-              "http://localhost:3000/chat/check-and-create",
+              "${import.meta.env.VITE_API_URL}/chat/check-and-create",
               {
                 method: "POST",
                 headers: {
@@ -254,7 +254,7 @@ export default {
         }
 
         const usersResponse = await fetch(
-          `http://localhost:3000/matches/${matchId.value}/users`
+          `${import.meta.env.VITE_API_URL}/matches/${matchId.value}/users`
         );
         const users = await usersResponse.json();
 
