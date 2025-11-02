@@ -5,8 +5,7 @@
         <div class="header-left">
           <div class="status-indicator"></div>
           <div>
-            <h2>💬 Match Chat</h2>
-            <p>Real-time conversation</p>
+            <h2> Match Chat</h2>
           </div>
         </div>
       </div>
@@ -126,6 +125,7 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
   background: #fff;
 }
 
@@ -136,6 +136,7 @@ export default {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .chat-header::before {
@@ -213,6 +214,8 @@ export default {
   flex: 1;
   position: relative;
   background: #f8f9fa;
+  min-height: 0;
+  width: 100%;
 }
 
 .chat-loading {

@@ -51,7 +51,7 @@
         </div>
 
         <div class="match-section" v-if="matchData.description">
-          <h3><span class="icon">📝</span> Details</h3>
+          <h3><span class="icon">📝</span> Match Details</h3>
           <p class="description">{{ matchData.description }}</p>
         </div>
 
@@ -303,7 +303,7 @@ export default {
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   position: relative;
 }
 
@@ -455,7 +455,7 @@ export default {
   display: flex;
   width: 100%;
   max-width: 1400px;
-  height: 85vh;
+  height: calc(100vh - 64px);
   max-height: 900px;
   background: white;
   border-radius: 20px;
@@ -477,122 +477,120 @@ export default {
 
 .sidebar {
   width: 380px;
-  background: #ffffff;
+  background: #fafbfc;
   overflow-y: auto;
   border-right: 1px solid #e2e8f0;
   flex-shrink: 0;
 }
 
 .sidebar::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .sidebar::-webkit-scrollbar-track {
-  background: #f1f3f5;
+  background: transparent;
 }
 
 .sidebar::-webkit-scrollbar-thumb {
   background: #cbd5e0;
-  border-radius: 4px;
-}
-
-.sidebar::-webkit-scrollbar-thumb:hover {
-  background: #a0aec0;
+  border-radius: 3px;
 }
 
 .match-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   padding: 0;
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  color: white;
-  position: relative;
-  overflow: hidden;
+  background: #ffffff;
+  color: #1a1a1a;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .match-header::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.1) 0%,
-    transparent 70%
-  );
-  animation: shimmer 3s ease-in-out infinite;
+  display: none;
 }
 
-@keyframes shimmer {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(-20%, -20%);
-  }
+.back-button-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.back-button-inline:hover {
+  color: #1a1a1a;
+  background: #f8fafc;
+}
+
+.back-icon {
+  font-size: 16px;
 }
 
 .header-content {
-  position: relative;
-  padding: 36px 28px;
-  z-index: 1;
+  padding: 24px;
 }
 
 .match-header h2 {
-  margin: 0 0 16px 0;
-  font-size: 32px;
-  font-weight: 700;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 0 0 12px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #0f172a;
+  text-shadow: none;
 }
 
 .price-badge {
   display: inline-flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
+  background: #0f172a;
   color: white;
-  padding: 10px 20px;
-  border-radius: 24px;
-  font-weight: 700;
-  font-size: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 18px;
+  border: none;
+  box-shadow: none;
 }
 
 .dollar {
-  font-size: 16px;
-  margin-right: 4px;
-  opacity: 0.9;
+  font-size: 14px;
+  margin-right: 2px;
+  opacity: 0.8;
 }
 
 .match-section {
   background: white;
-  padding: 24px 28px;
-  margin: 0;
-  border-bottom: 1px solid #f1f3f5;
-  transition: all 0.3s ease;
+  padding: 20px 24px;
+  margin: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
 }
 
 .match-section:hover {
-  background: #fafbfc;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .match-section h3 {
-  margin: 0 0 20px 0;
-  font-size: 14px;
-  font-weight: 700;
-  color: #4a5568;
+  margin: 0 0 16px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .icon {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .info-grid {
@@ -604,128 +602,119 @@ export default {
 .info-item {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .label {
-  font-size: 12px;
-  color: #a0aec0;
-  font-weight: 600;
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .value {
-  font-size: 15px;
-  color: #2d3748;
-  font-weight: 600;
+  font-size: 14px;
+  color: #0f172a;
+  font-weight: 500;
 }
 
 .description {
   margin: 0;
-  color: #4a5568;
-  font-size: 15px;
-  line-height: 1.7;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .weather-section {
-  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-  border: none;
-}
-
-.weather-section h3 {
-  color: #2d3748;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #fde68a;
 }
 
 .weather-card {
   text-align: center;
-  padding: 16px;
+  padding: 12px;
 }
 
 .weather-temp {
-  font-size: 48px;
-  font-weight: 700;
-  color: #2d3748;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 36px;
+  font-weight: 600;
+  color: #0f172a;
+  text-shadow: none;
 }
 
 .weather-desc {
-  font-size: 16px;
-  color: #4a5568;
+  font-size: 14px;
+  color: #475569;
   font-weight: 500;
-  margin-top: 8px;
-  text-transform: capitalize;
+  margin-top: 4px;
 }
 
 .players-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .player {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 16px;
-  transition: all 0.3s ease;
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 10px;
+  transition: all 0.2s ease;
   cursor: pointer;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
 }
 
 .player:hover {
-  transform: translateX(8px) scale(1.02);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  border-color: #1a1a1a;
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  transform: translateX(4px);
 }
 
 .player img {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #1a1a1a;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
+  border: 2px solid #e2e8f0;
+  box-shadow: none;
+  transition: all 0.2s ease;
 }
 
 .player:hover img {
-  transform: rotate(5deg) scale(1.1);
-}
-
-.player-info {
-  flex: 1;
+  transform: none;
+  border-color: #cbd5e0;
 }
 
 .player-name {
-  margin: 0 0 4px 0;
-  font-weight: 700;
-  font-size: 16px;
-  color: #2d3748;
+  margin: 0 0 2px 0;
+  font-weight: 600;
+  font-size: 14px;
+  color: #0f172a;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .player-role {
   margin: 0;
-  font-size: 13px;
-  color: #718096;
-  text-transform: capitalize;
+  font-size: 12px;
+  color: #64748b;
 }
 
 .badge {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  background: #0f172a;
   color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.3px;
+  box-shadow: none;
 }
 
 .chat-area {
@@ -733,5 +722,6 @@ export default {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
 }
 </style>
