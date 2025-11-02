@@ -83,7 +83,7 @@ export default {
           name: currentUserProfile.name,
           email: `${currentUserProfile.id}@test.com`,
           photoUrl: currentUserProfile.profile_image || `https://ui-avatars.com/api/?name=${currentUserProfile.name}&background=1a1a1a&color=fff`,
-          role: currentUserProfile.role
+          role: 'default'
         });
 
         const session = new Talk.Session({
@@ -102,7 +102,7 @@ export default {
               name: participant.name,
               email: `${participant.id}@test.com`,
               photoUrl: participant.profile_image || `https://ui-avatars.com/api/?name=${participant.name}&background=2d2d2d&color=fff`,
-              role: participant.role
+              role: 'default'
             });
             conversation.setParticipant(user);
             console.log('Added participant:', participant.name);
