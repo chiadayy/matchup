@@ -127,82 +127,98 @@
       </div>
 
       <!-- Featured Matches Carousel -->
-      <div class="row mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <div>
-            <h3 class="fw-bold mb-1">🎯 Featured Matches</h3>
-            <p class="text-muted mb-0" style="font-size: 0.9rem;">Upcoming and curated matches for you to join</p>
-          </div>
-          <div class="carousel-controls">
-            <button class="carousel-nav-btn" @click="prevSlide" :disabled="isTransitioning">
-              ←
-            </button>
-            <span class="carousel-indicator">{{ currentSlide + 1 }} / {{ featuredMatchesSlides.length }}</span>
-            <button class="carousel-nav-btn" @click="nextSlide" :disabled="isTransitioning">
-              →
-            </button>
-          </div>
-        </div>
+<div class="row mb-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1">🎯 Featured Matches</h3>
+      <p class="text-muted mb-0" style="font-size: 0.9rem;">Upcoming and curated matches for you to join</p>
+    </div>
+    <div class="carousel-controls" v-if="!isLoadingMatches && featuredMatchesSlides.length > 0">
+      <button class="carousel-nav-btn" @click="prevSlide" :disabled="isTransitioning">
+        ←
+      </button>
+      <span class="carousel-indicator">{{ currentSlide + 1 }} / {{ featuredMatchesSlides.length }}</span>
+      <button class="carousel-nav-btn" @click="nextSlide" :disabled="isTransitioning">
+        →
+      </button>
+    </div>
+  </div>
 
-        <div class="carousel-container">
-          <div class="carousel-track" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
-            <div
-              v-for="(slide, slideIndex) in featuredMatchesSlides"
-              :key="slideIndex"
-              class="carousel-slide"
-            >
-              <div class="row g-4">
-                <div
-                  v-for="match in slide"
-                  :key="match.id"
-                  class="col-xl-3 col-lg-6 col-md-6 col-sm-12"
-                >
-                  <div class="featured-match-card" @click="openMatchDetail(match)">
-                    <div class="featured-match-header">
-                      <img :src="match.image" :alt="match.sport" class="featured-match-image" />
-                      <div class="featured-match-overlay" :style="{ background: `linear-gradient(180deg, transparent 0%, ${match.color}99 100%)` }"></div>
-                      <div class="featured-match-sport-icon">{{ match.icon }}</div>
-                      <div class="featured-match-badge">{{ match.badge }}</div>
-                    </div>
-                    <div class="featured-match-content">
-                      <div class="featured-match-sport" :style="{ color: match.color }">
-                        {{ match.sport }}
-                      </div>
-                      <h5 class="featured-match-title">{{ match.title }}</h5>
-                      <div class="featured-match-details">
-                        <div class="match-detail-item">
-                          <span class="detail-icon">👤</span>
-                          <span class="detail-text">{{ match.host }}</span>
-                        </div>
-                        <div class="match-detail-item">
-                          <span class="detail-icon">📍</span>
-                          <span class="detail-text">{{ match.venue }}</span>
-                        </div>
-                        <div class="match-detail-item">
-                          <span class="detail-icon">🕒</span>
-                          <span class="detail-text">{{ match.time }}</span>
-                        </div>
-                        <div class="match-detail-item">
-                          <span class="detail-icon">🎯</span>
-                          <span class="detail-text">{{ match.skillLevel }}</span>
-                        </div>
-                      </div>
-                      <div class="featured-match-footer">
-                        <div class="match-capacity">
-                          <span class="capacity-icon">👥</span>
-                          <span class="capacity-text">{{ match.joined }}/{{ match.capacity }}</span>
-                        </div>
-                        <div class="match-price" :class="{ free: match.price === 0 }">
-                          {{ match.price === 0 ? 'Free' : `$${match.price}` }}
-                        </div>
-                      </div>
-                    </div>
+  <!-- Loading State -->
+  <div v-if="isLoadingMatches" class="loading-matches">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading matches...</span>
+    </div>
+    <p class="mt-3 text-muted">Loading featured matches...</p>
+  </div>
+
+  <!-- No Matches State -->
+  <div v-else-if="featuredMatches.length === 0" class="no-matches">
+    <p class="text-muted">No matches available at the moment. Check back soon!</p>
+  </div>
+
+  <!-- Carousel with Matches -->
+  <div v-else class="carousel-container">
+    <div class="carousel-track" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
+      <div
+        v-for="(slide, slideIndex) in featuredMatchesSlides"
+        :key="slideIndex"
+        class="carousel-slide"
+      >
+        <div class="row g-4">
+          <div
+            v-for="match in slide"
+            :key="match.id"
+            class="col-xl-3 col-lg-6 col-md-6 col-sm-12"
+          >
+            <div class="featured-match-card" @click="openMatchDetail(match)">
+              <!-- Keep existing card content -->
+              <div class="featured-match-header">
+                <img :src="match.image" :alt="match.sport" class="featured-match-image" />
+                <div class="featured-match-overlay" :style="{ background: `linear-gradient(180deg, transparent 0%, ${match.color}99 100%)` }"></div>
+                <div class="featured-match-sport-icon">{{ match.icon }}</div>
+                <div class="featured-match-badge">{{ match.badge }}</div>
+              </div>
+              <div class="featured-match-content">
+                <div class="featured-match-sport" :style="{ color: match.color }">
+                  {{ match.sport }}
+                </div>
+                <h5 class="featured-match-title">{{ match.title }}</h5>
+                <div class="featured-match-details">
+                  <div class="match-detail-item">
+                    <span class="detail-icon">👤</span>
+                    <span class="detail-text">{{ match.host }}</span>
+                  </div>
+                  <div class="match-detail-item">
+                    <span class="detail-icon">📍</span>
+                    <span class="detail-text">{{ match.venue }}</span>
+                  </div>
+                  <div class="match-detail-item">
+                    <span class="detail-icon">🕒</span>
+                    <span class="detail-text">{{ match.time }}</span>
+                  </div>
+                  <div class="match-detail-item">
+                    <span class="detail-icon">🎯</span>
+                    <span class="detail-text">{{ match.skillLevel }}</span>
+                  </div>
+                </div>
+                <div class="featured-match-footer">
+                  <div class="match-capacity">
+                    <span class="capacity-icon">👥</span>
+                    <span class="capacity-text">{{ match.joined }}/{{ match.capacity }}</span>
+                  </div>
+                  <div class="match-price" :class="{ free: match.price === 0 }">
+                    {{ match.price === 0 ? 'Free' : `$${match.price}` }}
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
 
         <!-- Auto-slide progress bar
         <div class="auto-slide-progress">
@@ -272,19 +288,20 @@
         </div>
       </div>
     </div>
-   <MatchDetailModal
-      :isOpen="showMatchDetail"
-      :match="selectedMatch"
-      :currentUser="currentUser || { 
-        id: 'guest', 
-        name: 'Guest User', 
-        profilePic: userProfilePic 
-      }"
-      @close="closeMatchDetail"
-      @join="handleModalJoin"
-      @leave="handleModalLeave"
-    />
-  </div>
+<MatchDetailModal
+  v-if="showMatchDetail && selectedMatch"
+  :isOpen="showMatchDetail"
+  :match="selectedMatch"
+  :currentUser="currentUser || { 
+    id: 'guest', 
+    name: 'Guest User', 
+    profilePic: userProfilePic 
+  }"
+  @close="closeMatchDetail"
+  @join="handleModalJoin"
+  @leave="handleModalLeave"
+/>
+
 </template>
 
 <script>
@@ -299,262 +316,39 @@ export default {
     MapView
   },
   data() {
-    return {
-      showMatchDetail: false,
-      selectedMatch: null,
-      isScrolled: false,
-      isLoggedIn: false, // Change to true to simulate logged-in state
-      userProfilePic: 'https://i.pravatar.cc/150?img=12',
-      currentUser: null,
-      profileData: null,
-      // userName: 'Bing Zi', // This would come from auth
-      userStats: {
-        gamesPlayed: 23,
-        reliability: 95,
-        badges: 5,
-        favoriteSport: 'Tennis'
-      },
-      weatherData: {
-        temp: 28,
-        description: 'Perfect for sports',
-        icon: '☀️'
-      },
-      mapCenter: { lat: 1.3521, lng: 103.8198 }, // Singapore center
-      currentSlide: 0,
-      isTransitioning: false,
-      autoSlideInterval: null,
-      autoSlideProgress: 0,
-      autoSlideTimer: null,
-      gameHighlights: [
-        {
-          id: 1,
-          icon: '🏀',
-          category: 'BASKETBALL',
-          title: 'Incredible 3-Pointer by Team Bukit Timah!',
-          description: 'Game-winning shot in the final seconds — pure clutch performance from Marcus.',
-          image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&h=600&fit=crop',
-          player: 'Marcus Chen',
-          location: 'Bukit Timah Sports Hall',
-          color: '#f97316'
-        },
-        {
-          id: 2,
-          icon: '🏸',
-          category: 'BADMINTON',
-          title: 'Epic Smash Rally in Bedok!',
-          description: '23-shot rally ending with a powerful smash. The whole court went wild!',
-          image: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&h=600&fit=crop',
-          player: 'Sarah Tan',
-          location: 'Bedok Sports Complex',
-          color: '#ec4899'
-        },
-        {
-          id: 3,
-          icon: '⚽',
-          category: 'FOOTBALL',
-          title: 'Last-Minute Goal Saves the Match',
-          description: 'Aaron\'s bicycle kick in injury time to tie the game 3-3. Unbelievable!',
-          image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&h=600&fit=crop',
-          player: 'Aaron Lim',
-          location: 'Hougang Stadium',
-          color: '#10b981'
-        },
-        {
-          id: 4,
-          icon: '🎾',
-          category: 'TENNIS',
-          title: 'Perfect Ace to Win the Set',
-          description: 'Rachel served 5 consecutive aces to close out the tiebreak. Dominant!',
-          image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&h=600&fit=crop',
-          player: 'Rachel Wong',
-          location: 'Sengkang Tennis Courts',
-          color: '#84cc16'
-        },
-        {
-          id: 5,
-          icon: '🏀',
-          category: 'BASKETBALL',
-          title: 'Ankle-Breaking Crossover Highlights',
-          description: 'Jason\'s nasty crossover left the defender on the floor. Respect!',
-          image: 'https://images.unsplash.com/photo-1608245449230-4ac19066d2d0?w=800&h=600&fit=crop',
-          player: 'Jason Lee',
-          location: 'Tampines Hub',
-          color: '#f97316'
-        },
-        {
-          id: 6,
-          icon: '🏐',
-          category: 'VOLLEYBALL',
-          title: 'Monster Spike Seals the Victory',
-          description: 'Celine\'s thunderous spike ended the 5-set thriller. What a finish!',
-          image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&h=600&fit=crop',
-          player: 'Celine Ng',
-          location: 'Punggol Sports Center',
-          color: '#06b6d4'
-        },
-        {
-          id: 7,
-          icon: '⚽',
-          category: 'FUTSAL',
-          title: 'Solo Run Through 4 Defenders',
-          description: 'Bryan weaved through the entire defense for a stunning solo goal.',
-          image: 'https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=800&h=600&fit=crop',
-          player: 'Bryan Tan',
-          location: 'Yishun Futsal Arena',
-          color: '#10b981'
-        },
-        {
-          id: 8,
-          icon: '🏸',
-          category: 'BADMINTON',
-          title: 'Championship Point Deception Shot',
-          description: 'Alex\'s deceptive drop shot caught everyone off-guard to win the match.',
-          image: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&h=600&fit=crop',
-          player: 'Alex Koh',
-          location: 'Clementi Sports Hall',
-          color: '#ec4899'
-        }
-      ],
-      nearbyMatches: [
-        { sport: 'Basketball', skill: 'Beginner', date: '8/10/25 6pm', distance: '2.3km', price: 'Free', isFree: true, location: 'Hougang' },
-        { sport: 'Tennis', skill: 'Intermediate', date: '8/10/25 7pm', distance: '3.5km', price: '$15', isFree: false, location: 'Sengkang' },
-        { sport: 'Football', skill: 'Advanced', date: '9/10/25 5pm', distance: '1.8km', price: 'Free', isFree: true, location: 'Punggol' },
-        { sport: 'Badminton', skill: 'Beginner', date: '9/10/25 8pm', distance: '4.2km', price: '$10', isFree: false, location: 'Tampines' },
-        { sport: 'Basketball', skill: 'Intermediate', date: '10/10/25 6pm', distance: '2.9km', price: 'Free', isFree: true, location: 'Bedok' }
-      ],
-      featuredMatches: [
-        // Fallback matches in case DB fetch fails
-        {
-          id: 'fm1',
-          sport: 'Basketball',
-          icon: '🏀',
-          color: '#f97316',
-          badge: 'Popular',
-          title: 'Evening Hoops Session',
-          host: 'Marcus Chen',
-          venue: 'Bukit Timah Sports Hall',
-          time: 'Today, 6:00 PM',
-          skillLevel: 'Intermediate',
-          joined: 7,
-          capacity: 10,
-          price: 0,
-          image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&h=600&fit=crop'
-        },
-        {
-          id: 'fm2',
-          sport: 'Badminton',
-          icon: '🏸',
-          color: '#ec4899',
-          badge: 'Almost Full',
-          title: 'Competitive Badminton',
-          host: 'Sarah Tan',
-          venue: 'Bedok Sports Complex',
-          time: 'Tomorrow, 7:00 PM',
-          skillLevel: 'Advanced',
-          joined: 9,
-          capacity: 10,
-          price: 10,
-          image: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&h=600&fit=crop'
-        },
-        {
-          id: 'fm3',
-          sport: 'Football',
-          icon: '⚽',
-          color: '#10b981',
-          badge: 'New',
-          title: '5-a-side Football',
-          host: 'Aaron Lim',
-          venue: 'Hougang Stadium',
-          time: 'Sat, 5:00 PM',
-          skillLevel: 'Beginner',
-          joined: 4,
-          capacity: 10,
-          price: 0,
-          image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&h=600&fit=crop'
-        },
-        {
-          id: 'fm4',
-          sport: 'Tennis',
-          icon: '🎾',
-          color: '#84cc16',
-          badge: 'Featured',
-          title: 'Sunday Tennis Social',
-          host: 'Rachel Wong',
-          venue: 'Sengkang Tennis Courts',
-          time: 'Sun, 8:00 AM',
-          skillLevel: 'Intermediate',
-          joined: 5,
-          capacity: 8,
-          price: 15,
-          image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&h=600&fit=crop'
-        },
-        {
-          id: 'fm5',
-          sport: 'Basketball',
-          icon: '🏀',
-          color: '#f97316',
-          badge: 'Weekend',
-          title: 'Saturday Morning Ball',
-          host: 'Jason Lee',
-          venue: 'Tampines Hub',
-          time: 'Sat, 9:00 AM',
-          skillLevel: 'Beginner',
-          joined: 6,
-          capacity: 12,
-          price: 0,
-          image: 'https://images.unsplash.com/photo-1608245449230-4ac19066d2d0?w=800&h=600&fit=crop'
-        },
-        {
-          id: 'fm6',
-          sport: 'Volleyball',
-          icon: '🏐',
-          color: '#06b6d4',
-          badge: 'New',
-          title: 'Beach Volleyball Fun',
-          host: 'Celine Ng',
-          venue: 'Punggol Beach',
-          time: 'Sat, 4:00 PM',
-          skillLevel: 'Beginner',
-          joined: 3,
-          capacity: 10,
-          price: 0,
-          image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&h=600&fit=crop'
-        },
-        {
-          id: 'fm7',
-          sport: 'Futsal',
-          icon: '⚽',
-          color: '#10b981',
-          badge: 'Popular',
-          title: 'Futsal League Match',
-          host: 'Bryan Tan',
-          venue: 'Yishun Futsal Arena',
-          time: 'Fri, 8:00 PM',
-          skillLevel: 'Advanced',
-          joined: 8,
-          capacity: 10,
-          price: 12,
-          image: 'https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=800&h=600&fit=crop'
-        },
-        {
-          id: 'fm8',
-          sport: 'Badminton',
-          icon: '🏸',
-          color: '#ec4899',
-          badge: 'Featured',
-          title: 'Doubles Tournament',
-          host: 'Alex Koh',
-          venue: 'Clementi Sports Hall',
-          time: 'Sun, 2:00 PM',
-          skillLevel: 'Intermediate',
-          joined: 6,
-          capacity: 12,
-          price: 8,
-          image: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&h=600&fit=crop'
-        }
-      ]
-    };
-  },
+  return {
+    showMatchDetail: false,
+    selectedMatch: null,
+    isScrolled: false,
+    isLoggedIn: false,
+    userProfilePic: 'https://i.pravatar.cc/150?img=12',
+    currentUser: null,
+    profileData: null,
+    userStats: {
+      gamesPlayed: 23,
+      reliability: 95,
+      badges: 5,
+      favoriteSport: 'Tennis'
+    },
+    weatherData: {
+      temp: 28,
+      description: 'Perfect for sports',
+      icon: '☀️'
+    },
+    mapCenter: { lat: 1.3521, lng: 103.8198 },
+    currentSlide: 0,
+    isTransitioning: false,
+    autoSlideInterval: null,
+    autoSlideProgress: 0,
+    autoSlideTimer: null,
+    gameHighlights: [ /* keep your existing gameHighlights */ ],
+    nearbyMatches: [ /* keep your existing nearbyMatches */ ],
+    
+    // REPLACE THIS - start with empty array, will be populated from DB
+    featuredMatches: [],
+    isLoadingMatches: true  // Add loading state
+  };
+},
   computed: {
     greetingMessage() {
       if (!this.profileData) return 'Welcome!';
@@ -668,6 +462,21 @@ export default {
   },
   
   methods: {
+  openMatchDetail(match) {
+    console.log('🔍 Opening match detail:', match);
+    console.log('🔍 Match data check:', {
+      id: match.id,
+      sport: match.sport,
+      hasAllProps: !!(match.sport_type && match.location)
+    });
+    
+    this.selectedMatch = match;
+    this.showMatchDetail = true;
+    document.body.style.overflow = 'hidden';
+    
+    console.log('🔍 Modal should be visible now:', this.showMatchDetail);
+  },
+
     async loadCurrentUser() {
       try {
         const { data, error } = await supabase.auth.getUser();
@@ -689,70 +498,72 @@ export default {
         console.error('Unexpected error loading user:', err);
       }
     },
-    async fetchMatchesFromDB() {
-      try {
-        console.log('Fetching matches from backend...');
+   async fetchMatchesFromDB() {
+  this.isLoadingMatches = true;
+  
+  try {
+    console.log('Fetching matches from backend...');
 
-        const response = await fetch('${import.meta.env.VITE_API_URL}/matches');
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/matches`);
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch matches');
-        }
+    if (!response.ok) {
+      throw new Error('Failed to fetch matches');
+    }
 
-        const data = await response.json();
-        console.log('Received matches from DB:', data);
+    const data = await response.json();
+    console.log('Received matches from DB:', data);
 
-        if (data.success && data.matches && data.matches.length > 0) {
-          // Transform Supabase data to featured matches format
-          const dbMatches = data.matches.map(match => {
-            const sportConfig = this.getSportConfigForMatch(match.sport_type);
-            const badge = this.getMatchBadge(match);
+    if (data.success && data.matches && data.matches.length > 0) {
+      const dbMatches = data.matches.map(match => {
+        const sportConfig = this.getSportConfigForMatch(match.sport_type);
+        const badge = this.getMatchBadge(match);
 
-            return {
-              id: match.id,
-              sport: match.sport_type,
-              icon: sportConfig.icon,
-              color: sportConfig.color,
-              badge: badge,
-              title: match.name || `${match.sport_type} Match`,
-              host: match.host || 'Anonymous Host',
-              venue: match.location,
-              time: this.formatDateTimeForDisplay(match.date, match.time),
-              skillLevel: match.skill_level,
-              joined: match.current_player_count,
-              capacity: match.total_player_count,
-              price: parseFloat(match.total_price) || 0,
-              image: sportConfig.image,
-              // Extra data for modal
-              name: match.name,
-              description: match.description,
-              duration: match.duration,
-              date: this.formatDateTime(match.date, match.time),
-              players: `${match.current_player_count}/${match.total_player_count}`,
-              
-              // ADD THESE - raw properties the modal expects
-              sport_type: match.sport_type,
-              location: match.location,
-              skill_level: match.skill_level,
-              total_price: parseFloat(match.total_price) || 0,
-              total_player_count: match.total_player_count,
-              current_player_count: match.current_player_count
-            };
-          });
+        const totalPlayers = parseInt(match.total_player_count) || 10;
+        const currentPlayers = parseInt(match.current_player_count) || 0;
+        const price = parseFloat(match.total_price) || 0;
 
-          // Take first 8 matches for carousel, or all if less than 8
-          this.featuredMatches = dbMatches.slice(0, 8);
+        return {
+          id: match.id,
+          sport: match.sport_type,
+          sport_type: match.sport_type,
+          icon: sportConfig.icon,
+          color: sportConfig.color,
+          badge: badge,
+          image: sportConfig.image,
+          title: match.name || `${match.sport_type} Match`,
+          name: match.name || `${match.sport_type} Match`,
+          host: match.host || 'Anonymous Host',
+          venue: match.location,
+          location: match.location,
+          time: this.formatDateTimeForDisplay(match.date, match.time),
+          date: match.date,
+          skillLevel: match.skill_level,
+          skill_level: match.skill_level,
+          joined: currentPlayers,
+          capacity: totalPlayers,
+          total_player_count: totalPlayers,
+          current_player_count: currentPlayers,
+          price: price,
+          total_price: price,
+          description: match.description || 'Join us for a great game!',
+          duration: match.duration || '2 hours',
+          players: `${currentPlayers}/${totalPlayers}`
+        };
+      });
 
-          console.log('Featured matches loaded:', this.featuredMatches);
-        } else {
-          console.log('No matches found in DB, using default featured matches');
-        }
-
-      } catch (error) {
-        console.error('Error fetching matches:', error);
-        console.log('Using default featured matches due to error');
-      }
-    },
+      this.featuredMatches = dbMatches; // Take ALL matches, not just first 8
+      console.log('✅ Featured matches loaded:', this.featuredMatches.length, 'matches');
+    } else {
+      console.log('No matches found in DB');
+      this.featuredMatches = [];
+    }
+  } catch (error) {
+    console.error('❌ Error fetching matches:', error);
+    this.featuredMatches = [];
+  } finally {
+    this.isLoadingMatches = false;
+  }
+},
     // Format date and time for display
     formatDateTime(date, time) {
       try {
@@ -793,12 +604,6 @@ export default {
         console.error('Error parsing date:', error);
       }
       return new Date().toISOString();
-    },
-
-    openMatchDetail(match) {
-      this.selectedMatch = match;
-      this.showMatchDetail = true;
-      document.body.style.overflow = 'hidden';
     },
 
     closeMatchDetail() {
@@ -2410,5 +2215,38 @@ body {
     background-color: #E55A2B;
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
+}
+/* ========== MODAL Z-INDEX FIX ========== */
+.modal-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 9998 !important;
+}
+
+.modal-dialog,
+.modal-wrapper,
+[class*="modal"] {
+  z-index: 9999 !important;
+}
+/* ========== LOADING & EMPTY STATES ========== */
+.loading-matches,
+.no-matches {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+.text-primary {
+  color: #FF6B35 !important;
 }
 </style>

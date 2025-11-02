@@ -50,7 +50,6 @@
           v-for="match in sortedMatches" 
           :key="match.id" 
           class="match-card"
-          :class="{ 'has-chat': match.confirmed_player_count >= 2 }"
         >
           <div class="match-content">
             <div class="match-header">
@@ -85,29 +84,44 @@
               </div>
             </div>
 
-            <router-link 
-              v-if="match.confirmed_player_count >= 2"
-              :to="`/matches/${match.id}/chat`" 
-              class="chat-available"
-            >
-              <div class="chat-available-content">
-                <div class="chat-available-icon">💬</div>
-                <div class="chat-available-text">
-                  <div class="chat-available-title">Chat Room Available</div>
-                  <div class="chat-available-subtitle">Connect with your teammates</div>
-                </div>
-                <div class="chat-available-arrow">→</div>
-              </div>
-            </router-link>
+            <div class="action-buttons">
+              <router-link 
+                v-if="match.confirmed_player_count >= 2"
+                :to="`/matches/${match.id}/chat`" 
+                class="chat-button"
+              >
+                <span class="chat-icon">💬</span>
+                <span>Open Chat</span>
+              </router-link>
 
-            <div v-else class="waiting-message">
-              <div class="waiting-icon">⏳</div>
-              <div class="waiting-text">
-                <strong>Waiting for more players</strong>
-                <p>Need {{ 2 - match.confirmed_player_count }} more {{ 2 - match.confirmed_player_count === 1 ? 'player' : 'players' }} to join before chat opens</p>
+              <div v-else class="chat-button disabled">
+                <span class="chat-icon">⏳</span>
+                <span>Chat Unavailable</span>
               </div>
+
+              <button @click="confirmLeaveMatch(match.id)" class="leave-button">
+                <span>Leave Match</span>
+              </button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div v-if="showLeaveModal" class="modal-overlay" @click="cancelLeave">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>Leave Match?</h3>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to leave this match? This action cannot be undone.</p>
+        </div>
+        <div class="modal-actions">
+          <button @click="cancelLeave" class="modal-button cancel">Cancel</button>
+          <button @click="leaveMatch" class="modal-button confirm" :disabled="leavingMatch">
+            {{ leavingMatch ? 'Leaving...' : 'Yes, Leave' }}
+          </button>
         </div>
       </div>
     </div>
@@ -127,6 +141,9 @@ export default {
     const matches = ref([]);
     const currentUserId = ref(null);
     const sortType = ref('date');
+    const showLeaveModal = ref(false);
+    const matchToLeave = ref(null);
+    const leavingMatch = ref(false);
 
     const formatDate = (dateStr) => {
       return new Date(dateStr).toLocaleDateString('en-US', {
@@ -168,6 +185,44 @@ export default {
       
       return matchesCopy;
     });
+
+    const confirmLeaveMatch = (matchId) => {
+      matchToLeave.value = matchId;
+      showLeaveModal.value = true;
+    };
+
+    const cancelLeave = () => {
+      showLeaveModal.value = false;
+      matchToLeave.value = null;
+    };
+
+    const leaveMatch = async () => {
+      if (!matchToLeave.value || !currentUserId.value) return;
+      
+      leavingMatch.value = true;
+      
+      try {
+        // Delete from users_matches table
+        const { error: deleteError } = await supabase
+          .from('users_matches')
+          .delete()
+          .eq('match_id', matchToLeave.value)
+          .eq('user_id', currentUserId.value);
+
+        if (deleteError) throw deleteError;
+
+        // Update local matches list
+        matches.value = matches.value.filter(m => m.id !== matchToLeave.value);
+        
+        showLeaveModal.value = false;
+        matchToLeave.value = null;
+      } catch (err) {
+        console.error('Error leaving match:', err);
+        error.value = 'Failed to leave match. Please try again.';
+      } finally {
+        leavingMatch.value = false;
+      }
+    };
 
     const fetchUserMatches = async () => {
       try {
@@ -242,9 +297,14 @@ export default {
       matches,
       sortType,
       sortedMatches,
+      showLeaveModal,
+      leavingMatch,
       formatDate,
       getSportIcon,
       setSortType,
+      confirmLeaveMatch,
+      cancelLeave,
+      leaveMatch,
     };
   },
 };
@@ -426,11 +486,6 @@ export default {
   border: 1px solid #e2e8f0;
 }
 
-.match-card.has-chat {
-  border-color: #48bb78;
-  border-width: 2px;
-}
-
 .match-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
@@ -512,95 +567,164 @@ export default {
   font-weight: 600;
 }
 
-.chat-available {
-  display: block;
+.action-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.chat-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
   text-decoration: none;
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-  border: 2px solid #48bb78;
-  border-radius: 12px;
-  padding: 20px;
-  transition: all 0.3s ease;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  border: none;
   cursor: pointer;
 }
 
-.chat-available:hover {
+.chat-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(72, 187, 120, 0.2);
-  border-color: #38a169;
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
 }
 
-.chat-available-content {
+.chat-button.disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.chat-button.disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.chat-icon {
+  font-size: 18px;
+}
+
+.leave-button {
+  padding: 14px 20px;
+  background: white;
+  color: #e53e3e;
+  border: 2px solid #e53e3e;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.leave-button:hover {
+  background: #e53e3e;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
 }
 
-.chat-available-icon {
-  font-size: 36px;
-  flex-shrink: 0;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.chat-available-text {
-  flex: 1;
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 450px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
 }
 
-.chat-available-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #064e3b;
-  margin-bottom: 4px;
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.chat-available-subtitle {
-  font-size: 13px;
-  color: #047857;
-  font-weight: 500;
-}
-
-.chat-available-arrow {
+.modal-header h3 {
+  margin: 0 0 16px 0;
   font-size: 24px;
-  color: #48bb78;
-  font-weight: bold;
-  transition: transform 0.3s ease;
-}
-
-.chat-available:hover .chat-available-arrow {
-  transform: translateX(4px);
-}
-
-.waiting-message {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 18px;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border: 1px solid #fde68a;
-  border-radius: 12px;
-}
-
-.waiting-icon {
-  font-size: 32px;
-  flex-shrink: 0;
-}
-
-.waiting-text {
-  flex: 1;
-}
-
-.waiting-text strong {
-  display: block;
-  color: #78350f;
-  font-size: 15px;
   font-weight: 700;
-  margin-bottom: 6px;
+  color: #1a202c;
 }
 
-.waiting-text p {
+.modal-body p {
   margin: 0;
-  color: #92400e;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.5;
+  color: #4a5568;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.modal-button {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-button.cancel {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.modal-button.cancel:hover {
+  background: #cbd5e0;
+}
+
+.modal-button.confirm {
+  background: #e53e3e;
+  color: white;
+}
+
+.modal-button.confirm:hover:not(:disabled) {
+  background: #c53030;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+}
+
+.modal-button.confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 @media (max-width: 768px) {
@@ -620,6 +744,14 @@ export default {
 
   .match-info-grid {
     grid-template-columns: 1fr;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .leave-button {
+    width: 100%;
   }
 }
 </style>
