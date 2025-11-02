@@ -66,37 +66,22 @@
         <div class="match-section">
           <h3><span class="icon">👥</span> Match Players</h3>
           <div class="players-list">
-            <div class="player" v-if="hostProfile">
+            <div class="player" v-for="player in allPlayers" :key="player.id">
               <img
                 :src="
-                  hostProfile.profile_image ||
+                  player.profile_image ||
                   'https://ui-avatars.com/api/?name=' +
-                    hostProfile.name +
+                    player.name +
                     '&background=1a1a1a&color=fff'
                 "
-                alt="host"
+                :alt="player.name"
               />
               <div class="player-info">
                 <p class="player-name">
-                  {{ hostProfile.name }}
-                  <span class="badge">Host</span>
+                  {{ player.name }}
+                  <span class="badge" v-if="player.isHost">Host</span>
                 </p>
-                <p class="player-role">{{ hostProfile.role }}</p>
-              </div>
-            </div>
-            <div class="player" v-if="playerProfile">
-              <img
-                :src="
-                  playerProfile.profile_image ||
-                  'https://ui-avatars.com/api/?name=' +
-                    playerProfile.name +
-                    '&background=2d2d2d&color=fff'
-                "
-                alt="player"
-              />
-              <div class="player-info">
-                <p class="player-name">{{ playerProfile.name }}</p>
-                <p class="player-role">{{ playerProfile.role }}</p>
+                <p class="player-role">{{ player.role }}</p>
               </div>
             </div>
           </div>
@@ -116,8 +101,13 @@
       <div class="no-chat-icon">⏳</div>
       <h3>Chat Room Not Available</h3>
       <p>Waiting for more players to join and confirm their participation.</p>
-      <p class="sub-info">The chat will open automatically once 2 or more players have joined this match.</p>
-      <router-link to="/my-matches" class="back-link">Back to My Matches</router-link>
+      <p class="sub-info">
+        The chat will open automatically once 2 or more players have joined this
+        match.
+      </p>
+      <router-link to="/my-matches" class="back-link"
+        >Back to My Matches</router-link
+      >
     </div>
   </div>
 </template>
@@ -141,8 +131,9 @@ export default {
     const currentUserId = ref(null);
     const matchData = ref({});
     const weather = ref(null);
-    const hostProfile = ref(null);
-    const playerProfile = ref(null);
+    // const hostProfile = ref(null);
+    // const playerProfile = ref(null);
+    const allPlayers = ref([]);
 
     const formatDate = (dateStr) => {
       return new Date(dateStr).toLocaleDateString("en-US", {
@@ -198,8 +189,10 @@ export default {
     onMounted(async () => {
       try {
         // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('Not authenticated');
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
         currentUserId.value = user.id;
 
         // Fetch match data
@@ -207,43 +200,50 @@ export default {
           `http://localhost:3000/matches/${matchId.value}`
         );
         matchData.value = await matchResponse.json();
-        console.log('🎯 MATCH DATA:', matchData.value);
+        console.log("🎯 MATCH DATA:", matchData.value);
 
         // Check if chat exists, if not try to create it
-        console.log('🔎 Raw conversation_id:', matchData.value.conversation_id);
-        console.log('🔎 Type:', typeof matchData.value.conversation_id);
-        console.log('🔎 Equals 0?', matchData.value.conversation_id === 0);
+        console.log("🔎 Raw conversation_id:", matchData.value.conversation_id);
+        console.log("🔎 Type:", typeof matchData.value.conversation_id);
+        console.log("🔎 Equals 0?", matchData.value.conversation_id === 0);
         console.log('🔎 Equals "0"?', matchData.value.conversation_id === "0");
-        console.log('🔎 Is falsy (!)?', !matchData.value.conversation_id);
-        console.log('🔎 Full condition:', !matchData.value.conversation_id || matchData.value.conversation_id === 0);
+        console.log("🔎 Is falsy (!)?", !matchData.value.conversation_id);
+        console.log(
+          "🔎 Full condition:",
+          !matchData.value.conversation_id ||
+            matchData.value.conversation_id === 0
+        );
 
-        if (!matchData.value.conversation_id || 
-          matchData.value.conversation_id === 0 || 
-          matchData.value.conversation_id === "0") {
+        if (
+          !matchData.value.conversation_id ||
+          matchData.value.conversation_id === 0 ||
+          matchData.value.conversation_id === "0"
+        ) {
           try {
             const createChatResponse = await fetch(
-              'http://localhost:3000/chat/check-and-create',
+              "http://localhost:3000/chat/check-and-create",
               {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                  'Content-Type': 'application/json',
+                  "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ match_id: matchId.value })
+                body: JSON.stringify({ match_id: matchId.value }),
               }
             );
 
             const createChatResult = await createChatResponse.json();
-            console.log('🔍 CHAT CREATION RESULT:', createChatResult); 
-            
+            console.log("🔍 CHAT CREATION RESULT:", createChatResult);
+
             if (createChatResult.conversation_id) {
               conversationId.value = createChatResult.conversation_id;
-              matchData.value.conversation_id = createChatResult.conversation_id;
+              matchData.value.conversation_id =
+                createChatResult.conversation_id;
             } else {
               // Not enough players yet
               console.log(createChatResult.message);
             }
           } catch (chatError) {
-            console.error('Error creating chat:', chatError);
+            console.error("Error creating chat:", chatError);
           }
         } else {
           conversationId.value = matchData.value.conversation_id;
@@ -253,19 +253,20 @@ export default {
           await fetchWeather(matchData.value.location);
         }
 
-        if (matchData.value.host) {
-          hostProfile.value = await fetchProfile(matchData.value.host);
-        }
-
         const usersResponse = await fetch(
           `http://localhost:3000/matches/${matchId.value}/users`
         );
         const users = await usersResponse.json();
+
         if (Array.isArray(users)) {
-          const player = users.find((u) => u.user_id !== matchData.value.host);
-          if (player) {
-            playerProfile.value = await fetchProfile(player.user_id);
-          }
+          // Fetch all player profiles
+          const profiles = await Promise.all(
+            users.map((u) => fetchProfile(u.user_id))
+          );
+          allPlayers.value = profiles.map((profile) => ({
+            ...profile,
+            isHost: profile.id === matchData.value.host,
+          }));
         }
       } catch (err) {
         error.value = err.message;
@@ -282,8 +283,9 @@ export default {
       currentUserId,
       matchData,
       weather,
-      hostProfile,
-      playerProfile,
+      // hostProfile,
+      // playerProfile,
+      allPlayers,
       formatDate,
     };
   },
@@ -316,8 +318,8 @@ export default {
   font-size: 14px;
   transition: all 0.2s ease;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  position: relative;  
-  z-index: 2;          
+  position: relative;
+  z-index: 2;
 }
 
 .back-button-inline:hover {
