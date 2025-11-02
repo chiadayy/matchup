@@ -2,8 +2,28 @@
   <div class="my-matches-page">
     <div class="page-content">
       <div class="page-header">
-        <h1>My Matches</h1>
-        <p class="subtitle">Your upcoming games and conversations</p>
+        <div>
+          <h1>My Matches</h1>
+          <p class="subtitle">Your upcoming games and conversations</p>
+        </div>
+        <div class="filter-group">
+          <button 
+            @click="setSortType('date')" 
+            class="filter-button"
+            :class="{ active: sortType === 'date' }"
+          >
+            <span class="filter-icon">📅</span>
+            <span>Date</span>
+          </button>
+          <button 
+            @click="setSortType('price')" 
+            class="filter-button"
+            :class="{ active: sortType === 'price' }"
+          >
+            <span class="filter-icon">💰</span>
+            <span>Price</span>
+          </button>
+        </div>
       </div>
 
       <div v-if="loading" class="loading">
@@ -27,7 +47,7 @@
 
       <div v-else class="matches-container">
         <div 
-          v-for="match in matches" 
+          v-for="match in sortedMatches" 
           :key="match.id" 
           class="match-card"
           :class="{ 'has-chat': match.confirmed_player_count >= 2 }"
@@ -38,49 +58,46 @@
                 <div class="sport-icon">{{ getSportIcon(match.sport_type) }}</div>
                 <h3>{{ match.name }}</h3>
               </div>
-              <span class="status-badge" :class="match.confirmed_player_count >= 2 ? 'confirmed' : 'pending'">
-                {{ match.confirmed_player_count >= 2 ? 'READY TO CHAT' : 'WAITING FOR PLAYERS' }}
-              </span>
+              <div class="price-badge" :class="{ free: match.total_price === 0 }">
+                {{ match.total_price === 0 ? 'Free' : `$${match.total_price}` }}
+              </div>
             </div>
-
-            <div class="match-location">{{ match.location }}</div>
 
             <div class="match-info-grid">
               <div class="info-section">
-                <div class="info-label">Date & Time</div>
+                <div class="info-label">📍 Location</div>
+                <div class="info-value">{{ match.location }}</div>
+              </div>
+
+              <div class="info-section">
+                <div class="info-label">📅 Date & Time</div>
                 <div class="info-value">{{ formatDate(match.date) }} at {{ match.time }}</div>
               </div>
 
               <div class="info-section">
-                <div class="info-label">Skill Level</div>
+                <div class="info-label">🎯 Skill Level</div>
                 <div class="info-value">{{ match.skill_level || 'All Levels' }}</div>
               </div>
 
               <div class="info-section">
-                <div class="info-label">Players</div>
+                <div class="info-label">👥 Players</div>
                 <div class="info-value">{{ match.current_player_count }}/{{ match.total_player_count }}</div>
               </div>
-
-              <div class="info-section">
-                <div class="info-label">Price</div>
-                <div class="info-value price" :class="{ free: match.total_price === 0 }">
-                  {{ match.total_price === 0 ? 'Free' : `$${match.total_price}` }}
-                </div>
-              </div>
-            </div>
-
-            <div class="player-count-info">
-              <span class="player-icon">👥</span>
-              <span>{{ match.confirmed_player_count }} {{ match.confirmed_player_count === 1 ? 'player' : 'players' }} confirmed</span>
             </div>
 
             <router-link 
               v-if="match.confirmed_player_count >= 2"
               :to="`/matches/${match.id}/chat`" 
-              class="chat-button"
+              class="chat-available"
             >
-              <span class="chat-icon">💬</span>
-              <span>Open Chat Room</span>
+              <div class="chat-available-content">
+                <div class="chat-available-icon">💬</div>
+                <div class="chat-available-text">
+                  <div class="chat-available-title">Chat Room Available</div>
+                  <div class="chat-available-subtitle">Connect with your teammates</div>
+                </div>
+                <div class="chat-available-arrow">→</div>
+              </div>
             </router-link>
 
             <div v-else class="waiting-message">
@@ -98,7 +115,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { supabase } from '@/lib/supabase';
 
 export default {
@@ -109,6 +126,7 @@ export default {
     const error = ref(null);
     const matches = ref([]);
     const currentUserId = ref(null);
+    const sortType = ref('date');
 
     const formatDate = (dateStr) => {
       return new Date(dateStr).toLocaleDateString('en-US', {
@@ -130,6 +148,26 @@ export default {
       };
       return icons[sportType?.toLowerCase()] || '🎾';
     };
+
+    const setSortType = (type) => {
+      sortType.value = type;
+    };
+
+    const sortedMatches = computed(() => {
+      const matchesCopy = [...matches.value];
+      
+      if (sortType.value === 'date') {
+        return matchesCopy.sort((a, b) => {
+          const dateA = new Date(a.date);
+          const dateB = new Date(b.date);
+          return dateA - dateB;
+        });
+      } else if (sortType.value === 'price') {
+        return matchesCopy.sort((a, b) => a.total_price - b.total_price);
+      }
+      
+      return matchesCopy;
+    });
 
     const fetchUserMatches = async () => {
       try {
@@ -202,8 +240,11 @@ export default {
       loading,
       error,
       matches,
+      sortType,
+      sortedMatches,
       formatDate,
       getSportIcon,
+      setSortType,
     };
   },
 };
@@ -222,6 +263,9 @@ export default {
 }
 
 .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 40px;
 }
 
@@ -236,6 +280,45 @@ export default {
   font-size: 16px;
   color: #718096;
   margin: 0;
+}
+
+.filter-group {
+  display: flex;
+  gap: 8px;
+  background: white;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.filter-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-button:hover {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.filter-button.active {
+  background: linear-gradient(135deg, #ff6b35 0%, #e85d2a 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.25);
+}
+
+.filter-icon {
+  font-size: 16px;
 }
 
 .loading, .error {
@@ -336,15 +419,16 @@ export default {
 
 .match-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
-  border-left: 4px solid #fbbf24;
+  border: 1px solid #e2e8f0;
 }
 
 .match-card.has-chat {
-  border-left-color: #48bb78;
+  border-color: #48bb78;
+  border-width: 2px;
 }
 
 .match-card:hover {
@@ -353,153 +437,149 @@ export default {
 }
 
 .match-content {
-  padding: 24px;
+  padding: 28px;
 }
 
 .match-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
   gap: 16px;
 }
 
 .sport-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   flex: 1;
 }
 
 .sport-icon {
-  font-size: 32px;
+  font-size: 36px;
   line-height: 1;
 }
 
 .match-header h3 {
   margin: 0;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
-  color: #2d3748;
+  color: #1a202c;
   line-height: 1.3;
 }
 
-.status-badge {
-  padding: 6px 12px;
+.price-badge {
+  padding: 10px 18px;
   border-radius: 12px;
-  font-size: 11px;
+  font-size: 18px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   white-space: nowrap;
   flex-shrink: 0;
+  background: linear-gradient(135deg, #ff6b35 0%, #e85d2a 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
 }
 
-.status-badge.confirmed {
-  background: #c6f6d5;
-  color: #22543d;
-}
-
-.status-badge.pending {
-  background: #fef3c7;
-  color: #78350f;
-}
-
-.match-location {
-  color: #4a5568;
-  font-size: 14px;
-  margin-bottom: 20px;
-  font-weight: 500;
+.price-badge.free {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.2);
 }
 
 .match-info-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
 }
 
 .info-section {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .info-label {
-  font-size: 11px;
-  color: #a0aec0;
+  font-size: 12px;
+  color: #94a3b8;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .info-value {
-  font-size: 14px;
-  color: #2d3748;
-  font-weight: 600;
-}
-
-.info-value.price.free {
-  color: #48bb78;
-}
-
-.player-count-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #4a5568;
-}
-
-.player-icon {
-  font-size: 18px;
-}
-
-.chat-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  padding: 14px;
-  background: #ff6b35;
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 600;
   font-size: 15px;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.chat-available {
+  display: block;
+  text-decoration: none;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border: 2px solid #48bb78;
+  border-radius: 12px;
+  padding: 20px;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
-.chat-button:hover {
-  background: #e85d2a;
+.chat-available:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  box-shadow: 0 8px 20px rgba(72, 187, 120, 0.2);
+  border-color: #38a169;
 }
 
-.chat-icon {
-  font-size: 20px;
+.chat-available-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.chat-available-icon {
+  font-size: 36px;
+  flex-shrink: 0;
+}
+
+.chat-available-text {
+  flex: 1;
+}
+
+.chat-available-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #064e3b;
+  margin-bottom: 4px;
+}
+
+.chat-available-subtitle {
+  font-size: 13px;
+  color: #047857;
+  font-weight: 500;
+}
+
+.chat-available-arrow {
+  font-size: 24px;
+  color: #48bb78;
+  font-weight: bold;
+  transition: transform 0.3s ease;
+}
+
+.chat-available:hover .chat-available-arrow {
+  transform: translateX(4px);
 }
 
 .waiting-message {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: #fef3c7;
-  border-radius: 8px;
+  gap: 14px;
+  padding: 18px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #fde68a;
+  border-radius: 12px;
 }
 
 .waiting-icon {
-  font-size: 28px;
+  font-size: 32px;
   flex-shrink: 0;
 }
 
@@ -510,9 +590,9 @@ export default {
 .waiting-text strong {
   display: block;
   color: #78350f;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 4px;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 6px;
 }
 
 .waiting-text p {
@@ -520,11 +600,18 @@ export default {
   color: #92400e;
   font-size: 13px;
   font-weight: 500;
+  line-height: 1.5;
 }
 
 @media (max-width: 768px) {
   .my-matches-page {
     padding: 24px 20px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
   }
 
   .matches-container {
