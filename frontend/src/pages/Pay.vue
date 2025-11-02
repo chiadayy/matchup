@@ -315,23 +315,21 @@ export default {
     async handleSuccessOk() {
       this.showSuccessModal = false;
       
-       const { error } = await supabase
-        .from('notifications')
-        .insert([
-          { 
-            user_id: this.currentUser.id,
-            title: "Payment",
-            message: "Payment for match successful",
-            read: false
-          }
-        ])
+      const { error } = await supabase
+      .from('notifications')
+      .insert([
+        { 
+          user_id: this.currentUser.id,
+          title: "Payment",
+          message: `Payment for match "${this.match.name}" successful`,
+          read: false
+        }
+      ])
 
       if (error) {
         console.error('Error inserting notification:', error)
-        this.statusMessage = 'Failed to add notification.'
       } else {
         console.log('Inserted data:')
-        this.statusMessage = 'Notification added successfully!'
       }
 
       // redirect back to browser page 

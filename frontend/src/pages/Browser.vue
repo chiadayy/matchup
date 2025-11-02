@@ -630,8 +630,8 @@ export default {
   async mounted() {
     await this.getAllMatches();
     await this.getUserCurrentLocation();
-    this.filterMatches();
     await this.checkAllMatches();
+    this.filterMatches();
     await this.fetchWeatherBanner();
   },
   methods: {
@@ -753,13 +753,13 @@ export default {
     },
     async ifUserInMatch(matchId) {
       const { data: { user } } = await supabase.auth.getUser();
-     const { data, error } = await supabase
-        .from('users_matches')
-        .select('*')
-        .eq('match_id', matchId)
-        .eq('user_id', user.id);
+      const { data, error } = await supabase
+          .from('users_matches')
+          .select('*')
+          .eq('match_id', matchId)
+          .eq('user_id', user.id);
 
-      return data.some(u => u.user_id === user.id);
+        return data.some(u => u.user_id === user.id);
     },
     async checkAllMatches() {
       for (const match of this.matches) {
@@ -767,27 +767,6 @@ export default {
         this.userMatches[match.id] = joined;
       }
     },
-    // async ifUserInMatch(matchid) {
-    //   const { data: { user } } = await supabase.auth.getUser();
-    //   try {
-    //     const { data, error } = await supabase
-    //     .from('users_matches')
-    //     .eq("match_id", matchid);
-
-    //     if (error) {
-    //       console.error("Failed to fetch players data", error);
-    //       return;
-    //     }
-    //     else {
-    //       // this.matchPlayers = data;
-    //       return data.some(u => u.user_id === user.id);
-    //     }
-    //   }
-    //   catch (err) {
-    //     console.error("Unexpected error:", err);
-    //     return false;
-    //   }
-    // },
     formatMatchDate(match) {
       if (!match.match_date) return { date: '', time: '' };
 

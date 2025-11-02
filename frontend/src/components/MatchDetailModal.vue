@@ -149,6 +149,17 @@
           </div>
         </div>
       </div>
+
+      <!-- leave success -->
+      <div v-if="showLeaveSuccess" class="modal-overlay">
+        <div class="confirm-box">
+          <p>You have successfully left the match.</p>
+          <p v-if="match.total_price != 0">Refunds have been made.</p>
+          <div class="confirm-actions"> 
+            <button :style="{'background-color': '#FF6B35', 'color': 'white'}" @click="showLeaveSuccess = false">OK</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -185,7 +196,8 @@ export default {
       currentUser: null,
       // showJoinSuccessModal: false,
       showLeaveConfirm: false,  
-      leavingMatchId: null
+      leavingMatchId: null,
+      showLeaveSuccess: false,
     };
   },
   mounted() {
@@ -300,6 +312,35 @@ export default {
               // skillLevel: 'Intermediate',
               // isOrganizer: false
             });
+
+            // get the latest match update
+            const { data: latestMatch } = await supabase
+            .from('matches')
+            .select('current_player_count, total_player_count')
+            .eq('id', this.match.id)
+            .single();
+
+            if (latestMatch.current_player_count == latestMatch.total_player_count) {
+              console.log("match players ", this.matchPlayers);
+              const notifications = this.matchPlayers.map(u => ({
+                user_id: u.id,
+                title: "Match Can Begin!",
+                message: `Match "${this.match.name}" is now full and will begin as scheduled.`,
+                read: false
+              }));
+
+              const { error: notifError } = await supabase
+                .from('notifications')
+                .insert(notifications);
+
+              if (notifError) {
+                console.error('Error inserting notification:', error)
+              } else {
+                console.log(`Notified ${notifications.length} players that the match is full.`);
+              }
+            }
+
+            // send msg back to browser
             this.$emit('join', this.match.id);
 
           } else {
@@ -339,6 +380,26 @@ export default {
         this.leavingMatchId = null;
       }
       // }
+
+      this.showLeaveSuccess = true;
+      if (this.match.total_price != 0) {
+        const { error } = await supabase
+          .from('notifications')
+          .insert([
+            { 
+              user_id: this.currentUser.id,
+              title: "Refund",
+              message: `Refund for match "${this.match.name}" successful`,
+              read: false
+            }
+          ])
+
+        if (error) {
+          console.error('Error inserting notification:', error)
+        } else {
+          console.log('Inserted data:')
+        }
+      }
     },
     async fetchMatchPlayers() {
       try {
