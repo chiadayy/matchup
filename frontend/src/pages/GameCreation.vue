@@ -412,7 +412,7 @@ export default {
           longitude: this.formData.longitude
         };
 
-        const response = await fetch('${import.meta.env.VITE_API_URL}/matches', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/matches`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
