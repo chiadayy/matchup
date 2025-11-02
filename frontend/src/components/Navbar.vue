@@ -241,14 +241,16 @@
                 👤 My Profile
               </router-link>
               <hr class="dropdown-divider" />
-              <button @click="logout" class="btn btn-logout">Logout</button>
+              <!-- <button @click="logout" class="btn btn-logout">Logout</button> -->
+              <button @click="showLogoutConfirm = true" class="btn btn-logout">Logout</button>
             </div>
           </div>
 
           <!-- Admin user - show admin label and logout -->
           <div v-if="isLoggedIn && userRole === 'admin'" class="admin-section">
             <span class="admin-label">Admin</span>
-            <button @click="logout" class="btn btn-logout-small">Logout</button>
+            <!-- <button @click="logout" class="btn btn-logout-small">Logout</button> -->
+            <button @click="showLogoutConfirm = true" class="btn btn-logout-small">Logout</button>
           </div>
           
           <!-- Not logged in - show login and signup -->
@@ -256,6 +258,17 @@
             <router-link to="/login" class="nav-link-custom">Login</router-link>
             <router-link to="/register" class="btn btn-signup">Sign Up</router-link>
           </template>
+        </div>
+
+        <!-- confirm logout -->
+        <div v-if="showLogoutConfirm" class="confirm-overlay">
+          <div class="confirm-box">
+            <p>Are you sure you want to logout?</p>
+            <div class="confirm-actions">
+              <button @click="logout()">Yes, leave</button>
+              <button @click="showLogoutConfirm = false">Cancel</button>
+            </div>
+          </div>
         </div>
       </div>
     </nav>
@@ -292,7 +305,8 @@
         showDropdown: false,
         showMobileMenu: false,
         showNotifications: false,
-        notifications: []
+        notifications: [],
+        showLogoutConfirm: false
       };
     },
     computed: {
@@ -335,16 +349,17 @@
         }
       },
       async logout() {
-        if (confirm('Are you sure you want to logout?')) {
+        // if (confirm('Are you sure you want to logout?')) {
+          this.showLogoutConfirm = false;
           await supabase.auth.signOut()
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          this.$emit('logout');
           this.closeDropdown();
           this.closeMobileMenu();
           this.closeNotifications();
-          this.$router.push('/');
-        }
+          this.$router.push({ name: 'Landing', replace: true });
+          this.$emit('logout');
+        // }
       },
       async loadNotifications() {
         const { data, error } = await supabase
@@ -1000,5 +1015,93 @@
     color: #0641c0;
     transform: scale(1.05);
   }
+
+  .confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2100;
+  animation: fadeIn 0.2s ease;
+}
+
+.confirm-box {
+  background: white;
+  padding: 32px;
+  border-radius: 20px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+.confirm-box p {
+  font-size: 1.1rem;
+  color: #2C3E50;
+  margin-bottom: 24px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.confirm-actions button {
+  padding: 14px 28px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 120px;
+}
+
+.confirm-actions button:first-child {
+  background: #dc3545;
+  color: white;
+}
+
+.confirm-actions button:first-child:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+.confirm-actions button:last-child {
+  background: #f8f9fa;
+  color: #495057;
+  border: 2px solid #dee2e6;
+}
+
+.confirm-actions button:last-child:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+@media (max-width: 576px) {
+  .confirm-box {
+    padding: 24px;
+  }
+
+  .confirm-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .confirm-actions button {
+    width: 100%;
+  }
+}
 
   </style>

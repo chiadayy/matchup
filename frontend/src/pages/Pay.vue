@@ -157,7 +157,7 @@
             
             <p v-if="message" class="payment-message">{{ message }}</p>
 
-            <div v-if="showSuccessModal" class="modal-overlay">
+            <div v-if="showSuccessModal" class="confirm-overlay">
               <div class="confirm-box">
                 <h3>Payment Successful!</h3><br></br>
                 <p>You’ve been successfully added to the match.</p>

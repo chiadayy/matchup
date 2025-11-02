@@ -880,6 +880,7 @@ export default {
   background: #FF6B35;
   border-radius: 10px;
 }
+
 .confirm-overlay {
   position: fixed;
   top: 0;
