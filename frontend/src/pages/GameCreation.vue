@@ -23,52 +23,46 @@
             <div class="form-group">
               <label class="form-label">Match Name</label>
               <input 
+                ref="matchNameInput"
                 type="text" 
                 class="form-control" 
                 v-model="formData.matchName"
                 placeholder="e.g., Weekly Basketball Game, Doubles Badminton"
                 required
               >
+              <div v-if="fieldErrors.matchName" class="input-error">{{ fieldErrors.matchName }}</div>
             </div>
 
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Sport Type</label>
                 <input 
+                      ref="sportInput"
                       type="text" 
                       class="form-control" 
                       v-model="formData.sport"
                       placeholder="e.g., Basketball, Tennis, Football, Badminton"
                       required
-                    >              
+                    > 
+                    <div v-if="fieldErrors.sport" class="input-error">{{ fieldErrors.sport }}</div>
               </div>
               <div class="form-group">
                 <label class="form-label">Skill Level</label>
-                <select class="form-control" v-model="formData.skillLevel" required>
+                <select ref="skillLevelInput" class="form-control" v-model="formData.skillLevel" required>
                   <option value="">Select skill level</option>
                   <option value="Beginner">Beginner</option>
                   <option value="Intermediate">Intermediate</option>
                   <option value="Advanced">Advanced</option>
                   <option value="Any Level">Any Level</option>
                 </select>
+                <div v-if="fieldErrors.skillLevel" class="input-error">{{ fieldErrors.skillLevel }}</div>
               </div>
             </div>
-
-            <!-- <div class="form-row"> -->
-              <!-- <div class="form-group">
-                <label class="form-label">Location</label>
-                <input 
-                  type="text" 
-                  class="form-control" 
-                  v-model="formData.location"
-                  placeholder="e.g., Hougang Sports Complex"
-                  required
-                >
-              </div> -->
-
-              <div class="form-group" style="width: 50%;">
+            <div class="form-row">
+              <div class="form-group">
                 <label class="form-label">Maximum Players</label>
                 <input 
+                  ref="maxPlayersInput"
                   type="number" 
                   class="form-control" 
                   v-model.number="formData.maxPlayers"
@@ -76,43 +70,67 @@
                   max="100"
                   required
                 >
+                <div v-if="fieldErrors.maxPlayers" class="input-error">{{ fieldErrors.maxPlayers }}</div>
+              </div>
               </div>
               <div class="form-group">
                 <label class="form-label">Pick Location on Map</label>
                 <div ref="pickerMap" style="width:100%;height:400px;border-radius:12px;overflow:hidden;margin-bottom:1em;"></div>
-                <div>
-                  <label>
-                    Latitude:
-                    <input v-model="formData.latitude"/>
-                  </label>
-                  <label style="margin-left: 1em;">
-                    Longitude:
-                    <input v-model="formData.longitude"/>
-                  </label>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Latitude</label>
+                    <input
+                      ref="latitudeInput"
+                      type="number"
+                      class="form-control"
+                      v-model="formData.latitude"
+                      placeholder="Latitude"
+                      required
+                    >
+                    <div v-if="fieldErrors.latitude" class="input-error">{{ fieldErrors.latitude }}</div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Longitude</label>
+                    <input
+                      ref="longitudeInput"
+                      type="number"
+                      class="form-control"
+                      v-model="formData.longitude"
+                      placeholder="Longitude"
+                      required
+                    >
+                    <div v-if="fieldErrors.longitude" class="input-error">{{ fieldErrors.longitude }}</div>
+                  </div>
                 </div>
                 <div style="margin-top:1em;">
-<input
-  type="text"
-  class="form-control"
-  placeholder="Search for a location..."
-  v-model="searchQuery"
-  @input="() => { searchPlace(); updateLocationFromSearch(); }"
-  @keydown.down.prevent="moveSelection(1)"
-  @keydown.up.prevent="moveSelection(-1)"
-  @keydown.enter.prevent="selectPrediction(selectedIndex)"
-/>
+                <div class="form-group">
+                  <label class="form-label">Address</label>
+                  <input
+                    ref="addressInput"
+                    type="text"
+                    class="form-control"
+                    placeholder="Search for a location..."
+                    v-model="searchQuery"
+                    @input="() => { searchPlace(); updateLocationFromSearch(); }"
+                    @keydown.down.prevent="moveSelection(1)"
+                    @keydown.up.prevent="moveSelection(-1)"
+                    @keydown.enter.prevent="selectPrediction(selectedIndex)"
+                  />
+                  <div v-if="fieldErrors.location" class="input-error">{{ fieldErrors.location }}</div>
+                </div>
 
-<div v-if="predictions.length" class="suggestions-dropdown">
-  <div
-    v-for="(prediction, index) in predictions"
-    :key="prediction.place_id"
-    :class="{ 'suggestion-item': true, active: index === selectedIndex }"
-    @click="selectPrediction(index)"
-    @mouseover="hoverPrediction(index)"
-  >
-    {{ prediction.description }}
-  </div>
-</div>
+
+                <div v-if="predictions.length" class="suggestions-dropdown">
+                  <div
+                    v-for="(prediction, index) in predictions"
+                    :key="prediction.place_id"
+                    :class="{ 'suggestion-item': true, active: index === selectedIndex }"
+                    @click="selectPrediction(index)"
+                    @mouseover="hoverPrediction(index)"
+                  >
+                    {{ prediction.description }}
+                  </div>
+                </div>
 
 <button class="btn btn-primary" style="margin-top:8px;" @click="searchPlace">Search</button>
                 </div>
@@ -128,27 +146,32 @@
               <div class="form-group">
                 <label class="form-label">Date</label>
                 <input 
+                  ref="dateInput"
                   type="date" 
                   class="form-control" 
                   v-model="formData.date"
                   required
                 >
+                <div v-if="fieldErrors.date" class="input-error">{{ fieldErrors.date }}</div>
               </div>
 
               <div class="form-group">
                 <label class="form-label">Time</label>
                 <input 
+                  ref="timeInput"
                   type="time" 
                   class="form-control" 
                   v-model="formData.time"
                   required
                 >
+                <div v-if="fieldErrors.time" class="input-error">{{ fieldErrors.time }}</div>
               </div>
             </div>
 
             <div class="form-group">
               <label class="form-label">Duration (minutes)</label>
               <input 
+                ref="durationInput"
                 type="number" 
                 class="form-control" 
                 v-model.number="formData.duration"
@@ -156,6 +179,7 @@
                 min="15"
                 required
               >
+              <div v-if="fieldErrors.duration" class="input-error">{{ fieldErrors.duration }}</div>
             </div>
           </div>
 
@@ -181,6 +205,7 @@
                   <div class="form-group">
                         <label class="form-label">Total Match Price ($)</label>
                         <input 
+                          ref="totalPriceInput"
                           type="number" 
                           class="form-control" 
                           v-model.number="formData.totalPrice"
@@ -189,6 +214,7 @@
                           step="0.01"
                           required
                         >
+                        <div v-if="fieldErrors.totalPrice" class="input-error">{{ fieldErrors.totalPrice }}</div>
                   </div>
 
                   <div class="price-info">
@@ -318,6 +344,7 @@ export default {
       predictions: [],
       selectedIndex: -1,
       geocoder: null,
+      fieldErrors: {},
       
       formData: {
         matchName: '',
@@ -345,36 +372,56 @@ export default {
       return labels[step - 1];
     },
     
-    nextStep() {
-      if (this.validateCurrentStep()) {
-        this.currentStep++;
-      }
-    },
-    
+  nextStep() {
+    if (this.validateCurrentStep()) {
+      this.currentStep++;
+    } else {
+      this.$nextTick(() => {
+        const firstErrorKey = Object.keys(this.fieldErrors)[0];
+        if (firstErrorKey) {
+          const refName = firstErrorKey + 'Input';
+          const inputEl = this.$refs[refName];
+          if (inputEl && inputEl.scrollIntoView) {
+            inputEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            inputEl.focus();
+          }
+        }
+      });
+    }
+  },
+
     previousStep() {
       this.currentStep--;
     },
     
     validateCurrentStep() {
-      switch (this.currentStep) {
-        case 1:
-          return this.formData.matchName && this.formData.sport && this.formData.skillLevel && this.formData.location  &&
-          this.formData.latitude !== '' &&
-          this.formData.longitude !== '' &&
-          !isNaN(Number(this.formData.latitude)) &&
-          !isNaN(Number(this.formData.longitude));
-        case 2:
-          return this.formData.date && this.formData.time && this.formData.duration;
-        case 3:
-          if (this.formData.isPaid) {
-            return this.formData.totalPrice > 0;
-          }
-          return true;
-        case 4:
-          return this.formData.description;
-        default:
-          return true;
+      this.fieldErrors = {}; // Reset errors
+
+      if (this.currentStep === 1) {
+        if (!this.formData.matchName) this.fieldErrors.matchName = "Match Name is required.";
+        if (!this.formData.sport) this.fieldErrors.sport = "Sport Type is required.";
+        if (!this.formData.skillLevel) this.fieldErrors.skillLevel = "Skill Level is required.";
+        if (!this.formData.location) this.fieldErrors.location = "Location is required.";
+        if (this.formData.latitude === '' || isNaN(Number(this.formData.latitude))) this.fieldErrors.latitude = "Valid latitude is required.";
+        if (this.formData.longitude === '' || isNaN(Number(this.formData.longitude))) this.fieldErrors.longitude = "Valid longitude is required.";
+        if (!this.formData.maxPlayers || this.formData.maxPlayers < 2) this.fieldErrors.maxPlayers = "Maximum players must be at least 2.";
+        return Object.keys(this.fieldErrors).length === 0;
       }
+      if (this.currentStep === 2) {
+        if (!this.formData.date) this.fieldErrors.date = "Date is required.";
+        if (!this.formData.time) this.fieldErrors.time = "Time is required.";
+        if (!this.formData.duration) this.fieldErrors.duration = "Duration is required.";
+        return Object.keys(this.fieldErrors).length === 0;
+      }
+      if (this.currentStep === 3) {
+        if (this.formData.isPaid && !(this.formData.totalPrice > 0)) this.fieldErrors.totalPrice = "Total price must be greater than 0 for paid matches.";
+        return Object.keys(this.fieldErrors).length === 0;
+      }
+      if (this.currentStep === 4) {
+        if (!this.formData.description) this.fieldErrors.description = "Description is required.";
+        return Object.keys(this.fieldErrors).length === 0;
+      }
+      return true;
     },
 
     async createMatch() {
@@ -489,136 +536,143 @@ export default {
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     },
 
-async initMapPicker() {
-  if (typeof google === 'undefined' || !google.maps) {
-    console.error('Google Maps API not loaded.');
-    return;
-  }
-  const { Map } = await google.maps.importLibrary('maps');
-  this.map = new google.maps.Map(this.$refs.pickerMap, {
-    center: { lat: 1.3521, lng: 103.8198 },
-    zoom: 12,
-    mapId: "1d622eb16f09ac0b3984b1bd"
-  });
-  const { AdvancedMarkerElement } = await google.maps.importLibrary('marker');
-  this.marker = new AdvancedMarkerElement({
-    map: this.map,
-    position: null,
-    title: 'Selected Location'
-  });
-  this.map.addListener('click', (e) => {
-    this.setLatLng(e.latLng.lat(), e.latLng.lng());
-    this.marker.position = e.latLng;  
-  });
-
-  if (google.maps.places) {
-    this.autocompleteService = new google.maps.places.AutocompleteService();
-    this.placesService = new google.maps.places.PlacesService(this.map);
-    this.geocoder = new google.maps.Geocoder();
-  } else {
-    console.error('Google Maps Places library not loaded.');
-  }
-},
-
-setLatLng(lat, lng) {
-  this.formData.latitude = lat;
-  this.formData.longitude = lng;
-
-  if (this.geocoder) {
-    const latlng = { lat, lng };
-    this.geocoder.geocode({ location: latlng }, (results, status) => {
-      if (status === 'OK' && results && results.length > 0) {
-        // Use the first result's formatted address as location name
-        this.formData.location = results[0].formatted_address;
-        this.searchQuery = results[0].formatted_address; // update search bar input
-      } else {
-        console.warn('Geocoder failed due to: ' + status);
-        // Optionally clear or fallback location name
-      }
-    });
-  }
-},
-    
-searchPlace() {
-
-  if (!this.searchQuery || !this.autocompleteService) {
-    this.predictions = [];
-    return;
-  }
-  this.autocompleteService.getPlacePredictions(
-{
-  input: this.searchQuery,
-  componentRestrictions: { country: 'SG' }
-},
-    (preds, status) => {
-      if (status !== google.maps.places.PlacesServiceStatus.OK || !preds) {
-        this.predictions = [];
-        return;
-      }
-      this.predictions = preds; // save predictions for showing dropdown  
-      this.selectedIndex = -1;   // reset keyboard selection
-    }
-  );
-}
-,
-highlightArea(radiusMeters = 500) {
-  // Remove previous circle if exists
-  if (this.highlightCircle) {
-    this.highlightCircle.setMap(null);
-  }
-
-  // Create new circle centered at latitude/longitude
-  this.highlightCircle = new google.maps.Circle({
-    strokeColor: '#FF6B35',
-    strokeOpacity: 0.8,
-    strokeWeight: 2,
-    fillColor: '#FF6B35',
-    fillOpacity: 0.25,
-    map: this.map,
-    center: { lat: this.formData.latitude, lng: this.formData.longitude },
-    radius: radiusMeters
-  });
-},
-
-hoverPrediction(index) {
-  this.selectedIndex = index;
-},
-moveSelection(direction) {
-  const max = this.predictions.length - 1;
-  if (direction === 1 && this.selectedIndex < max) this.selectedIndex++;
-  else if (direction === -1 && this.selectedIndex > 0) this.selectedIndex--;
-},
-selectPrediction(index) {
-  if (index < 0 || index >= this.predictions.length) return;
-  const prediction = this.predictions[index];
-  this.formData.location = prediction.description;
-  this.searchQuery = prediction.description;
-  this.predictions = [];
-
-  this.fetchPlaceDetails(prediction.place_id);
-},
-fetchPlaceDetails(placeId) {
-  this.placesService.getDetails({ placeId }, (placeResult, status) => {
-    if (status !== google.maps.places.PlacesServiceStatus.OK || !placeResult.geometry) {
-      alert('Could not get location details');
+  async initMapPicker() {
+    if (typeof google === 'undefined' || !google.maps) {
+      console.error('Google Maps API not loaded.');
       return;
     }
-    const location = placeResult.geometry.location;
-    this.map.setCenter(location);
-    this.map.setZoom(15);
-    this.marker.position = location;
-    this.setLatLng(location.lat(), location.lng());
-    this.highlightArea(500);
-  });
-},
-updateLocationFromSearch() {
-  this.formData.location = this.searchQuery;
-}
+    const { Map } = await google.maps.importLibrary('maps');
+    this.map = new google.maps.Map(this.$refs.pickerMap, {
+      center: { lat: 1.3521, lng: 103.8198 },
+      zoom: 12,
+      mapId: "1d622eb16f09ac0b3984b1bd"
+    });
+    const { AdvancedMarkerElement } = await google.maps.importLibrary('marker');
+    this.marker = new AdvancedMarkerElement({
+      map: this.map,
+      position: null,
+      title: 'Selected Location'
+    });
+    this.map.addListener('click', (e) => {
+      this.setLatLng(e.latLng.lat(), e.latLng.lng());
+      this.marker.position = e.latLng;  
+    });
 
+    if (google.maps.places) {
+      this.autocompleteService = new google.maps.places.AutocompleteService();
+      this.placesService = new google.maps.places.PlacesService(this.map);
+      this.geocoder = new google.maps.Geocoder();
+    } else {
+      console.error('Google Maps Places library not loaded.');
+    }
+  },
 
+  setLatLng(lat, lng) {
+    this.formData.latitude = lat;
+    this.formData.longitude = lng;
 
+    if (this.geocoder) {
+      const latlng = { lat, lng };
+      this.geocoder.geocode({ location: latlng }, (results, status) => {
+        if (status === 'OK' && results && results.length > 0) {
+          // Use the first result's formatted address as location name
+          this.formData.location = results[0].formatted_address;
+          this.searchQuery = results[0].formatted_address; // update search bar input
+        } else {
+          console.warn('Geocoder failed due to: ' + status);
+          // Optionally clear or fallback location name
+        }
+      });
+    }
+  },
+      
+  searchPlace() {
 
+    if (!this.searchQuery || !this.autocompleteService) {
+      this.predictions = [];
+      return;
+    }
+    this.autocompleteService.getPlacePredictions(
+  {
+    input: this.searchQuery,
+    componentRestrictions: { country: 'SG' }
+  },
+      (preds, status) => {
+        if (status !== google.maps.places.PlacesServiceStatus.OK || !preds) {
+          this.predictions = [];
+          return;
+        }
+        this.predictions = preds; // save predictions for showing dropdown  
+        this.selectedIndex = -1;   // reset keyboard selection
+      }
+    );
   }
+  ,
+  highlightArea(radiusMeters = 500) {
+    // Remove previous circle if exists
+    if (this.highlightCircle) {
+      this.highlightCircle.setMap(null);
+    }
+
+    // Create new circle centered at latitude/longitude
+    this.highlightCircle = new google.maps.Circle({
+      strokeColor: '#FF6B35',
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+      fillColor: '#FF6B35',
+      fillOpacity: 0.25,
+      map: this.map,
+      center: { lat: this.formData.latitude, lng: this.formData.longitude },
+      radius: radiusMeters
+    });
+  },
+
+  hoverPrediction(index) {
+    this.selectedIndex = index;
+  },
+  moveSelection(direction) {
+    const max = this.predictions.length - 1;
+    if (direction === 1 && this.selectedIndex < max) this.selectedIndex++;
+    else if (direction === -1 && this.selectedIndex > 0) this.selectedIndex--;
+  },
+  selectPrediction(index) {
+    if (index < 0 || index >= this.predictions.length) return;
+    const prediction = this.predictions[index];
+    this.formData.location = prediction.description;
+    this.searchQuery = prediction.description;
+    this.predictions = [];
+
+    this.fetchPlaceDetails(prediction.place_id);
+  },
+  fetchPlaceDetails(placeId) {
+    this.placesService.getDetails({ placeId }, (placeResult, status) => {
+      if (status !== google.maps.places.PlacesServiceStatus.OK || !placeResult.geometry) {
+        alert('Could not get location details');
+        return;
+      }
+      const location = placeResult.geometry.location;
+      this.map.setCenter(location);
+      this.map.setZoom(15);
+      this.marker.position = location;
+      this.setLatLng(location.lat(), location.lng());
+      this.highlightArea(500);
+    });
+  },
+  updateLocationFromSearch() {
+    this.formData.location = this.searchQuery;
+  }
+
+
+  },
+  watch: {
+  currentStep(newStep) {
+    if (newStep === 1) {
+      this.$nextTick(() => {
+        this.initMapPicker();
+      });
+    }
+  }
+},
 }
 </script>
 
@@ -630,6 +684,17 @@ updateLocationFromSearch() {
   --success-color: #28a745;
   --danger-color: #dc3545;
 }
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.form-row .form-group {
+  width: 100%;
+}
+
 
 .page-header {
   margin-bottom: 40px;
@@ -701,7 +766,8 @@ updateLocationFromSearch() {
 
 .step.completed .step-number {
   background: var(--success-color);
-  color: white;
+  background: #e8ecef;
+  color: #999;
 }
 
 .step-label {
@@ -733,6 +799,8 @@ updateLocationFromSearch() {
 
 .form-group {
   margin-bottom: 20px;
+  position: relative;
+
 }
 
 .form-row {
@@ -1078,6 +1146,13 @@ updateLocationFromSearch() {
 }
 
 
+.input-error {
+  color: red;
+  font-size: 0.95rem;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
 @media (max-width: 768px) {
   .creation-container {
     padding: 20px;
@@ -1096,12 +1171,12 @@ updateLocationFromSearch() {
   }
 
   .steps-indicator {
-    flex-direction: column;
-    gap: 16px;
+    flex-direction: row;
+    gap: 8px;
   }
 
   .steps-indicator::before {
-    display: none;
+    display: block;
   }
 
   .form-navigation {
