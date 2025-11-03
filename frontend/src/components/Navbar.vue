@@ -21,18 +21,18 @@
               Browser
             </router-link>
 
-            <!-- Calendar - visible to regular users and organizers -->
+            <!-- Calendar - visible to player users and organizers -->
             <router-link 
-              v-if="isLoggedIn && (userRole === 'regular' || userRole === 'organizer')"
+              v-if="(userRole === 'player')"
               to="/calendar" 
               class="nav-link-custom"
             >
               Calendar
             </router-link>
 
-            <!-- My Matches - visible to regular users and organizers -->
+            <!-- My Matches - visible to player users and organizers -->
             <router-link 
-              v-if="isLoggedIn && userRole === 'regular'"
+              v-if="userRole === 'player'"
               to="/my-matches" 
               class="nav-link-custom"
             >
@@ -41,7 +41,7 @@
 
             <!-- Game Creation - visible to organizers only -->
             <router-link 
-              v-if="isLoggedIn && userRole === 'regular'"
+              v-if="userRole === 'player'"
               to="/create-game" 
               class="nav-link-custom"
             >
@@ -50,7 +50,7 @@
 
             <!-- Admin Dashboard - visible to admins only -->
             <router-link 
-              v-if="isLoggedIn && userRole === 'admin'"
+              v-if="userRole === 'admin'"
               to="/admin-dashboard" 
               class="nav-link-custom"
             >
@@ -72,6 +72,10 @@
         <!-- Mobile Menu (Right side) -->
         <div :class="['mobile-menu', { 'show': showMobileMenu }]">
           <div class="mobile-menu-content">
+            <button class="btn btn-danger text-end" @click="closeMobileMenu">
+              X
+            </button>
+
             <!-- Mobile Navigation Links -->
             <router-link 
               to="/browser" 
@@ -83,7 +87,7 @@
             </router-link>
 
             <router-link 
-              v-if="isLoggedIn && (userRole === 'regular' || userRole === 'organizer')"
+              v-if="(userRole === 'player')"
               to="/calendar" 
               class="mobile-nav-link"
               @click="closeMobileMenu"
@@ -92,7 +96,7 @@
             </router-link>
 
             <router-link 
-              v-if="isLoggedIn && (userRole === 'regular')"
+              v-if="(userRole === 'player')"
               to="/my-matches" 
               class="mobile-nav-link"
               @click="closeMobileMenu"
@@ -101,7 +105,7 @@
             </router-link>
 
             <router-link 
-              v-if="isLoggedIn && userRole === 'regular'"
+              v-if="userRole === 'player'"
               to="/create-game" 
               class="mobile-nav-link"
               @click="closeMobileMenu"
@@ -110,7 +114,7 @@
             </router-link>
 
             <router-link 
-              v-if="isLoggedIn && userRole === 'admin'"
+              v-if="userRole === 'admin'"
               to="/admin-dashboard" 
               class="mobile-nav-link"
               @click="closeMobileMenu"
@@ -121,45 +125,36 @@
             <div class="mobile-menu-divider"></div>
 
             <!-- User Actions in Mobile Menu -->
-            <div v-if="isLoggedIn && userRole !== 'admin'" class="mobile-user-section">
-              <div class="mobile-profile-info">
-                <img :src="user.profilePic" alt="Profile" class="mobile-profile-pic" />
-                <span class="mobile-user-name">{{ user.name }}</span>
-              </div>
+            <div v-if="userRole !== 'admin'" class="mobile-user-section">
               <router-link 
+                v-if="userRole !== 'admin'"
                 to="/profile" 
                 class="mobile-nav-link"
                 @click="closeMobileMenu"
               >
-                👤 My Profile
+                <img 
+                  :src="userInfo?.profile_image || defaultProfileImage" 
+                  alt="Profile" 
+                  class="mobile-profile-pic" 
+                />
+                <span class="mobile-user-name px-2">
+                  {{ userInfo?.name || 'User' }}
+                </span>
               </router-link>
-              <button @click="logout" class="mobile-nav-link logout-link">Logout</button>
+              <button @click="logout" class="mobile-nav-link logout-link">
+                Logout
+              </button>
             </div>
 
-            <div v-if="isLoggedIn && userRole === 'admin'" class="mobile-user-section">
+            <div v-if="userRole === 'admin'" class="mobile-user-section">
               <div class="mobile-profile-info">
-                <img :src="user.profilePic" alt="Profile" class="mobile-profile-pic" />
-                <span class="mobile-user-name admin-badge">{{ user.name }} (Admin)</span>
+                <img :src="userInfo?.profile_image || defaultProfileImage" alt="Profile" class="mobile-profile-pic" />
+                <span class="mobile-user-name admin-badge">{{ userInfo?.name }} (Admin)</span>
               </div>
-              <button @click="logout" class="mobile-nav-link logout-link">Logout</button>
+              <button @click="showLogoutConfirm = true" class="mobile-nav-link logout-link">Logout</button>
             </div>
 
-            <template v-if="!isLoggedIn">
-              <router-link 
-                to="/login" 
-                class="mobile-nav-link"
-                @click="closeMobileMenu"
-              >
-                Login
-              </router-link>
-              <router-link 
-                to="/register" 
-                class="mobile-nav-link mobile-signup"
-                @click="closeMobileMenu"
-              >
-                Sign Up
-              </router-link>
-            </template>
+            
           </div>
         </div>
 
@@ -220,19 +215,34 @@
           </div>
           <!-- end of notifications -->
 
-          <!-- Logged in user (regular or organizer) - show profile dropdown -->
-          <div v-if="isLoggedIn && userRole !== 'admin'" class="profile-dropdown">
-            <button 
-              class="profile-button" 
-              type="button" 
-              @click="toggleDropdown"
-              ref="profileButton"
+          <!-- User profile and logout -->
+          <div v-if="userRole !== 'admin'" class="d-flex gap-3">
+            <router-link 
+              v-if="userInfo && userRole !== 'admin'" 
+              to="/profile" 
+              class="d-flex align-items-center gap-2 text-decoration-none profile-link"
             >
-              <img :src="user.profilePic" alt="Profile" class="profile-pic-small" />
-              <span class="user-name d-none d-md-inline">{{ user.name }}</span>
+              <img 
+                :src="userInfo?.profile_image || defaultProfileImage" 
+                alt="Profile" 
+                class="profile-pic rounded-circle border border-warning border-3"
+              />
+              <!-- Hide name on small/medium, show on large+ -->
+              <span class="fw-semibold text-dark d-lg-inline profile-name">
+                {{ userInfo?.name || 'User' }}
+              </span>
+            </router-link>
+
+            <!-- Logout Button (player User) - Desktop -->
+            <button 
+              v-if="userInfo && userRole !== 'admin'"
+              @click="logout" 
+              class="btn btn-danger btn-sm d-md-inline-block logout-btn rounded-pill"
+            >
+              Logout
             </button>
             
-            <div v-if="showDropdown" class="dropdown-menu-custom" ref="dropdownMenu">
+            <!-- <div v-if="showDropdown" class="dropdown-menu-custom" ref="dropdownMenu">
               <router-link 
                 to="/profile" 
                 class="dropdown-item-custom"
@@ -241,23 +251,31 @@
                 👤 My Profile
               </router-link>
               <hr class="dropdown-divider" />
-              <!-- <button @click="logout" class="btn btn-logout">Logout</button> -->
               <button @click="showLogoutConfirm = true" class="btn btn-logout">Logout</button>
-            </div>
+            </div> -->
+            <!-- Logout Button (player User) - Mobile Icon -->
+            <button 
+              v-if="userInfo && userRole !== 'admin'"
+              @click="showLogoutConfirm = true"
+              class="btn btn-danger btn-sm d-inline-block d-md-none logout-btn-icon rounded-pill"
+              aria-label="Logout"
+            >
+
+            </button>
           </div>
 
           <!-- Admin user - show admin label and logout -->
-          <div v-if="isLoggedIn && userRole === 'admin'" class="admin-section">
+          <div v-if="userRole === 'admin'" class="admin-section">
             <span class="admin-label">Admin</span>
             <!-- <button @click="logout" class="btn btn-logout-small">Logout</button> -->
             <button @click="showLogoutConfirm = true" class="btn btn-logout-small">Logout</button>
           </div>
           
           <!-- Not logged in - show login and signup -->
-          <template v-if="!isLoggedIn">
+          <!-- <template v-if="!isLoggedIn">
             <router-link to="/login" class="nav-link-custom">Login</router-link>
             <router-link to="/register" class="btn btn-signup">Sign Up</router-link>
-          </template>
+          </template> -->
         </div>
 
         <!-- confirm logout -->
@@ -275,38 +293,24 @@
   </template>
 
   <script>
-  import { supabase } from '@/lib/supabase'
+  import { supabase } from '@/lib/supabase';
 
   export default {
     name: 'Navbar',
     
-    props: {
-      isLoggedIn: {
-        type: Boolean,
-        default: false
-      },
-      userRole: {
-        type: String,
-        enum: ['admin', 'organizer', 'regular'],
-        default: 'regular'
-      },
-      user: {
-        type: Object,
-        default: () => ({
-          name: 'John Doe',
-          profilePic: 'https://i.pravatar.cc/150?img=12'
-        })
-      }
-    },
     data() {
       return {
-        currentUser: null,
         isScrolled: false,
         showDropdown: false,
         showMobileMenu: false,
         showNotifications: false,
         notifications: [],
-        showLogoutConfirm: false
+        showLogoutConfirm: false,
+        userInfo: null,
+        userRole: 'player',
+        isLoading: false,
+        loadError: null,
+        defaultProfileImage: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/profile_images/default-avatar.png`,
       };
     },
     computed: {
@@ -319,6 +323,7 @@
       document.addEventListener('click', this.handleClickOutside);
       document.addEventListener('click', this.handleNotificationClickOutside);
       this.loadNotifications();
+      await this.loadCurrentUser();
     },
     beforeUnmount() {
       window.removeEventListener('scroll', this.handleScroll);
@@ -326,6 +331,39 @@
       document.removeEventListener('click', this.handleNotificationClickOutside);
     },
     methods: {
+      async loadCurrentUser() {
+        this.isLoading = true;
+        this.loadError = null;
+
+        try {
+          const { data: authData, error: authError } = await supabase.auth.getUser();
+          if (authError) throw authError;
+
+          if (!authData?.user) {
+            console.log('No user logged in');
+            this.userInfo = null;
+            this.userRole = 'player';
+            return;  // ← Early return prevents errors
+          }
+
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', authData.user.id)
+            .single();
+
+          if (profileError) throw profileError;
+
+          this.userInfo = profileData;
+          this.userRole = profileData.role;
+
+        } catch (err) {
+          console.error('Error loading user:', err);
+          this.loadError = 'Failed to load profile. Please try again.';
+        } finally {
+          this.isLoading = false;
+        }
+      },
       handleScroll() {
         this.isScrolled = window.scrollY > 50;
       },
@@ -410,6 +448,65 @@
   </script>
 
   <style scoped>
+  /* Profile Picture - Responsive sizing */
+  .profile-pic {
+    width: 2.5rem;
+    height: 2.5rem;
+    object-fit: cover;
+    transition: all 0.2s ease;
+  }
+  .profile-link {
+    padding: 0.25rem;
+    border-radius: 1.5rem;
+  }
+  /* Profile link hover effect */
+  .profile-link:hover {
+    opacity: 0.8;
+    background-color: #ff6b3553;
+    padding: 0.25rem;
+    transform: scale(1.05);
+  }
+  /* Profile name styling */
+  .profile-name {
+    font-size: 1rem;
+    white-space: nowrap;
+    max-width: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Logout button styling */
+  .logout-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    min-width: 5rem;
+  }
+
+  .logout-btn-icon {
+    padding: 0.5rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Button hover effects */
+  .logout-btn:hover,
+  .logout-btn-icon:hover {
+    transform: translateY(-0.125rem);
+    box-shadow: 0 0.25rem 0.5rem rgba(220, 53, 69, 0.3);
+  }
+
+  .mobile-profile-pic {
+    width: 2.5rem;              /* 40px */
+    height: 2.5rem;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 0.125rem solid #FF6B35;  /* 2px */
+  }
+
   .navbar-custom {
     background-color: white;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
@@ -506,8 +603,6 @@
   .navbar-toggler {
     display: none;
     background: none;
-    border: 2px solid #2C3E50;
-    border-radius: 0.5rem;
     padding: 0.5rem 0.75rem;
     cursor: pointer;
     font-size: 1.5rem;

@@ -26,27 +26,27 @@
               Browser
             </router-link>
 
-            <!-- Calendar - visible to regular users -->
+            <!-- Calendar - visible to player users -->
             <router-link 
-              v-if="isLoggedIn && userRole === 'regular'"
+              v-if="userRole === 'player'"
               to="/calendar" 
               class="footer-link"
             >
               Calendar
             </router-link>
 
-            <!-- My Matches - visible to regular users -->
+            <!-- My Matches - visible to player users -->
             <router-link 
-              v-if="isLoggedIn && userRole === 'regular'"
+              v-if="userRole === 'player'"
               to="/my-matches" 
               class="footer-link"
             >
               My Matches
             </router-link>
 
-            <!-- Game Creation - visible to regular users -->
+            <!-- Game Creation - visible to player users -->
             <router-link 
-              v-if="isLoggedIn && userRole === 'regular'"
+              v-if="userRole === 'player'"
               to="/create-game" 
               class="footer-link"
             >
@@ -55,7 +55,7 @@
 
             <!-- Admin Dashboard - visible to admins only -->
             <router-link 
-              v-if="isLoggedIn && userRole === 'admin'"
+              v-if="userRole === 'admin'"
               to="/admin-dashboard" 
               class="footer-link"
             >
@@ -74,24 +74,54 @@
 </template>
 
 <script>
+import { supabase } from '@/lib/supabase';
+
 export default {
   name: 'Footer',
-  props: {
-    isLoggedIn: {
-      type: Boolean,
-      default: false
-    },
-    userRole: {
-      type: String,
-      enum: ['admin', 'regular'],
-      default: 'regular'
+  data() {
+    return {
+      userRole: 'player',
     }
   },
   computed: {
     currentYear() {
       return new Date().getFullYear();
     }
-  }
+  },
+  methods: {
+      async loadCurrentUser() {
+        this.isLoading = true;
+        this.loadError = null;
+
+        try {
+          const { data: authData, error: authError } = await supabase.auth.getUser();
+          if (authError) throw authError;
+
+          if (!authData?.user) {
+            console.log('No user logged in');
+            this.userInfo = null;
+            this.userRole = 'player';
+            return;  // ← Early return prevents errors
+          }
+
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', authData.user.id)
+            .single();
+
+          if (profileError) throw profileError;
+
+          this.userRole = profileData.role;
+
+        } catch (err) {
+          console.error('Error loading user:', err);
+          this.loadError = 'Failed to load profile. Please try again.';
+        } finally {
+          this.isLoading = false;
+        }
+      },
+    }
 };
 </script>
 

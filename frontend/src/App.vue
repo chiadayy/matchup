@@ -3,9 +3,6 @@
   <div id="app" class="d-flex flex-column min-vh-100">
     <Navbar
       v-if="showNavbar"
-      :isLoggedIn="true"
-      userRole="regular"
-      :user="{ name: 'John Doe', profilePic: '...' }"
       @logout="handleLogout"
     />
 
@@ -17,8 +14,6 @@
     <!-- Footer stays at bottom -->
     <Footer
       v-if="showFooter"
-      :isLoggedIn="true"
-      userRole="regular"
     />
   </div>
 </template>
