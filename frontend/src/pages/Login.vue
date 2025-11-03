@@ -231,4 +231,89 @@ a {
 a:hover {
   color: #34D399;
 }
+
+/* Mobile phones (768px) */
+@media (max-width: 768px) {
+  .login-container {
+    padding: 20px 15px;
+  }
+
+  .login-card {
+    padding: 35px 25px;
+  }
+
+  .login-title {
+    font-size: 2rem;
+  }
+
+  .login-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .form-label {
+    font-size: 0.9rem;
+  }
+
+  .form-control {
+    font-size: 0.9rem;
+    padding: 11px 14px;
+  }
+
+  .btn-primary {
+    font-size: 0.95rem;
+  }
+}
+
+/* Small phones (576px) */
+@media (max-width: 576px) {
+  .login-container {
+    padding: 15px 10px;
+  }
+
+  .login-card {
+    padding: 30px 20px;
+    border-radius: 16px;
+  }
+
+  .login-title {
+    font-size: 1.75rem;
+  }
+
+  .login-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .form-group {
+    margin-bottom: 18px;
+  }
+
+  .form-label {
+    font-size: 0.85rem;
+  }
+
+  .form-control {
+    font-size: 0.85rem;
+    padding: 10px 12px;
+  }
+
+  .btn-primary {
+    padding: 11px 20px;
+    font-size: 0.9rem;
+  }
+
+  .text-muted {
+    font-size: 0.85rem;
+  }
+}
+
+/* Extra small phones (375px) */
+@media (max-width: 375px) {
+  .login-title {
+    font-size: 1.5rem;
+  }
+
+  .form-control {
+    font-size: 0.8rem;
+  }
+}
 </style>

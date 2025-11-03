@@ -1,16 +1,28 @@
 <template>
   <div class="browser-page">
-
     <div class="container mt-4">
       <div class="page-header">
         <h1 class="fw-bold">Browse Matches</h1>
-        <p class="results-count">Showing <span>{{ filteredMatches.length }}</span> matches</p>
+        <p class="results-count">
+          Showing <span>{{ filteredMatches.length }}</span> matches
+        </p>
       </div>
 
       <!-- Weather Banner -->
-      <div v-if="weatherBannerData && !weatherBannerDismissed" class="weather-banner-wrapper">
-        <div class="weather-banner" :class="getWeatherBannerClass(weatherBannerData.condition)">
-          <button class="weather-banner-dismiss" @click="weatherBannerDismissed = true">×</button>
+      <div
+        v-if="weatherBannerData && !weatherBannerDismissed"
+        class="weather-banner-wrapper"
+      >
+        <div
+          class="weather-banner"
+          :class="getWeatherBannerClass(weatherBannerData.condition)"
+        >
+          <button
+            class="weather-banner-dismiss"
+            @click="weatherBannerDismissed = true"
+          >
+            ×
+          </button>
 
           <div class="weather-banner-main">
             <div class="weather-banner-icon">
@@ -19,18 +31,26 @@
             <div class="weather-banner-content">
               <div class="weather-banner-location">
                 <span class="location-icon">📍</span>
-                <span class="location-text">{{ weatherBannerData.locationName }}</span>
+                <span class="location-text">{{
+                  weatherBannerData.locationName
+                }}</span>
               </div>
               <div class="weather-banner-stats">
                 <span class="weather-temp">{{ weatherBannerData.temp }}°C</span>
                 <span class="weather-divider">•</span>
-                <span class="weather-condition">{{ weatherBannerData.condition }}</span>
+                <span class="weather-condition">{{
+                  weatherBannerData.condition
+                }}</span>
                 <span class="weather-divider">•</span>
-                <span class="weather-humidity">{{ weatherBannerData.humidity }}% Humidity</span>
+                <span class="weather-humidity"
+                  >{{ weatherBannerData.humidity }}% Humidity</span
+                >
               </div>
               <div class="weather-banner-suggestion">
                 <span class="suggestion-icon">💡</span>
-                <span class="suggestion-text">{{ getWeatherSuggestion(weatherBannerData) }}</span>
+                <span class="suggestion-text">{{
+                  getWeatherSuggestion(weatherBannerData)
+                }}</span>
               </div>
             </div>
           </div>
@@ -108,26 +128,37 @@
                 class="filter-tag"
                 @click="removeSportFilter(sport)"
               >
-                {{ getSportIcon(sport) }} {{ sport }} <span class="tag-remove">×</span>
+                {{ getSportIcon(sport) }} {{ sport }}
+                <span class="tag-remove">×</span>
               </span>
               <span
                 v-if="skillLevel"
                 class="filter-tag"
-                @click="skillLevel = ''; filterMatches()"
+                @click="
+                  skillLevel = '';
+                  filterMatches();
+                "
               >
                 {{ skillLevel }} <span class="tag-remove">×</span>
               </span>
               <span
                 v-if="location"
                 class="filter-tag"
-                @click="location = ''; locationSearch = ''; filterMatches()"
+                @click="
+                  location = '';
+                  locationSearch = '';
+                  filterMatches();
+                "
               >
                 📍 {{ location }} <span class="tag-remove">×</span>
               </span>
               <span
                 v-if="!location && locationSearch.trim()"
                 class="filter-tag"
-                @click="locationSearch = ''; filterMatches()"
+                @click="
+                  locationSearch = '';
+                  filterMatches();
+                "
               >
                 🔍 "{{ locationSearch }}" <span class="tag-remove">×</span>
               </span>
@@ -137,7 +168,8 @@
                 class="filter-tag"
                 @click="removePriceFilter(price)"
               >
-                {{ price === 'Free' ? '💸' : '💰' }} {{ price }} <span class="tag-remove">×</span>
+                {{ price === "Free" ? "💸" : "💰" }} {{ price }}
+                <span class="tag-remove">×</span>
               </span>
             </div>
           </div>
@@ -179,14 +211,20 @@
                   :key="level"
                   class="filter-pill"
                   :class="{ active: skillLevel === level }"
-                  @click="skillLevel = level; filterMatches()"
+                  @click="
+                    skillLevel = level;
+                    filterMatches();
+                  "
                 >
                   {{ level }}
                 </button>
                 <button
                   class="filter-pill"
                   :class="{ active: skillLevel === '' }"
-                  @click="skillLevel = ''; filterMatches()"
+                  @click="
+                    skillLevel = '';
+                    filterMatches();
+                  "
                 >
                   All Levels
                 </button>
@@ -211,15 +249,29 @@
                 />
 
                 <!-- Auto-complete Dropdown -->
-                <div v-if="showLocationSuggestions && (addressSuggestions.length > 0 || filteredLocationSuggestions.length > 0 || locationSearch.trim())"
-                     class="location-suggestions">
+                <div
+                  v-if="
+                    showLocationSuggestions &&
+                    (addressSuggestions.length > 0 ||
+                      filteredLocationSuggestions.length > 0 ||
+                      locationSearch.trim())
+                  "
+                  class="location-suggestions"
+                >
                   <!-- Loading indicator -->
-                  <div v-if="isLoadingAddresses" class="location-suggestion-loading">
-                    <span class="loading-spinner">🔄</span> Searching for exact addresses...
+                  <div
+                    v-if="isLoadingAddresses"
+                    class="location-suggestion-loading"
+                  >
+                    <span class="loading-spinner">🔄</span> Searching for exact
+                    addresses...
                   </div>
 
                   <!-- Exact Address Suggestions from OneMap API -->
-                  <div v-if="addressSuggestions.length > 0 && !isLoadingAddresses" class="address-suggestions-section">
+                  <div
+                    v-if="addressSuggestions.length > 0 && !isLoadingAddresses"
+                    class="address-suggestions-section"
+                  >
                     <div class="suggestions-label">📍 Exact Addresses</div>
                     <div
                       v-for="(address, index) in addressSuggestions"
@@ -227,17 +279,36 @@
                       class="location-suggestion-item location-suggestion-address"
                       @mousedown.prevent="selectAddressSuggestion(address)"
                     >
-                      <div class="address-main">{{ address.building || address.road }}</div>
+                      <div class="address-main">
+                        {{ address.building || address.road }}
+                      </div>
                       <div class="address-detail">{{ address.address }}</div>
                     </div>
                   </div>
 
                   <!-- Separator if both types exist -->
-                  <div v-if="addressSuggestions.length > 0 && filteredLocationSuggestions.length > 0 && !isLoadingAddresses" class="suggestions-separator"></div>
+                  <div
+                    v-if="
+                      addressSuggestions.length > 0 &&
+                      filteredLocationSuggestions.length > 0 &&
+                      !isLoadingAddresses
+                    "
+                    class="suggestions-separator"
+                  ></div>
 
                   <!-- General Area Suggestions -->
-                  <div v-if="filteredLocationSuggestions.length > 0 && !isLoadingAddresses">
-                    <div v-if="addressSuggestions.length > 0" class="suggestions-label">🗺️ General Areas</div>
+                  <div
+                    v-if="
+                      filteredLocationSuggestions.length > 0 &&
+                      !isLoadingAddresses
+                    "
+                  >
+                    <div
+                      v-if="addressSuggestions.length > 0"
+                      class="suggestions-label"
+                    >
+                      🗺️ General Areas
+                    </div>
                     <div
                       v-for="suggestion in filteredLocationSuggestions"
                       :key="suggestion"
@@ -250,11 +321,19 @@
 
                   <!-- Custom location option at the bottom -->
                   <div
-                    v-if="locationSearch.trim() && !isLoadingAddresses && !filteredLocationSuggestions.includes(locationSearch.trim())"
+                    v-if="
+                      locationSearch.trim() &&
+                      !isLoadingAddresses &&
+                      !filteredLocationSuggestions.includes(
+                        locationSearch.trim()
+                      )
+                    "
                     class="location-suggestion-item location-suggestion-custom"
                     @mousedown.prevent="useCustomLocation"
                   >
-                    <span class="custom-icon">✨</span> Use "{{ locationSearch }}" as custom location
+                    <span class="custom-icon">✨</span> Use "{{
+                      locationSearch
+                    }}" as custom location
                   </div>
                 </div>
               </div>
@@ -273,14 +352,23 @@
                   :key="loc"
                   class="filter-pill"
                   :class="{ active: location === loc }"
-                  @click="location = loc; locationSearch = ''; filterMatches(); fetchWeatherBanner()"
+                  @click="
+                    location = loc;
+                    locationSearch = '';
+                    filterMatches();
+                    fetchWeatherBanner();
+                  "
                 >
                   {{ loc }}
                 </button>
                 <button
                   class="filter-pill"
                   :class="{ active: location === '' && locationSearch === '' }"
-                  @click="location = ''; locationSearch = ''; filterMatches()"
+                  @click="
+                    location = '';
+                    locationSearch = '';
+                    filterMatches();
+                  "
                 >
                   All
                 </button>
@@ -311,7 +399,11 @@
             <!-- Sort By -->
             <div class="filter-section">
               <label class="fw-600">Sort By</label>
-              <select class="form-select" v-model="sortBy" @change="filterMatches">
+              <select
+                class="form-select"
+                v-model="sortBy"
+                @change="filterMatches"
+              >
                 <option value="date">Date (Nearest First)</option>
                 <option value="price-low">Price (Low to High)</option>
                 <option value="price-high">Price (High to Low)</option>
@@ -332,30 +424,58 @@
               @click="openMatchDetail(match)"
             >
               <!-- Sport Icon Badge -->
-              <div class="sport-icon-badge" :style="{ backgroundColor: getSportColor(match.sport_type) }">
+              <div
+                class="sport-icon-badge"
+                :style="{ backgroundColor: getSportColor(match.sport_type) }"
+              >
                 {{ getSportIcon(match.sport_type) }}
               </div>
 
               <div class="match-header">
                 <div>
-                  <h3 class="match-title">{{ match.sport_type }} @ {{ match.location }}</h3>
+                  <h3 class="match-title">
+                    {{ match.sport_type }} @ {{ match.location }}
+                  </h3>
                   <p class="sport-type">{{ match.skill_level }}</p>
                 </div>
-                <span :class="['match-price', match.total_price === 0 ? 'price-free' : 'price-paid']">
-                  {{ match.total_price === 0 ? 'Free' : `$${match.total_price}` }}
+                <span
+                  :class="[
+                    'match-price',
+                    match.total_price === 0 ? 'price-free' : 'price-paid',
+                  ]"
+                >
+                  {{
+                    match.total_price === 0 ? "Free" : `$${match.total_price}`
+                  }}
                 </span>
               </div>
 
               <div class="match-details">
                 <p><strong>Skill level:</strong> {{ match.skill_level }}</p>
-                <p><strong>Date and Time:</strong> {{ match.date }} {{ match.time }}</p>
-                <p><strong>Distance:</strong> <span class="distance-badge">📍 {{ getMatchDistance(match) }} km away</span></p>
+                <p>
+                  <strong>Date and Time:</strong> {{ match.date }}
+                  {{ match.time }}
+                </p>
+                <p>
+                  <strong>Distance:</strong>
+                  <span class="distance-badge"
+                    >📍 {{ getMatchDistance(match) }} km away</span
+                  >
+                </p>
                 <div class="player-progress">
-                  <span class="player-count">{{ match.current_player_count }}/{{ match.total_player_count }} players</span>
+                  <span class="player-count"
+                    >{{ match.current_player_count }}/{{
+                      match.total_player_count
+                    }}
+                    players</span
+                  >
                   <div class="progress-bar">
                     <div
                       class="progress-fill"
-                      :style="{ width: getPlayerPercentage(match) + '%', backgroundColor: getSportColor(match.sport_type) }"
+                      :style="{
+                        width: getPlayerPercentage(match) + '%',
+                        backgroundColor: getSportColor(match.sport_type),
+                      }"
                     ></div>
                   </div>
                 </div>
@@ -367,16 +487,20 @@
               > -->
               <button
                 class="btn-join-match"
-                :class="{ 'pulse-btn': getAvailableSpots(match.current_player_count) < 3 }"
+                :class="{
+                  'pulse-btn':
+                    getAvailableSpots(match.current_player_count) < 3,
+                }"
                 @click="openMatchDetail(match)"
               >
                 <!-- {{ getAvailableSpots(match) === 0 ? 'Full' : 'Join Match' }} -->
-                  {{ getAvailableSpots(match) === 0
-                      ? 'Full'
-                      : userMatches[match.id]
-                        ? 'Joined'
-                        : 'Join Match'
-                  }}
+                {{
+                  getAvailableSpots(match) === 0
+                    ? "Full"
+                    : userMatches[match.id]
+                    ? "Joined"
+                    : "Join Match"
+                }}
               </button>
             </div>
           </div>
@@ -391,13 +515,37 @@
             <nav>
               <ul class="pagination">
                 <li :class="['page-item', currentPage === 1 ? 'disabled' : '']">
-                  <a class="page-link" href="javascript:void(0)" @click="changePage(currentPage - 1)">Previous</a>
+                  <a
+                    class="page-link"
+                    href="javascript:void(0)"
+                    @click="changePage(currentPage - 1)"
+                    >Previous</a
+                  >
                 </li>
-                <li v-for="page in totalPages" :key="page" :class="['page-item', currentPage === page ? 'active' : '']">
-                  <a class="page-link" href="javascript:void(0)" @click="changePage(page)">{{ page }}</a>
+                <li
+                  v-for="page in totalPages"
+                  :key="page"
+                  :class="['page-item', currentPage === page ? 'active' : '']"
+                >
+                  <a
+                    class="page-link"
+                    href="javascript:void(0)"
+                    @click="changePage(page)"
+                    >{{ page }}</a
+                  >
                 </li>
-                <li :class="['page-item', currentPage === totalPages ? 'disabled' : '']">
-                  <a class="page-link" href="javascript:void(0)" @click="changePage(currentPage + 1)">Next</a>
+                <li
+                  :class="[
+                    'page-item',
+                    currentPage === totalPages ? 'disabled' : '',
+                  ]"
+                >
+                  <a
+                    class="page-link"
+                    href="javascript:void(0)"
+                    @click="changePage(currentPage + 1)"
+                    >Next</a
+                  >
                 </li>
               </ul>
             </nav>
@@ -408,7 +556,7 @@
 
     <!-- Match Detail Modal -->
     <MatchDetailModal
-      v-if="showMatchDetail" 
+      v-if="showMatchDetail"
       :isOpen="showMatchDetail"
       :match="selectedMatch"
       :currentUser="currentUser"
@@ -421,18 +569,18 @@
 </template>
 
 <script>
-import { supabase } from '@/lib/supabase';
-import MatchDetailModal from '@/components/MatchDetailModal.vue';
-import MapView from '@/components/MapView.vue';
-import WeatherBadge from '@/components/WeatherBadge.vue';
+import { supabase } from "@/lib/supabase";
+import MatchDetailModal from "@/components/MatchDetailModal.vue";
+import MapView from "@/components/MapView.vue";
+import WeatherBadge from "@/components/WeatherBadge.vue";
 // import { format } from 'node:util';
 
 export default {
-  name: 'Browser',
+  name: "Browser",
   components: {
     MatchDetailModal,
     MapView,
-    WeatherBadge
+    WeatherBadge,
   },
   data() {
     return {
@@ -440,27 +588,27 @@ export default {
       filteredMatches: [],
       currentPage: 1,
       itemsPerPage: 8,
-      sports: ['Basketball', 'Tennis', 'Football', 'Badminton'],
+      sports: ["Basketball", "Tennis", "Football", "Badminton"],
       sportsWithIcons: [
-        { name: 'Basketball', icon: '🏀' },
-        { name: 'Tennis', icon: '🎾' },
-        { name: 'Football', icon: '⚽' },
-        { name: 'Badminton', icon: '🏸' }
+        { name: "Basketball", icon: "🏀" },
+        { name: "Tennis", icon: "🎾" },
+        { name: "Football", icon: "⚽" },
+        { name: "Badminton", icon: "🏸" },
       ],
-      skillLevels: ['Any Level', 'Beginner', 'Intermediate', 'Advanced'],
-      locations: ['Hougang', 'Sengkang', 'Punggol', 'Tampines', 'Bedok'],
+      skillLevels: ["Any Level", "Beginner", "Intermediate", "Advanced"],
+      locations: ["Hougang", "Sengkang", "Punggol", "Tampines", "Bedok"],
       selectedSports: [],
-      skillLevel: '',
-      location: '',
+      skillLevel: "",
+      location: "",
       priceFilter: [],
-      sortBy: 'date',
+      sortBy: "date",
       activeShortcut: null,
       isFiltering: false,
       currentUser: null,
-      userMatches: {}, 
+      userMatches: {},
 
       // Location search
-      locationSearch: '',
+      locationSearch: "",
       showLocationSuggestions: false,
       addressSuggestions: [], // Geocoded address suggestions
       isLoadingAddresses: false,
@@ -468,16 +616,42 @@ export default {
       searchTimeout: null, // Debounce timer for geocoding API
       allLocationSuggestions: [
         // Pre-set locations
-        'Hougang', 'Sengkang', 'Punggol', 'Tampines', 'Bedok',
+        "Hougang",
+        "Sengkang",
+        "Punggol",
+        "Tampines",
+        "Bedok",
         // Additional areas
-        'Woodlands', 'Yishun', 'Ang Mo Kio', 'Bishan', 'Toa Payoh',
-        'Novena', 'Orchard', 'Marina Bay', 'Bugis', 'Chinatown',
-        'Jurong East', 'Clementi', 'Bukit Timah', 'Newton', 'Outram',
+        "Woodlands",
+        "Yishun",
+        "Ang Mo Kio",
+        "Bishan",
+        "Toa Payoh",
+        "Novena",
+        "Orchard",
+        "Marina Bay",
+        "Bugis",
+        "Chinatown",
+        "Jurong East",
+        "Clementi",
+        "Bukit Timah",
+        "Newton",
+        "Outram",
         // Venues
-        'Sports Hub', 'Kallang Stadium', 'OCBC Arena', 'Singapore Indoor Stadium',
-        'ActiveSG Courts', 'Heartbeat@Bedok', 'Our Tampines Hub', 'Woodlands Stadium',
-        'Choa Chu Kang Stadium', 'Bishan Stadium', 'Jurong East Sports Centre',
-        'Toa Payoh Sports Hall', 'Delta Sports Complex', 'Hougang Sports Hall'
+        "Sports Hub",
+        "Kallang Stadium",
+        "OCBC Arena",
+        "Singapore Indoor Stadium",
+        "ActiveSG Courts",
+        "Heartbeat@Bedok",
+        "Our Tampines Hub",
+        "Woodlands Stadium",
+        "Choa Chu Kang Stadium",
+        "Bishan Stadium",
+        "Jurong East Sports Centre",
+        "Toa Payoh Sports Hall",
+        "Delta Sports Complex",
+        "Hougang Sports Hall",
       ],
 
       // Modal state
@@ -496,24 +670,30 @@ export default {
       // },
 
       // User's current location
-      userCurrentLocation: null
-    }
+      userCurrentLocation: null,
+    };
   },
   computed: {
     hasActiveFilters() {
-      const hasSkillFilter = this.skillLevel && this.skillLevel !== '' && this.skillLevel !== 'Any Level';
-      const hasLocationFilter = this.location !== '' || this.locationSearch.trim() !== '';
-      return this.selectedSports.length > 0 ||
-             hasSkillFilter ||
-             hasLocationFilter ||
-             this.priceFilter.length > 0;
+      const hasSkillFilter =
+        this.skillLevel &&
+        this.skillLevel !== "" &&
+        this.skillLevel !== "Any Level";
+      const hasLocationFilter =
+        this.location !== "" || this.locationSearch.trim() !== "";
+      return (
+        this.selectedSports.length > 0 ||
+        hasSkillFilter ||
+        hasLocationFilter ||
+        this.priceFilter.length > 0
+      );
     },
 
     // Map center - use searched location if available, otherwise default
     mapCenter() {
       if (this.selectedLocationCoords) {
         return this.selectedLocationCoords;
-      } else if (this.location && this.location !== 'Near Me') {
+      } else if (this.location && this.location !== "Near Me") {
         return this.getMatchCoords(this.location);
       }
       return { lat: 1.3521, lng: 103.8198 }; // Default Singapore
@@ -521,35 +701,39 @@ export default {
 
     // Map zoom - zoom in when location is searched
     mapZoom() {
-      return (this.selectedLocationCoords || this.location) ? 15 : 11;
+      return this.selectedLocationCoords || this.location ? 15 : 11;
     },
 
     // Searched location for red marker
     searchedLocationForMap() {
-      console.log('🎯 Computing searchedLocationForMap:', {
+      console.log("🎯 Computing searchedLocationForMap:", {
         selectedLocationCoords: this.selectedLocationCoords,
-        location: this.location
-      })
+        location: this.location,
+      });
 
       if (this.selectedLocationCoords) {
         const result = {
           lat: this.selectedLocationCoords.lat,
           lng: this.selectedLocationCoords.lng,
-          name: this.location || 'Searched Location'
+          name: this.location || "Searched Location",
         };
-        console.log('📍 Returning exact coords:', result)
+        console.log("📍 Returning exact coords:", result);
         return result;
-      } else if (this.location && this.location !== 'Near Me' && this.location !== '') {
+      } else if (
+        this.location &&
+        this.location !== "Near Me" &&
+        this.location !== ""
+      ) {
         const coords = this.getMatchCoords(this.location);
         const result = {
           lat: coords.lat,
           lng: coords.lng,
-          name: this.location
+          name: this.location,
         };
-        console.log('📍 Returning location coords:', result)
+        console.log("📍 Returning location coords:", result);
         return result;
       }
-      console.log('❌ Returning null')
+      console.log("❌ Returning null");
       return null;
     },
     filteredLocationSuggestions() {
@@ -558,55 +742,61 @@ export default {
       }
       const query = this.locationSearch.toLowerCase();
       return this.allLocationSuggestions
-        .filter(loc => loc.toLowerCase().includes(query))
+        .filter((loc) => loc.toLowerCase().includes(query))
         .slice(0, 8);
     },
     totalPages() {
-      return Math.ceil(this.filteredMatches.length / this.itemsPerPage)
+      return Math.ceil(this.filteredMatches.length / this.itemsPerPage);
     },
     paginatedMatches() {
-      const startIndex = (this.currentPage - 1) * this.itemsPerPage
-      const endIndex = startIndex + this.itemsPerPage
-      return this.filteredMatches.slice(startIndex, endIndex)
+      const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+      const endIndex = startIndex + this.itemsPerPage;
+      return this.filteredMatches.slice(startIndex, endIndex);
     },
     mapGames() {
       // Map coordinates for Singapore locations
       const locationCoords = {
-        'Hougang': { lat: 1.3712, lng: 103.8863 },
-        'Sengkang': { lat: 1.3917, lng: 103.8951 },
-        'Punggol': { lat: 1.4043, lng: 103.9021 },
-        'Tampines': { lat: 1.3529, lng: 103.9446 },
-        'Bedok': { lat: 1.3236, lng: 103.9273 },
-        'Serangoon CC': { lat: 1.3537, lng: 103.8721 },
-        'Choa Chu Kang CC': { lat: 1.3853, lng: 103.7459 },
-        'Bukit Merah CC': { lat: 1.2827, lng: 103.8179 },
-        'Woodlands': { lat: 1.4382, lng: 103.7891 },
-        'Yishun': { lat: 1.4304, lng: 103.8354 },
-        'Ang Mo Kio': { lat: 1.3691, lng: 103.8454 },
-        'Bishan': { lat: 1.3526, lng: 103.8352 },
-        'Toa Payoh': { lat: 1.3343, lng: 103.8567 },
-        'Jurong East': { lat: 1.3329, lng: 103.7436 },
-        'Clementi': { lat: 1.3162, lng: 103.7649 }
+        Hougang: { lat: 1.3712, lng: 103.8863 },
+        Sengkang: { lat: 1.3917, lng: 103.8951 },
+        Punggol: { lat: 1.4043, lng: 103.9021 },
+        Tampines: { lat: 1.3529, lng: 103.9446 },
+        Bedok: { lat: 1.3236, lng: 103.9273 },
+        "Serangoon CC": { lat: 1.3537, lng: 103.8721 },
+        "Choa Chu Kang CC": { lat: 1.3853, lng: 103.7459 },
+        "Bukit Merah CC": { lat: 1.2827, lng: 103.8179 },
+        Woodlands: { lat: 1.4382, lng: 103.7891 },
+        Yishun: { lat: 1.4304, lng: 103.8354 },
+        "Ang Mo Kio": { lat: 1.3691, lng: 103.8454 },
+        Bishan: { lat: 1.3526, lng: 103.8352 },
+        "Toa Payoh": { lat: 1.3343, lng: 103.8567 },
+        "Jurong East": { lat: 1.3329, lng: 103.7436 },
+        Clementi: { lat: 1.3162, lng: 103.7649 },
       };
 
       // Sport icons and colors
       const sportConfig = {
-        'Basketball': { icon: '🏀', color: '#f97316' },
-        'Tennis': { icon: '🎾', color: '#84cc16' },
-        'Football': { icon: '⚽', color: '#10b981' },
-        'Badminton': { icon: '🏸', color: '#ec4899' }
+        Basketball: { icon: "🏀", color: "#f97316" },
+        Tennis: { icon: "🎾", color: "#84cc16" },
+        Football: { icon: "⚽", color: "#10b981" },
+        Badminton: { icon: "🏸", color: "#ec4899" },
       };
 
-      return this.filteredMatches.map(match => {
-        const coords = locationCoords[match.location] || { lat: 1.3521, lng: 103.8198 };
-        const config = sportConfig[match.sport_type] || { icon: '🏃', color: '#3b82f6' };
+      return this.filteredMatches.map((match) => {
+        const coords = locationCoords[match.location] || {
+          lat: 1.3521,
+          lng: 103.8198,
+        };
+        const config = sportConfig[match.sport_type] || {
+          icon: "🏃",
+          color: "#3b82f6",
+        };
 
-        const [joined, capacity] = "7/8".split('/').map(Number);
+        const [joined, capacity] = "7/8".split("/").map(Number);
 
         // Create ISO timestamp from date and time
-        const dateStr = match.date; // "2025-10-20" 
-        const timeStr = match.time // "14:00:00"
-        const [year, month, date] = dateStr.split('-').map(Number);
+        const dateStr = match.date; // "2025-10-20"
+        const timeStr = match.time; // "14:00:00"
+        const [year, month, date] = dateStr.split("-").map(Number);
         const startTimeISO = new Date(`${dateStr}T${timeStr}`).toISOString();
 
         return {
@@ -622,10 +812,10 @@ export default {
           skillLevel: match.skill_level,
           capacity,
           joined,
-          price: match.total_price
+          price: match.total_price,
         };
       });
-    }
+    },
   },
   async mounted() {
     await this.getAllMatches();
@@ -642,11 +832,11 @@ export default {
           (position) => {
             this.userCurrentLocation = {
               lat: position.coords.latitude,
-              lng: position.coords.longitude
+              lng: position.coords.longitude,
             };
           },
           (error) => {
-            console.warn('Could not get user location:', error);
+            console.warn("Could not get user location:", error);
             // Default to Singapore if geolocation fails
             this.userCurrentLocation = { lat: 1.3521, lng: 103.8198 };
           }
@@ -664,7 +854,7 @@ export default {
       if (this.selectedLocationCoords) {
         // User searched for an exact address
         refLocation = this.selectedLocationCoords;
-      } else if (this.location && this.location !== 'Near Me') {
+      } else if (this.location && this.location !== "Near Me") {
         // User selected a predefined location
         refLocation = this.getMatchCoords(this.location);
       } else if (this.userCurrentLocation) {
@@ -687,24 +877,20 @@ export default {
 
     async getAllMatches() {
       try {
-        const { data, error } = await supabase
-          .from("matches")
-          .select("*");
+        const { data, error } = await supabase.from("matches").select("*");
 
         if (error) {
           console.error("Error fetching matches:", error);
           return;
-        } 
-        else {
+        } else {
           this.matches = data;
         }
-      }
-      catch (err) {
+      } catch (err) {
         console.error("Unexpected error:", err);
       }
     },
     filterMatches() {
-      this.filteredMatches = [...this.matches]
+      this.filteredMatches = [...this.matches];
 
       this.filteredMatches = this.filteredMatches.filter(
         m => m.current_player_count < m.total_player_count
@@ -717,18 +903,23 @@ export default {
       })
 
       if (this.selectedSports.length > 0) {
-        this.filteredMatches = this.filteredMatches.filter(m => this.selectedSports.includes(m.sport_type))
+        this.filteredMatches = this.filteredMatches.filter((m) =>
+          this.selectedSports.includes(m.sport_type)
+        );
       }
 
-      if (this.skillLevel && this.skillLevel !== 'Any Level') {
-        this.filteredMatches = this.filteredMatches.filter(m => m.skill_level === this.skillLevel)
+      if (this.skillLevel && this.skillLevel !== "Any Level") {
+        this.filteredMatches = this.filteredMatches.filter(
+          (m) => m.skill_level === this.skillLevel
+        );
       }
 
-        // Location filtering with 5km radius
+      // Location filtering with 5km radius
       if (this.location) {
         // Use exact coordinates if available (from address search), otherwise use predefined coords
-        const searchCoords = this.selectedLocationCoords || this.getMatchCoords(this.location);
-        this.filteredMatches = this.filteredMatches.filter(m => {
+        const searchCoords =
+          this.selectedLocationCoords || this.getMatchCoords(this.location);
+        this.filteredMatches = this.filteredMatches.filter((m) => {
           const matchCoords = this.getMatchCoords(m.location);
           const distance = this.calculateDistance(
             searchCoords.lat,
@@ -740,36 +931,48 @@ export default {
         });
       } else if (this.locationSearch.trim()) {
         const query = this.locationSearch.toLowerCase();
-        this.filteredMatches = this.filteredMatches.filter(m =>
+        this.filteredMatches = this.filteredMatches.filter((m) =>
           m.location.toLowerCase().includes(query)
-        )
+        );
       }
 
       if (this.priceFilter.length > 0) {
-        if (this.priceFilter.includes('Free') && !this.priceFilter.includes('Paid')) {
-          this.filteredMatches = this.filteredMatches.filter(m => m.total_price === 0)
-        } else if (this.priceFilter.includes('Paid') && !this.priceFilter.includes('Free')) {
-          this.filteredMatches = this.filteredMatches.filter(m => m.total_price > 0)
+        if (
+          this.priceFilter.includes("Free") &&
+          !this.priceFilter.includes("Paid")
+        ) {
+          this.filteredMatches = this.filteredMatches.filter(
+            (m) => m.total_price === 0
+          );
+        } else if (
+          this.priceFilter.includes("Paid") &&
+          !this.priceFilter.includes("Free")
+        ) {
+          this.filteredMatches = this.filteredMatches.filter(
+            (m) => m.total_price > 0
+          );
         }
       }
 
-      if (this.sortBy === 'price-low') {
-        this.filteredMatches.sort((a, b) => a.total_price - b.total_price)
-      } else if (this.sortBy === 'price-high') {
-        this.filteredMatches.sort((a, b) => b.total_price - a.total_price)
+      if (this.sortBy === "price-low") {
+        this.filteredMatches.sort((a, b) => a.total_price - b.total_price);
+      } else if (this.sortBy === "price-high") {
+        this.filteredMatches.sort((a, b) => b.total_price - a.total_price);
       }
 
-      this.currentPage = 1
+      this.currentPage = 1;
     },
     async ifUserInMatch(matchId) {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       const { data, error } = await supabase
-          .from('users_matches')
-          .select('*')
-          .eq('match_id', matchId)
-          .eq('user_id', user.id);
+        .from("users_matches")
+        .select("*")
+        .eq("match_id", matchId)
+        .eq("user_id", user.id);
 
-        return data.some(u => u.user_id === user.id);
+      return data.some((u) => u.user_id === user.id);
     },
     async checkAllMatches() {
       for (const match of this.matches) {
@@ -778,43 +981,43 @@ export default {
       }
     },
     formatMatchDate(match) {
-      if (!match.match_date) return { date: '', time: '' };
+      if (!match.match_date) return { date: "", time: "" };
 
       const d = new Date(match.match_date);
-      if (isNaN(d.getTime())) return { date: '', time: '' }; 
+      if (isNaN(d.getTime())) return { date: "", time: "" };
 
       const day = d.getDate();
       const month = d.getMonth() + 1;
       const year = d.getFullYear() % 100; // last 2 digits
       let hour = d.getHours();
-      const ampm = hour >= 12 ? 'pm' : 'am';
+      const ampm = hour >= 12 ? "pm" : "am";
       if (hour > 12) hour -= 12;
       if (hour === 0) hour = 12;
 
       return {
         date: `${month}/${day}/${year}`,
-        time: `${hour}${ampm}`
+        time: `${hour}${ampm}`,
       };
     },
     changePage(page) {
-      if (page < 1 || page > this.totalPages) return
-      this.currentPage = page
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      if (page < 1 || page > this.totalPages) return;
+      this.currentPage = page;
+      window.scrollTo({ top: 0, behavior: "smooth" });
     },
     clearFilters() {
-      this.selectedSports = []
-      this.skillLevel = ''
-      this.location = ''
-      this.locationSearch = ''
-      this.priceFilter = []
-      this.sortBy = 'date'
-      this.activeShortcut = null
-      this.filterMatches()
+      this.selectedSports = [];
+      this.skillLevel = "";
+      this.location = "";
+      this.locationSearch = "";
+      this.priceFilter = [];
+      this.sortBy = "date";
+      this.activeShortcut = null;
+      this.filterMatches();
     },
 
     // Location search methods
     async handleLocationSearch() {
-      this.location = '';
+      this.location = "";
 
       // Clear suggestions if search is empty
       if (!this.locationSearch.trim()) {
@@ -841,11 +1044,13 @@ export default {
       try {
         // Use OneMap Search API for Singapore addresses
         const response = await fetch(
-          `https://www.onemap.gov.sg/api/common/elastic/search?searchVal=${encodeURIComponent(query)}&returnGeom=Y&getAddrDetails=Y&pageNum=1`
+          `https://www.onemap.gov.sg/api/common/elastic/search?searchVal=${encodeURIComponent(
+            query
+          )}&returnGeom=Y&getAddrDetails=Y&pageNum=1`
         );
 
         if (!response.ok) {
-          console.error('OneMap API failed:', response.status);
+          console.error("OneMap API failed:", response.status);
           this.addressSuggestions = [];
           return;
         }
@@ -854,20 +1059,20 @@ export default {
 
         if (data.found > 0) {
           // Transform OneMap results to address suggestions with coordinates
-          this.addressSuggestions = data.results.slice(0, 6).map(result => ({
+          this.addressSuggestions = data.results.slice(0, 6).map((result) => ({
             address: result.ADDRESS,
-            building: result.BUILDING || '',
-            road: result.ROAD_NAME || '',
-            postalCode: result.POSTAL || '',
+            building: result.BUILDING || "",
+            road: result.ROAD_NAME || "",
+            postalCode: result.POSTAL || "",
             lat: parseFloat(result.LATITUDE),
             lng: parseFloat(result.LONGITUDE),
-            displayName: result.ADDRESS
+            displayName: result.ADDRESS,
           }));
         } else {
           this.addressSuggestions = [];
         }
       } catch (error) {
-        console.error('Error fetching address suggestions:', error);
+        console.error("Error fetching address suggestions:", error);
         this.addressSuggestions = [];
       } finally {
         this.isLoadingAddresses = false;
@@ -875,7 +1080,7 @@ export default {
     },
 
     selectLocationSuggestion(suggestion) {
-      this.locationSearch = '';
+      this.locationSearch = "";
       this.location = suggestion;
       this.selectedLocationCoords = null;
       this.showLocationSuggestions = false;
@@ -885,8 +1090,11 @@ export default {
 
     selectAddressSuggestion(addressObj) {
       this.location = addressObj.displayName;
-      this.selectedLocationCoords = { lat: addressObj.lat, lng: addressObj.lng };
-      this.locationSearch = '';
+      this.selectedLocationCoords = {
+        lat: addressObj.lat,
+        lng: addressObj.lng,
+      };
+      this.locationSearch = "";
       this.showLocationSuggestions = false;
       this.addressSuggestions = [];
       this.filterMatches();
@@ -897,7 +1105,7 @@ export default {
       if (!this.locationSearch.trim()) return;
       this.location = this.locationSearch.trim();
       this.selectedLocationCoords = null;
-      this.locationSearch = '';
+      this.locationSearch = "";
       this.showLocationSuggestions = false;
       this.filterMatches();
       this.fetchWeatherBanner(); // Update weather for custom location
@@ -910,8 +1118,8 @@ export default {
     },
 
     selectNearMe() {
-      this.location = 'Near Me';
-      this.locationSearch = '';
+      this.location = "Near Me";
+      this.locationSearch = "";
       // In a real app, you'd use geolocation to filter by distance
       // For now, just set the location
       this.filterMatches();
@@ -941,18 +1149,18 @@ export default {
     },
 
     removeSportFilter(sport) {
-      this.selectedSports = this.selectedSports.filter(s => s !== sport);
+      this.selectedSports = this.selectedSports.filter((s) => s !== sport);
       this.filterMatches();
     },
 
     removePriceFilter(price) {
-      this.priceFilter = this.priceFilter.filter(p => p !== price);
+      this.priceFilter = this.priceFilter.filter((p) => p !== price);
       this.filterMatches();
     },
 
     getSportIcon(sport) {
-      const sportObj = this.sportsWithIcons.find(s => s.name === sport);
-      return sportObj ? sportObj.icon : '🏃';
+      const sportObj = this.sportsWithIcons.find((s) => s.name === sport);
+      return sportObj ? sportObj.icon : "🏃";
     },
 
     applyShortcut(type) {
@@ -967,43 +1175,47 @@ export default {
 
       // Clear other filters
       this.selectedSports = [];
-      this.skillLevel = '';
-      this.location = '';
+      this.skillLevel = "";
+      this.location = "";
       this.priceFilter = [];
 
-      switch(type) {
-        case 'trending':
+      switch (type) {
+        case "trending":
           // Sort by most players joined (higher capacity filled = trending)
-          this.sortBy = 'date';
+          this.sortBy = "date";
           this.filteredMatches = [...this.allMatches];
           this.filteredMatches.sort((a, b) => {
-            const aFillRate = parseInt(a.players.split('/')[0]) / parseInt(a.players.split('/')[1]);
-            const bFillRate = parseInt(b.players.split('/')[0]) / parseInt(b.players.split('/')[1]);
+            const aFillRate =
+              parseInt(a.players.split("/")[0]) /
+              parseInt(a.players.split("/")[1]);
+            const bFillRate =
+              parseInt(b.players.split("/")[0]) /
+              parseInt(b.players.split("/")[1]);
             return bFillRate - aFillRate;
           });
           this.currentPage = 1;
           return;
 
-        case 'free':
-          this.priceFilter = ['Free'];
+        case "free":
+          this.priceFilter = ["Free"];
           break;
 
-        case 'almost-full':
+        case "almost-full":
           // Filter matches with 75%+ capacity
-          this.filteredMatches = this.allMatches.filter(m => {
-            const [joined, capacity] = m.players.split('/').map(Number);
-            return (joined / capacity) >= 0.75;
+          this.filteredMatches = this.allMatches.filter((m) => {
+            const [joined, capacity] = m.players.split("/").map(Number);
+            return joined / capacity >= 0.75;
           });
           this.currentPage = 1;
           return;
 
-        case 'starting-soon':
+        case "starting-soon":
           // Sort by date (earliest first)
-          this.sortBy = 'date';
+          this.sortBy = "date";
           this.filteredMatches = [...this.allMatches];
           this.filteredMatches.sort((a, b) => {
-            const dateA = new Date(a.date.split('/').reverse().join('-'));
-            const dateB = new Date(b.date.split('/').reverse().join('-'));
+            const dateA = new Date(a.date.split("/").reverse().join("-"));
+            const dateB = new Date(b.date.split("/").reverse().join("-"));
             return dateA - dateB;
           });
           this.currentPage = 1;
@@ -1015,68 +1227,75 @@ export default {
 
     // Modal methods
     openMatchDetail(match) {
-        this.selectedMatch = match;
-        this.showMatchDetail = true;
-        // prevent scrolling
-        document.body.style.overflow = 'hidden';
+      this.selectedMatch = match;
+      this.showMatchDetail = true;
+      // prevent scrolling
+      document.body.style.overflow = "hidden";
     },
     closeMatchDetail() {
-      this.showMatchDetail = false
-      this.selectedMatch = null
+      this.showMatchDetail = false;
+      this.selectedMatch = null;
       // Restore body scroll
-      document.body.style.overflow = 'auto'
+      document.body.style.overflow = "auto";
     },
     handleJoinMatch(matchId) {
-      console.log('Joined match:', matchId)
+      console.log("Joined match:", matchId);
       // REAL API: Call join match endpoint
       // await joinMatch(matchId)
-      
+
       // Update UI
       // alert('Successfully joined the match!')
     },
-    handleLeaveMatch(matchId) {
-      console.log('Left match:', matchId)
-      // REAL API: Call leave match endpoint
-      // await leaveMatch(matchId)
-      
-      // Update UI
-      // alert('You have left the match')
+    async handleLeaveMatch(matchId) {
+      console.log("Left match:", matchId);
+
+      // Update the userMatches state
+      this.userMatches[matchId] = false;
+
+      // Refresh the matches to get updated player counts
+      await this.getAllMatches();
+
+      // Re-apply current filters
+      this.filterMatches();
+
+      // Close the modal
+      this.closeMatchDetail();
     },
     handleMessagePlayer(player) {
-      console.log('Message player:', player)
+      console.log("Message player:", player);
       // Open chat or navigate to messages
       // this.$router.push(`/messages/${player.id}`)
-      alert(`Opening chat with ${player.name}`)
+      alert(`Opening chat with ${player.name}`);
     },
 
     // Helper methods for enhanced features
     getSportColor(sport) {
       const colors = {
-        'Basketball': '#f97316',
-        'Tennis': '#84cc16',
-        'Football': '#10b981',
-        'Badminton': '#ec4899'
+        Basketball: "#f97316",
+        Tennis: "#84cc16",
+        Football: "#10b981",
+        Badminton: "#ec4899",
       };
-      return colors[sport] || '#3b82f6';
+      return colors[sport] || "#3b82f6";
     },
 
     getMatchCoords(location) {
       const locationCoords = {
-        'Hougang': { lat: 1.3712, lng: 103.8863 },
-        'Sengkang': { lat: 1.3917, lng: 103.8951 },
-        'Punggol': { lat: 1.4043, lng: 103.9021 },
-        'Tampines': { lat: 1.3529, lng: 103.9446 },
-        'Bedok': { lat: 1.3236, lng: 103.9273 },
-        'Serangoon CC': { lat: 1.3537, lng: 103.8721 },
-        'Choa Chu Kang CC': { lat: 1.3853, lng: 103.7459 },
-        'Bukit Merah CC': { lat: 1.2827, lng: 103.8179 },
-        'Woodlands': { lat: 1.4382, lng: 103.7891 },
-        'Yishun': { lat: 1.4304, lng: 103.8354 },
-        'Ang Mo Kio': { lat: 1.3691, lng: 103.8454 },
-        'Bishan': { lat: 1.3526, lng: 103.8352 },
-        'Toa Payoh': { lat: 1.3343, lng: 103.8567 },
-        'Jurong East': { lat: 1.3329, lng: 103.7436 },
-        'Clementi': { lat: 1.3162, lng: 103.7649 }
+        Hougang: { lat: 1.3712, lng: 103.8863 },
+        Sengkang: { lat: 1.3917, lng: 103.8951 },
+        Punggol: { lat: 1.4043, lng: 103.9021 },
+        Tampines: { lat: 1.3529, lng: 103.9446 },
+        Bedok: { lat: 1.3236, lng: 103.9273 },
+        "Serangoon CC": { lat: 1.3537, lng: 103.8721 },
+        "Choa Chu Kang CC": { lat: 1.3853, lng: 103.7459 },
+        "Bukit Merah CC": { lat: 1.2827, lng: 103.8179 },
+        Woodlands: { lat: 1.4382, lng: 103.7891 },
+        Yishun: { lat: 1.4304, lng: 103.8354 },
+        "Ang Mo Kio": { lat: 1.3691, lng: 103.8454 },
+        Bishan: { lat: 1.3526, lng: 103.8352 },
+        "Toa Payoh": { lat: 1.3343, lng: 103.8567 },
+        "Jurong East": { lat: 1.3329, lng: 103.7436 },
+        Clementi: { lat: 1.3162, lng: 103.7649 },
       };
       return locationCoords[location] || { lat: 1.3521, lng: 103.8198 };
     },
@@ -1089,9 +1308,9 @@ export default {
       const a =
         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
         Math.cos(this.toRadians(lat1)) *
-        Math.cos(this.toRadians(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
+          Math.cos(this.toRadians(lat2)) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       const distance = R * c; // Distance in kilometers
       return distance;
@@ -1104,7 +1323,7 @@ export default {
     getMatchISO(match) {
       const dateStr = match.date;
       const timeStr = match.time;
-      const [year, month, date] = dateStr.split('/').map(Number);
+      const [year, month, date] = dateStr.split("/").map(Number);
       const startTimeISO = new Date(`${dateStr}T${timeStr}`).toISOString();
       return startTimeISO;
     },
@@ -1126,9 +1345,11 @@ export default {
     async fetchWeatherBanner() {
       try {
         // Get user's location or use Singapore default
-        const locationName = this.location || this.locationSearch || 'Singapore';
+        const locationName =
+          this.location || this.locationSearch || "Singapore";
         // Use exact coordinates if available (from address search), otherwise use predefined coords
-        const coords = this.selectedLocationCoords || this.getMatchCoords(locationName);
+        const coords =
+          this.selectedLocationCoords || this.getMatchCoords(locationName);
 
         // Fetch weather from OpenWeatherMap API
         const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
@@ -1137,68 +1358,82 @@ export default {
         );
 
         if (!response.ok) {
-          console.error('Weather API failed:', response.status);
+          console.error("Weather API failed:", response.status);
           return;
         }
 
         const data = await response.json();
 
         this.weatherBannerData = {
-          locationName: locationName === 'Singapore' ? 'Singapore' : locationName,
+          locationName:
+            locationName === "Singapore" ? "Singapore" : locationName,
           temp: Math.round(data.main.temp),
-          condition: data.weather[0].description.charAt(0).toUpperCase() + data.weather[0].description.slice(1),
+          condition:
+            data.weather[0].description.charAt(0).toUpperCase() +
+            data.weather[0].description.slice(1),
           humidity: data.main.humidity,
-          rain: data.rain ? Math.round((data.rain['1h'] || 0) / 10 * 100) : 0,
-          advice: this.getWeatherAdvice(data)
+          rain: data.rain ? Math.round(((data.rain["1h"] || 0) / 10) * 100) : 0,
+          advice: this.getWeatherAdvice(data),
         };
       } catch (error) {
-        console.error('Error fetching weather banner:', error);
+        console.error("Error fetching weather banner:", error);
       }
     },
 
     getWeatherIcon(condition) {
       const c = condition.toLowerCase();
-      if (c.includes('rain') || c.includes('drizzle')) return '🌧️';
-      if (c.includes('cloud')) return '☁️';
-      if (c.includes('clear')) return '☀️';
-      if (c.includes('snow')) return '❄️';
-      if (c.includes('thunder')) return '⛈️';
-      if (c.includes('mist') || c.includes('fog')) return '🌫️';
-      return '🌤️';
+      if (c.includes("rain") || c.includes("drizzle")) return "🌧️";
+      if (c.includes("cloud")) return "☁️";
+      if (c.includes("clear")) return "☀️";
+      if (c.includes("snow")) return "❄️";
+      if (c.includes("thunder")) return "⛈️";
+      if (c.includes("mist") || c.includes("fog")) return "🌫️";
+      return "🌤️";
     },
 
     getWeatherBannerClass(condition) {
       const c = condition.toLowerCase();
 
       // Thunderstorm - distinct dark purple/electric theme
-      if (c.includes('thunder') || c.includes('storm')) return 'weather-banner-thunderstorm';
+      if (c.includes("thunder") || c.includes("storm"))
+        return "weather-banner-thunderstorm";
 
       // Heavy Rain - darker blue with rain animation
-      if (c.includes('heavy rain') || c.includes('downpour')) return 'weather-banner-heavy-rain';
+      if (c.includes("heavy rain") || c.includes("downpour"))
+        return "weather-banner-heavy-rain";
 
       // Light Rain/Drizzle - softer blue
-      if (c.includes('rain') || c.includes('drizzle')) return 'weather-banner-rainy';
+      if (c.includes("rain") || c.includes("drizzle"))
+        return "weather-banner-rainy";
 
       // Snow - white/icy blue theme
-      if (c.includes('snow') || c.includes('sleet')) return 'weather-banner-snowy';
+      if (c.includes("snow") || c.includes("sleet"))
+        return "weather-banner-snowy";
 
       // Fog/Mist - gray misty theme
-      if (c.includes('fog') || c.includes('mist') || c.includes('haze')) return 'weather-banner-foggy';
+      if (c.includes("fog") || c.includes("mist") || c.includes("haze"))
+        return "weather-banner-foggy";
 
       // Overcast/Heavy Clouds - darker gray
-      if (c.includes('overcast')) return 'weather-banner-overcast';
+      if (c.includes("overcast")) return "weather-banner-overcast";
 
       // Partly Cloudy - mix of blue and yellow
-      if (c.includes('partly') || c.includes('few clouds') || c.includes('scattered')) return 'weather-banner-partly-cloudy';
+      if (
+        c.includes("partly") ||
+        c.includes("few clouds") ||
+        c.includes("scattered")
+      )
+        return "weather-banner-partly-cloudy";
 
       // Cloudy - light gray/blue
-      if (c.includes('cloud')) return 'weather-banner-cloudy';
+      if (c.includes("cloud")) return "weather-banner-cloudy";
 
       // Clear/Sunny - bright yellow/orange
-      if (c.includes('clear') || c.includes('sunny')) return 'weather-banner-sunny';
+      if (c.includes("clear") || c.includes("sunny"))
+        return "weather-banner-sunny";
 
       // Default - neutral teal
-      return 'weather-banner-default';
+      return "weather-banner-default";
     },
 
     getWeatherSuggestion(weatherData) {
@@ -1206,47 +1441,47 @@ export default {
       const condition = weatherData.condition.toLowerCase();
       const humidity = weatherData.humidity;
 
-      if (condition.includes('rain') || condition.includes('drizzle')) {
-        return 'Perfect for indoor sports like badminton!';
+      if (condition.includes("rain") || condition.includes("drizzle")) {
+        return "Perfect for indoor sports like badminton!";
       } else if (temp > 32) {
-        return 'Hot day! Stay hydrated and consider indoor courts.';
+        return "Hot day! Stay hydrated and consider indoor courts.";
       } else if (temp < 24) {
-        return 'Great weather for outdoor activities!';
+        return "Great weather for outdoor activities!";
       } else if (humidity > 80) {
-        return 'High humidity - indoor sports recommended!';
-      } else if (condition.includes('clear')) {
-        return 'Perfect weather for sports!';
+        return "High humidity - indoor sports recommended!";
+      } else if (condition.includes("clear")) {
+        return "Perfect weather for sports!";
       }
-      return 'Good conditions for all sports!';
+      return "Good conditions for all sports!";
     },
 
     getWeatherAdvice(data) {
       const condition = data.weather[0].description.toLowerCase();
       const temp = Math.round(data.main.temp);
-      const rain = data.rain ? data.rain['1h'] : 0;
+      const rain = data.rain ? data.rain["1h"] : 0;
 
       if (rain > 2) {
-        return 'Looks like rain later — maybe book an indoor court?';
+        return "Looks like rain later — maybe book an indoor court?";
       } else if (temp > 32) {
-        return 'Pretty hot out there — bring extra water!';
-      } else if (condition.includes('cloud') && !condition.includes('clear')) {
-        return 'Cloudy conditions — perfect timing for outdoor games!';
-      } else if (condition.includes('clear')) {
-        return 'Clear skies ahead — great day for sports!';
+        return "Pretty hot out there — bring extra water!";
+      } else if (condition.includes("cloud") && !condition.includes("clear")) {
+        return "Cloudy conditions — perfect timing for outdoor games!";
+      } else if (condition.includes("clear")) {
+        return "Clear skies ahead — great day for sports!";
       }
       return null;
-    }
+    },
   },
   beforeUnmount() {
     // Cleanup: restore body scroll if modal was open
-    document.body.style.overflow = 'auto'
-  }
-}
+    document.body.style.overflow = "auto";
+  },
+};
 </script>
 
 <style scoped>
 :root {
-  --primary-orange: #FF6B35;
+  --primary-orange: #ff6b35;
   --dark-bg: #2b2d42;
 }
 
@@ -1263,7 +1498,7 @@ export default {
   height: 400px;
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   background: #ffffff;
 }
 
@@ -1271,7 +1506,7 @@ export default {
   background: #f9f9f9;
   border-radius: 14px;
   padding: 24px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   border: none;
   position: sticky;
   top: 20px;
@@ -1281,7 +1516,7 @@ export default {
 }
 
 .sidebar:hover {
-  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 }
 
 .sidebar h5 {
@@ -1301,7 +1536,8 @@ export default {
   display: block;
 }
 
-.form-select, .form-control {
+.form-select,
+.form-control {
   border-radius: 8px;
   border: 2px solid #dee2e6;
   padding: 10px 14px;
@@ -1311,12 +1547,14 @@ export default {
   background-color: white;
 }
 
-.form-select:hover, .form-control:hover {
+.form-select:hover,
+.form-control:hover {
   border-color: var(--primary-orange);
   box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
 }
 
-.form-select:focus, .form-control:focus {
+.form-select:focus,
+.form-control:focus {
   border-color: var(--primary-orange);
   box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);
   outline: none;
@@ -1359,7 +1597,7 @@ export default {
 }
 
 .form-check-input[type="checkbox"]:checked::after {
-  content: '' !important;
+  content: "" !important;
   position: absolute !important;
   left: 6px !important;
   top: 2px !important;
@@ -1412,7 +1650,7 @@ export default {
   border-radius: 14px;
   padding: 20px;
   border: none;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
@@ -1443,7 +1681,7 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 1;
 }
@@ -1465,191 +1703,238 @@ export default {
   overflow: hidden;
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.12),
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .weather-banner::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background:
-    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+  background: radial-gradient(
+      circle at 20% 50%,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 50%,
+      rgba(255, 255, 255, 0.05) 0%,
+      transparent 50%
+    );
   opacity: 0.5;
   animation: ambientPulse 4s ease-in-out infinite;
   pointer-events: none;
 }
 
 @keyframes ambientPulse {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.02); }
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.02);
+  }
 }
 
 .weather-banner-sunny {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     rgba(254, 243, 199, 0.9) 0%,
     rgba(253, 230, 138, 0.85) 50%,
-    rgba(252, 211, 77, 0.9) 100%);
-  box-shadow:
-    0 8px 32px rgba(251, 191, 36, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 0 60px rgba(252, 211, 77, 0.2);
+    rgba(252, 211, 77, 0.9) 100%
+  );
+  box-shadow: 0 8px 32px rgba(251, 191, 36, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 60px rgba(252, 211, 77, 0.2);
   border: 1px solid rgba(251, 191, 36, 0.3);
 }
 
 .weather-banner-cloudy {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     rgba(224, 231, 255, 0.9) 0%,
     rgba(199, 210, 254, 0.85) 50%,
-    rgba(165, 180, 252, 0.9) 100%);
-  box-shadow:
-    0 8px 32px rgba(129, 140, 248, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 0 60px rgba(165, 180, 252, 0.2);
+    rgba(165, 180, 252, 0.9) 100%
+  );
+  box-shadow: 0 8px 32px rgba(129, 140, 248, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 60px rgba(165, 180, 252, 0.2);
   border: 1px solid rgba(129, 140, 248, 0.3);
 }
 
 .weather-banner-rainy {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     rgba(219, 234, 254, 0.9) 0%,
     rgba(191, 219, 254, 0.85) 50%,
-    rgba(147, 197, 253, 0.9) 100%);
-  box-shadow:
-    0 8px 32px rgba(96, 165, 250, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 0 60px rgba(147, 197, 253, 0.2);
+    rgba(147, 197, 253, 0.9) 100%
+  );
+  box-shadow: 0 8px 32px rgba(96, 165, 250, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 60px rgba(147, 197, 253, 0.2);
   border: 1px solid rgba(96, 165, 250, 0.3);
   animation: rainShimmer 3s ease-in-out infinite;
 }
 
 @keyframes rainShimmer {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.05); }
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.05);
+  }
 }
 
 .weather-banner-default {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     rgba(240, 253, 250, 0.9) 0%,
     rgba(204, 251, 241, 0.85) 50%,
-    rgba(153, 246, 228, 0.9) 100%);
-  box-shadow:
-    0 8px 32px rgba(94, 234, 212, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 0 60px rgba(153, 246, 228, 0.2);
+    rgba(153, 246, 228, 0.9) 100%
+  );
+  box-shadow: 0 8px 32px rgba(94, 234, 212, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 60px rgba(153, 246, 228, 0.2);
   border: 1px solid rgba(94, 234, 212, 0.3);
 }
 
 /* Thunderstorm - Dark purple with electric accents */
 .weather-banner-thunderstorm {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     rgba(88, 28, 135, 0.95) 0%,
     rgba(109, 40, 217, 0.9) 50%,
-    rgba(147, 51, 234, 0.95) 100%);
-  box-shadow:
-    0 8px 32px rgba(147, 51, 234, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 0 80px rgba(168, 85, 247, 0.3);
+    rgba(147, 51, 234, 0.95) 100%
+  );
+  box-shadow: 0 8px 32px rgba(147, 51, 234, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 80px rgba(168, 85, 247, 0.3);
   border: 1px solid rgba(168, 85, 247, 0.4);
   animation: thunderPulse 2s ease-in-out infinite;
 }
 
 @keyframes thunderPulse {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.15); box-shadow: 0 8px 40px rgba(147, 51, 234, 0.5), 0 0 100px rgba(168, 85, 247, 0.4); }
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.15);
+    box-shadow: 0 8px 40px rgba(147, 51, 234, 0.5),
+      0 0 100px rgba(168, 85, 247, 0.4);
+  }
 }
 
 /* Heavy Rain - Deep blue with intense rain animation */
 .weather-banner-heavy-rain {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     rgba(29, 78, 216, 0.95) 0%,
     rgba(37, 99, 235, 0.9) 50%,
-    rgba(59, 130, 246, 0.95) 100%);
-  box-shadow:
-    0 8px 32px rgba(59, 130, 246, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 0 60px rgba(96, 165, 250, 0.25);
+    rgba(59, 130, 246, 0.95) 100%
+  );
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 0 60px rgba(96, 165, 250, 0.25);
   border: 1px solid rgba(96, 165, 250, 0.4);
   animation: heavyRainShimmer 1.5s ease-in-out infinite;
 }
 
 @keyframes heavyRainShimmer {
-  0%, 100% { filter: brightness(1) saturate(1); }
-  50% { filter: brightness(1.1) saturate(1.15); }
+  0%,
+  100% {
+    filter: brightness(1) saturate(1);
+  }
+  50% {
+    filter: brightness(1.1) saturate(1.15);
+  }
 }
 
 /* Snow - Icy white/blue theme */
 .weather-banner-snowy {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     rgba(240, 249, 255, 0.98) 0%,
     rgba(224, 242, 254, 0.95) 50%,
-    rgba(186, 230, 253, 0.98) 100%);
-  box-shadow:
-    0 8px 32px rgba(125, 211, 252, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
-    0 0 70px rgba(186, 230, 253, 0.25);
+    rgba(186, 230, 253, 0.98) 100%
+  );
+  box-shadow: 0 8px 32px rgba(125, 211, 252, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 0 70px rgba(186, 230, 253, 0.25);
   border: 1px solid rgba(186, 230, 253, 0.5);
   animation: snowGlimmer 3s ease-in-out infinite;
 }
 
 @keyframes snowGlimmer {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.08); }
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.08);
+  }
 }
 
 /* Foggy/Misty - Gray with mysterious blur */
 .weather-banner-foggy {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     rgba(241, 245, 249, 0.95) 0%,
     rgba(226, 232, 240, 0.9) 50%,
-    rgba(203, 213, 225, 0.95) 100%);
-  box-shadow:
-    0 8px 32px rgba(148, 163, 184, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    0 0 80px rgba(203, 213, 225, 0.3);
+    rgba(203, 213, 225, 0.95) 100%
+  );
+  box-shadow: 0 8px 32px rgba(148, 163, 184, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 0 80px rgba(203, 213, 225, 0.3);
   border: 1px solid rgba(203, 213, 225, 0.4);
   animation: fogDrift 4s ease-in-out infinite;
 }
 
 @keyframes fogDrift {
-  0%, 100% { filter: blur(0px); opacity: 0.95; }
-  50% { filter: blur(0.5px); opacity: 1; }
+  0%,
+  100% {
+    filter: blur(0px);
+    opacity: 0.95;
+  }
+  50% {
+    filter: blur(0.5px);
+    opacity: 1;
+  }
 }
 
 /* Overcast - Darker gray clouds */
 .weather-banner-overcast {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     rgba(226, 232, 240, 0.95) 0%,
     rgba(203, 213, 225, 0.9) 50%,
-    rgba(148, 163, 184, 0.95) 100%);
-  box-shadow:
-    0 8px 32px rgba(100, 116, 139, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 0 60px rgba(148, 163, 184, 0.2);
+    rgba(148, 163, 184, 0.95) 100%
+  );
+  box-shadow: 0 8px 32px rgba(100, 116, 139, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 60px rgba(148, 163, 184, 0.2);
   border: 1px solid rgba(148, 163, 184, 0.35);
 }
 
 /* Partly Cloudy - Mix of sun and clouds */
 .weather-banner-partly-cloudy {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     rgba(254, 249, 195, 0.92) 0%,
     rgba(224, 231, 255, 0.88) 50%,
-    rgba(254, 240, 138, 0.92) 100%);
-  box-shadow:
-    0 8px 32px rgba(234, 179, 8, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    0 0 65px rgba(254, 240, 138, 0.2);
+    rgba(254, 240, 138, 0.92) 100%
+  );
+  box-shadow: 0 8px 32px rgba(234, 179, 8, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 0 65px rgba(254, 240, 138, 0.2);
   border: 1px solid rgba(250, 204, 21, 0.35);
   animation: partlyCloudyShift 5s ease-in-out infinite;
 }
 
 @keyframes partlyCloudyShift {
-  0%, 100% { filter: hue-rotate(0deg); }
-  50% { filter: hue-rotate(5deg); }
+  0%,
+  100% {
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    filter: hue-rotate(5deg);
+  }
 }
 
 /* Text color overrides for dark backgrounds */
@@ -1665,7 +1950,11 @@ export default {
 }
 
 .weather-banner-thunderstorm .weather-temp {
-  background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.85) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(255, 255, 255, 0.85) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1742,8 +2031,13 @@ export default {
 }
 
 @keyframes floatIcon {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 .weather-banner-content {
@@ -1784,7 +2078,11 @@ export default {
   color: rgba(0, 0, 0, 0.95);
   letter-spacing: -1px;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.75) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.95) 0%,
+    rgba(0, 0, 0, 0.75) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1834,8 +2132,15 @@ export default {
 }
 
 @keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.1); opacity: 0.8; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
 }
 
 .suggestion-text {
@@ -2029,7 +2334,8 @@ export default {
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 2px 8px rgba(255, 107, 53, 0.4);
   }
   50% {
@@ -2047,20 +2353,20 @@ export default {
   padding: 28px 32px;
   background: #ffffff;
   border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   border: none;
   position: relative;
   overflow: hidden;
 }
 
 .page-header::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #FF6B35 0%, #f97316 50%, #10b981 100%);
+  background: linear-gradient(90deg, #ff6b35 0%, #f97316 50%, #10b981 100%);
 }
 
 .page-header h1 {
@@ -2165,18 +2471,18 @@ export default {
 }
 
 .sidebar .form-check-input[type="checkbox"]:hover {
-  border-color: #FF6B35 !important;
+  border-color: #ff6b35 !important;
   box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1) !important;
 }
 
 .sidebar .form-check-input[type="checkbox"]:checked {
-  background-color: #FF6B35 !important;
-  border-color: #FF6B35 !important;
+  background-color: #ff6b35 !important;
+  border-color: #ff6b35 !important;
   background-image: none !important;
 }
 
 .sidebar .form-check-input[type="checkbox"]:checked::after {
-  content: '✓' !important;
+  content: "✓" !important;
   position: absolute !important;
   left: 50% !important;
   top: 50% !important;
@@ -2189,7 +2495,7 @@ export default {
 }
 
 .sidebar .form-check-input[type="checkbox"]:focus {
-  border-color: #FF6B35 !important;
+  border-color: #ff6b35 !important;
   box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2) !important;
   outline: none !important;
 }
@@ -2205,7 +2511,7 @@ export default {
 }
 
 .sidebar .form-check-label:hover {
-  color: #FF6B35 !important;
+  color: #ff6b35 !important;
 }
 
 /* Smart Shortcuts Styles */
@@ -2355,15 +2661,15 @@ export default {
 }
 
 .sport-pill:hover {
-  border-color: #FF6B35;
-  color: #FF6B35;
+  border-color: #ff6b35;
+  color: #ff6b35;
   box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
   transform: translateY(-2px);
 }
 
 .sport-pill.active {
-  background: linear-gradient(135deg, #FF6B35 0%, #ff8c61 100%);
-  border-color: #FF6B35;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c61 100%);
+  border-color: #ff6b35;
   color: white;
   box-shadow: 0 6px 16px rgba(255, 107, 53, 0.35);
   transform: translateY(-2px) scale(1.05);
@@ -2403,7 +2709,7 @@ export default {
 
 .location-search-input:focus {
   outline: none;
-  border-color: #FF6B35;
+  border-color: #ff6b35;
   box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
 }
 
@@ -2449,7 +2755,7 @@ export default {
 
 .location-suggestion-item:hover {
   background: #fff7ed;
-  color: #FF6B35;
+  color: #ff6b35;
   padding-left: 18px;
 }
 
@@ -2472,8 +2778,15 @@ export default {
 }
 
 @keyframes sparkle {
-  0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
-  50% { transform: scale(1.2) rotate(15deg); opacity: 0.8; }
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) rotate(15deg);
+    opacity: 0.8;
+  }
 }
 
 /* Address Suggestions Styling */
@@ -2494,8 +2807,12 @@ export default {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .address-suggestions-section {
@@ -2567,15 +2884,15 @@ export default {
 }
 
 .filter-pill:hover {
-  border-color: #FF6B35;
-  color: #FF6B35;
+  border-color: #ff6b35;
+  color: #ff6b35;
   box-shadow: 0 3px 10px rgba(255, 107, 53, 0.15);
   transform: translateY(-1px);
 }
 
 .filter-pill.active {
-  background: #FF6B35;
-  border-color: #FF6B35;
+  background: #ff6b35;
+  border-color: #ff6b35;
   color: white;
   box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
   transform: translateY(-1px);

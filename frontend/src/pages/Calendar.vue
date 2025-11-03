@@ -459,4 +459,119 @@ export default {
 .btn-secondary:hover {
   background-color: #dee2e6;
 }
+
+/* ========== RESPONSIVE DESIGN ========== */
+
+/* Tablets */
+@media (max-width: 991px) {
+  .container-fluid {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .upcoming-matches-panel {
+    margin-top: 20px;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 768px) {
+  .container-fluid {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .calendar-container {
+    padding: 16px;
+  }
+
+  .upcoming-matches-panel {
+    padding: 20px;
+    margin-top: 20px;
+  }
+
+  .upcoming-matches-panel h4 {
+    font-size: 1.25rem;
+  }
+
+  .match-item {
+    padding: 14px;
+  }
+
+  .match-item h6 {
+    font-size: 1rem;
+  }
+}
+
+/* Small phones */
+@media (max-width: 576px) {
+  .container-fluid {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 15px;
+  }
+
+  .calendar-container {
+    padding: 12px;
+  }
+
+  .upcoming-matches-panel {
+    padding: 16px;
+  }
+
+  .upcoming-matches-panel h4 {
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+  }
+
+  .match-item {
+    padding: 12px;
+  }
+
+  .match-item h6 {
+    font-size: 0.95rem;
+  }
+
+  .status-badge {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+  }
+
+  .small {
+    font-size: 0.8rem;
+  }
+
+  .legend {
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .legend-item {
+    font-size: 0.85rem;
+  }
+
+  .no-matches {
+    padding: 20px 10px;
+  }
+
+  .no-matches div {
+    font-size: 48px !important;
+  }
+}
+
+/* Extra small phones */
+@media (max-width: 375px) {
+  .upcoming-matches-panel h4 {
+    font-size: 1rem;
+  }
+
+  .match-item h6 {
+    font-size: 0.9rem;
+  }
+
+  .small {
+    font-size: 0.75rem;
+  }
+}
 </style>
