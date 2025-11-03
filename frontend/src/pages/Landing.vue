@@ -476,8 +476,8 @@ async function handleLogout() {
 }
 
 .landing-page {
-  background: #0a0f1e;
-  color: #F1F5F9;
+  background: linear-gradient(180deg, #FFF6EE 0%, #FFFFFF 80%);
+  color: #1F2937;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.6;
   min-height: 100vh;
@@ -496,10 +496,10 @@ async function handleLogout() {
   top: 0;
   left: 0;
   height: 3px;
-  background: linear-gradient(90deg, #FF6B35, #F59E0B, #10B981);
+  background: linear-gradient(90deg, #FF8B3D, #F59E0B, #6BE8E0);
   z-index: 10000;
   transition: width 0.1s ease;
-  box-shadow: 0 0 20px rgba(255, 107, 53, 0.8);
+  box-shadow: 0 0 20px rgba(255, 139, 61, 0.8);
 }
 
 /* Floating Particles */
@@ -517,7 +517,7 @@ async function handleLogout() {
   position: absolute;
   width: 4px;
   height: 4px;
-  background: radial-gradient(circle, rgba(255, 107, 53, 0.8), transparent);
+  background: radial-gradient(circle, rgba(255, 139, 61, 0.8), transparent);
   border-radius: 50%;
   animation: float-particle linear infinite;
 }
@@ -551,10 +551,10 @@ async function handleLogout() {
 }
 
 .header.scrolled {
-  background: rgba(10, 15, 30, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 107, 53, 0.1);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 139, 61, 0.2);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
 }
 
 .header-content {
@@ -572,7 +572,7 @@ async function handleLogout() {
 .logo {
   font-size: 1.75rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #FF6B35 0%, #F59E0B 50%, #10B981 100%);
+  background: linear-gradient(135deg, #FF8B3D 0%, #F59E0B 50%, #6BE8E0 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -583,10 +583,10 @@ async function handleLogout() {
   font-size: 0.65rem;
   font-weight: 700;
   padding: 0.25rem 0.5rem;
-  background: rgba(255, 107, 53, 0.2);
-  color: #FF6B35;
+  background: rgba(255, 139, 61, 0.2);
+  color: #FF8B3D;
   border-radius: 4px;
-  border: 1px solid rgba(255, 107, 53, 0.3);
+  border: 1px solid rgba(255, 139, 61, 0.3);
 }
 
 .nav {
@@ -596,7 +596,7 @@ async function handleLogout() {
 }
 
 .nav-link {
-  color: #94A3B8;
+  color: #4B5563;
   text-decoration: none;
   font-size: 0.9375rem;
   font-weight: 500;
@@ -611,12 +611,12 @@ async function handleLogout() {
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(90deg, #FF6B35, #F59E0B);
+  background: linear-gradient(90deg, #FF8B3D, #F59E0B);
   transition: width 0.3s ease;
 }
 
 .nav-link:hover {
-  color: #FF6B35;
+  color: #FF8B3D;
 }
 
 .nav-link:hover::after {
@@ -652,27 +652,29 @@ async function handleLogout() {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #FF6B35 0%, #F59E0B 100%);
+  background: linear-gradient(135deg, #FF8B3D 0%, #F59E0B 100%);
   color: #FFFFFF;
-  box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4);
+  box-shadow: 0 4px 16px rgba(255, 139, 61, 0.4);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.6);
+  box-shadow: 0 8px 24px rgba(255, 139, 61, 0.6);
 }
 
 .btn-secondary {
-  background: rgba(30, 41, 59, 0.8);
-  color: #FFFFFF;
-  border: 2px solid rgba(71, 85, 105, 0.5);
+  background: rgba(255, 255, 255, 0.9);
+  color: #1F2937;
+  border: 2px solid #E5E7EB;
   backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .btn-secondary:hover {
-  background: rgba(30, 41, 59, 1);
-  border-color: #FF6B35;
+  background: rgba(255, 255, 255, 1);
+  border-color: #FF8B3D;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 139, 61, 0.2);
 }
 
 .btn-hero {
@@ -695,10 +697,10 @@ async function handleLogout() {
 
 @keyframes glow-pulse {
   0%, 100% {
-    box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4);
+    box-shadow: 0 4px 16px rgba(255, 139, 61, 0.4);
   }
   50% {
-    box-shadow: 0 4px 32px rgba(255, 107, 53, 0.8);
+    box-shadow: 0 4px 32px rgba(255, 139, 61, 0.8);
   }
 }
 
@@ -715,8 +717,8 @@ async function handleLogout() {
   left: 0;
   right: 0;
   height: 100%;
-  background: radial-gradient(ellipse at top, rgba(255, 107, 53, 0.15), transparent 50%),
-              radial-gradient(ellipse at bottom right, rgba(16, 185, 129, 0.1), transparent 50%);
+  background: radial-gradient(ellipse at top, rgba(255, 139, 61, 0.15), transparent 50%),
+              radial-gradient(ellipse at bottom right, rgba(107, 232, 224, 0.1), transparent 50%);
   pointer-events: none;
 }
 
@@ -734,12 +736,12 @@ async function handleLogout() {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: rgba(255, 107, 53, 0.1);
-  border: 1px solid rgba(255, 107, 53, 0.2);
+  background: rgba(255, 139, 61, 0.1);
+  border: 1px solid rgba(255, 139, 61, 0.2);
   border-radius: 999px;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #FF6B35;
+  color: #FF8B3D;
   margin-bottom: 1.5rem;
   animation: fadeInUp 0.6s ease;
 }
@@ -754,7 +756,7 @@ async function handleLogout() {
 
 .gradient-text {
   display: block;
-  background: linear-gradient(135deg, #FFFFFF 0%, #CBD5E1 100%);
+  background: linear-gradient(135deg, #1F2937 0%, #4B5563 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -762,7 +764,7 @@ async function handleLogout() {
 
 .gradient-text-alt {
   display: block;
-  background: linear-gradient(135deg, #FF6B35 0%, #F59E0B 100%);
+  background: linear-gradient(135deg, #FF8B3D 0%, #F59E0B 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -770,7 +772,7 @@ async function handleLogout() {
 
 .hero-subtitle {
   font-size: 1.25rem;
-  color: #94A3B8;
+  color: #4B5563;
   line-height: 1.7;
   margin-bottom: 2rem;
   animation: fadeInUp 0.6s ease 0.2s backwards;
@@ -800,29 +802,30 @@ async function handleLogout() {
   align-items: center;
   gap: 1rem;
   padding: 1.25rem 1.75rem;
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(71, 85, 105, 0.3);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(229, 231, 235, 0.8);
   border-radius: 16px;
   backdrop-filter: blur(20px);
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .stat-item:hover {
   transform: translateY(-4px);
-  background: rgba(30, 41, 59, 0.7);
-  border-color: rgba(255, 107, 53, 0.3);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(255, 139, 61, 0.3);
+  box-shadow: 0 8px 24px rgba(255, 139, 61, 0.15);
 }
 
 .stat-icon {
   font-size: 2rem;
-  filter: drop-shadow(0 2px 8px rgba(255, 107, 53, 0.3));
+  filter: drop-shadow(0 2px 8px rgba(255, 139, 61, 0.3));
 }
 
 .stat-number {
   font-size: 1.75rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  background: linear-gradient(135deg, #FF8B3D, #F59E0B);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -831,7 +834,7 @@ async function handleLogout() {
 
 .stat-label {
   font-size: 0.75rem;
-  color: #64748B;
+  color: #1F2937;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -857,7 +860,7 @@ async function handleLogout() {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #94A3B8;
+  color: #4B5563;
 }
 
 .trust-icon {
@@ -928,7 +931,7 @@ async function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(30, 41, 59, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   border: 2px solid rgba(255, 107, 53, 0.5);
   border-radius: 50%;
   box-shadow: 0 8px 32px rgba(255, 107, 53, 0.4);
@@ -939,7 +942,7 @@ async function handleLogout() {
 
 .orbit-sport:hover {
   transform: scale(1.3);
-  background: rgba(30, 41, 59, 1);
+  background: rgba(255, 255, 255, 1);
   border-color: rgba(255, 107, 53, 0.8);
   box-shadow: 0 12px 48px rgba(255, 107, 53, 0.6);
   z-index: 3;
@@ -1001,7 +1004,7 @@ async function handleLogout() {
 .stat-display {
   text-align: center;
   padding: 1.5rem 2.5rem;
-  background: rgba(30, 41, 59, 0.6);
+  background: rgba(255, 255, 255, 0.85);
   border: 2px solid rgba(255, 107, 53, 0.3);
   border-radius: 20px;
   backdrop-filter: blur(20px);
@@ -1018,7 +1021,7 @@ async function handleLogout() {
 .stat-number {
   font-size: 3rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  background: linear-gradient(135deg, #FF8B3D, #F59E0B);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1041,7 +1044,7 @@ async function handleLogout() {
 
 .stat-text {
   font-size: 0.875rem;
-  color: #94A3B8;
+  color: #4B5563;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1091,7 +1094,7 @@ async function handleLogout() {
 .ticket-sport {
   font-size: 1.25rem;
   font-weight: 800;
-  color: #F1F5F9;
+  color: #1F2937;
   margin-bottom: 0.5rem;
 }
 
@@ -1141,7 +1144,7 @@ async function handleLogout() {
   border-radius: 999px;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #FF6B35;
+  color: #FF8B3D;
   margin-bottom: 1rem;
 }
 
@@ -1149,7 +1152,7 @@ async function handleLogout() {
   font-size: 3rem;
   font-weight: 800;
   margin-bottom: 1rem;
-  background: linear-gradient(135deg, #FFFFFF 0%, #94A3B8 100%);
+  background: linear-gradient(135deg, #1F2937 0%, #4B5563 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1157,7 +1160,7 @@ async function handleLogout() {
 
 .section-subtitle {
   font-size: 1.125rem;
-  color: #64748B;
+  color: #1F2937;
 }
 
 /* Features Grid */
@@ -1169,8 +1172,8 @@ async function handleLogout() {
 
 .feature-card-modern {
   padding: 2.5rem;
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(71, 85, 105, 0.3);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(229, 231, 235, 0.8);
   border-radius: 24px;
   backdrop-filter: blur(20px);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1185,7 +1188,7 @@ async function handleLogout() {
 
 .feature-card-modern:hover {
   transform: translateY(-8px);
-  background: rgba(30, 41, 59, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   border-color: rgba(255, 107, 53, 0.5);
   box-shadow: 0 20px 60px rgba(255, 107, 53, 0.3);
 }
@@ -1203,7 +1206,7 @@ async function handleLogout() {
 }
 
 .feature-desc {
-  color: #94A3B8;
+  color: #4B5563;
   margin-bottom: 1.5rem;
   line-height: 1.6;
 }
@@ -1224,7 +1227,7 @@ async function handleLogout() {
 }
 
 .feature-list-modern svg {
-  color: #10B981;
+  color: #6BE8E0;
   flex-shrink: 0;
 }
 
@@ -1262,7 +1265,7 @@ async function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  background: linear-gradient(135deg, #FF8B3D, #F59E0B);
   border-radius: 50%;
   font-size: 2rem;
   font-weight: 800;
@@ -1284,8 +1287,8 @@ async function handleLogout() {
 
 .timeline-content {
   padding: 2rem;
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(71, 85, 105, 0.3);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(229, 231, 235, 0.8);
   border-radius: 20px;
   backdrop-filter: blur(20px);
   transition: all 0.3s ease;
@@ -1293,7 +1296,7 @@ async function handleLogout() {
 
 .timeline-content:hover {
   transform: translateX(8px);
-  background: rgba(30, 41, 59, 0.7);
+  background: rgba(255, 255, 255, 0.95);
   border-color: rgba(255, 107, 53, 0.5);
 }
 
@@ -1309,7 +1312,7 @@ async function handleLogout() {
 }
 
 .timeline-text {
-  color: #94A3B8;
+  color: #4B5563;
   line-height: 1.7;
 }
 
@@ -1322,8 +1325,8 @@ async function handleLogout() {
 
 .testimonial-card {
   padding: 2.5rem;
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(71, 85, 105, 0.3);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(229, 231, 235, 0.8);
   border-radius: 24px;
   backdrop-filter: blur(20px);
   transition: all 0.4s ease;
@@ -1338,7 +1341,7 @@ async function handleLogout() {
 
 .testimonial-card:hover {
   transform: translateY(-8px) scale(1.02);
-  background: rgba(30, 41, 59, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   border-color: rgba(255, 107, 53, 0.5);
   box-shadow: 0 20px 60px rgba(255, 107, 53, 0.3);
 }
@@ -1383,7 +1386,7 @@ async function handleLogout() {
 
 .author-role {
   font-size: 0.875rem;
-  color: #64748B;
+  color: #1F2937;
 }
 
 /* Technology Section */
@@ -1395,8 +1398,8 @@ async function handleLogout() {
 
 .tech-card {
   padding: 2.5rem;
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(71, 85, 105, 0.3);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(229, 231, 235, 0.8);
   border-radius: 24px;
   backdrop-filter: blur(20px);
   transition: all 0.4s ease;
@@ -1405,7 +1408,7 @@ async function handleLogout() {
 
 .tech-card:hover {
   transform: translateY(-8px);
-  background: rgba(30, 41, 59, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   border-color: rgba(255, 107, 53, 0.5);
   box-shadow: 0 20px 60px rgba(255, 107, 53, 0.3);
 }
@@ -1420,14 +1423,14 @@ async function handleLogout() {
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 0.75rem;
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  background: linear-gradient(135deg, #FF8B3D, #F59E0B);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .tech-desc {
-  color: #94A3B8;
+  color: #4B5563;
   line-height: 1.6;
 }
 
@@ -1443,8 +1446,8 @@ async function handleLogout() {
 .pricing-card-modern {
   position: relative;
   padding: 3rem 2.5rem;
-  background: rgba(30, 41, 59, 0.5);
-  border: 2px solid rgba(71, 85, 105, 0.3);
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid rgba(229, 231, 235, 0.8);
   border-radius: 24px;
   backdrop-filter: blur(20px);
   transition: all 0.4s ease;
@@ -1459,7 +1462,7 @@ async function handleLogout() {
 
 .pricing-card-modern.featured {
   border-color: rgba(255, 107, 53, 0.5);
-  background: rgba(30, 41, 59, 0.7);
+  background: rgba(255, 255, 255, 0.95);
   box-shadow: 0 20px 60px rgba(255, 107, 53, 0.3);
   transform: scale(1.05);
 }
@@ -1476,7 +1479,7 @@ async function handleLogout() {
   left: 50%;
   transform: translateX(-50%);
   padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  background: linear-gradient(135deg, #FF8B3D, #F59E0B);
   color: white;
   border-radius: 999px;
   font-size: 0.75rem;
@@ -1506,7 +1509,7 @@ async function handleLogout() {
 .price-amount {
   font-size: 3.5rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  background: linear-gradient(135deg, #FF8B3D, #F59E0B);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1514,11 +1517,11 @@ async function handleLogout() {
 
 .price-period {
   font-size: 1.125rem;
-  color: #64748B;
+  color: #1F2937;
 }
 
 .pricing-desc-modern {
-  color: #94A3B8;
+  color: #4B5563;
   margin-bottom: 2rem;
 }
 
@@ -1538,7 +1541,7 @@ async function handleLogout() {
 }
 
 .pricing-features svg {
-  color: #10B981;
+  color: #6BE8E0;
   flex-shrink: 0;
 }
 
@@ -1548,7 +1551,7 @@ async function handleLogout() {
   padding: 1rem;
   text-align: center;
   background: rgba(255, 107, 53, 0.1);
-  color: #FF6B35;
+  color: #FF8B3D;
   border: 2px solid rgba(255, 107, 53, 0.3);
   border-radius: 12px;
   font-weight: 700;
@@ -1563,13 +1566,13 @@ async function handleLogout() {
 }
 
 .btn-pricing-featured {
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  background: linear-gradient(135deg, #FF8B3D, #F59E0B);
   color: white;
   border-color: transparent;
 }
 
 .btn-pricing-featured:hover {
-  background: linear-gradient(135deg, #F59E0B, #FF6B35);
+  background: linear-gradient(135deg, #F59E0B, #FF8B3D);
   box-shadow: 0 8px 24px rgba(255, 107, 53, 0.5);
 }
 
@@ -1600,7 +1603,7 @@ async function handleLogout() {
   font-size: 3.5rem;
   font-weight: 900;
   margin-bottom: 1rem;
-  background: linear-gradient(135deg, #FFFFFF 0%, #94A3B8 100%);
+  background: linear-gradient(135deg, #1F2937 0%, #4B5563 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1608,7 +1611,7 @@ async function handleLogout() {
 
 .cta-subtitle {
   font-size: 1.25rem;
-  color: #94A3B8;
+  color: #4B5563;
   margin-bottom: 2.5rem;
 }
 
@@ -1620,7 +1623,7 @@ async function handleLogout() {
 /* Footer */
 .footer {
   padding: 4rem 0 2rem;
-  border-top: 1px solid rgba(71, 85, 105, 0.3);
+  border-top: 1px solid rgba(229, 231, 235, 0.8);
   background: rgba(10, 15, 30, 0.8);
 }
 
@@ -1637,7 +1640,7 @@ async function handleLogout() {
 }
 
 .footer-tagline {
-  color: #64748B;
+  color: #1F2937;
   font-size: 0.9375rem;
 }
 
@@ -1647,28 +1650,74 @@ async function handleLogout() {
 }
 
 .footer-link {
-  color: #94A3B8;
+  color: #4B5563;
   text-decoration: none;
   font-size: 0.9375rem;
   transition: color 0.2s;
 }
 
 .footer-link:hover {
-  color: #FF6B35;
+  color: #FF8B3D;
 }
 
 .footer-bottom {
   text-align: center;
   padding-top: 2rem;
   border-top: 1px solid rgba(71, 85, 105, 0.2);
-  color: #64748B;
+  color: #1F2937;
   font-size: 0.875rem;
 }
 
 /* Responsive Design */
+
+/* Base mobile optimization */
+.landing-page {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Tablets and smaller laptops */
+@media (max-width: 991px) {
+  .container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .hero-title {
+    font-size: 3rem;
+    line-height: 1.1;
+  }
+
+  .hero-description {
+    font-size: 1.1rem;
+  }
+
+  .section-title {
+    font-size: 2.25rem;
+  }
+
+  .feature-card, .sport-card {
+    padding: 1.75rem;
+  }
+
+  .timeline-item {
+    gap: 2rem;
+  }
+}
+
+/* Tablets and mobile phones */
 @media (max-width: 768px) {
   .nav {
     display: none;
+  }
+
+  .container {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .hero {
+    padding: 4rem 0;
   }
 
   .hero-content {
@@ -1680,16 +1729,31 @@ async function handleLogout() {
     font-size: 2.5rem;
   }
 
+  .hero-description {
+    font-size: 1rem;
+  }
+
   .hero-visual {
     height: 400px;
   }
 
   .live-stats {
     flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .stat-item {
+    text-align: center;
   }
 
   .hero-cta {
     flex-direction: column;
+    gap: 1rem;
+  }
+
+  .cta-button {
+    width: 100%;
+    justify-content: center;
   }
 
   .trust-badges {
@@ -1697,8 +1761,21 @@ async function handleLogout() {
     gap: 1rem;
   }
 
+  .section {
+    padding: 4rem 0;
+  }
+
   .section-title {
     font-size: 2rem;
+  }
+
+  .section-subtitle {
+    font-size: 1rem;
+  }
+
+  .features-grid, .sports-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 
   .timeline-item {
@@ -1712,6 +1789,10 @@ async function handleLogout() {
     font-size: 1.5rem;
   }
 
+  .timeline-title {
+    font-size: 1.25rem;
+  }
+
   .cta-title {
     font-size: 2rem;
   }
@@ -1720,6 +1801,190 @@ async function handleLogout() {
     flex-direction: column;
     gap: 2rem;
     text-align: center;
+  }
+
+  .footer-links {
+    justify-content: center;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 576px) {
+  .container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .hero {
+    padding: 3rem 0;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+
+  .hero-description {
+    font-size: 0.95rem;
+  }
+
+  .hero-visual {
+    height: 300px;
+  }
+
+  .stat-number {
+    font-size: 2rem;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+  }
+
+  .cta-button {
+    padding: 0.9rem 1.75rem;
+    font-size: 0.95rem;
+  }
+
+  .trust-badge {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.85rem;
+  }
+
+  .section {
+    padding: 3rem 0;
+  }
+
+  .section-title {
+    font-size: 1.75rem;
+  }
+
+  .section-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .feature-card, .sport-card {
+    padding: 1.5rem;
+  }
+
+  .feature-icon, .sport-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
+
+  .feature-title, .sport-name {
+    font-size: 1.1rem;
+  }
+
+  .feature-description, .sport-description {
+    font-size: 0.875rem;
+  }
+
+  .timeline-item {
+    grid-template-columns: 60px 1fr;
+    gap: 1rem;
+  }
+
+  .timeline-number {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+
+  .timeline-title {
+    font-size: 1.1rem;
+  }
+
+  .timeline-description {
+    font-size: 0.875rem;
+  }
+
+  .cta-section {
+    padding: 3rem 0;
+  }
+
+  .cta-title {
+    font-size: 1.75rem;
+  }
+
+  .cta-description {
+    font-size: 0.95rem;
+  }
+
+  .cta-buttons {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .cta-buttons .cta-button {
+    width: 100%;
+  }
+
+  .footer {
+    padding: 2.5rem 0 1.5rem;
+  }
+
+  .footer-brand {
+    font-size: 1.25rem;
+  }
+
+  .footer-description {
+    font-size: 0.85rem;
+  }
+
+  .footer-links {
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .footer-link {
+    font-size: 0.85rem;
+  }
+}
+
+/* Extra small phones */
+@media (max-width: 375px) {
+  .hero-title {
+    font-size: 1.75rem;
+  }
+
+  .hero-description {
+    font-size: 0.9rem;
+  }
+
+  .hero-visual {
+    height: 250px;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .cta-title {
+    font-size: 1.5rem;
+  }
+
+  .stat-number {
+    font-size: 1.75rem;
+  }
+
+  .cta-button {
+    padding: 0.8rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .timeline-item {
+    grid-template-columns: 50px 1fr;
+  }
+
+  .timeline-number {
+    width: 45px;
+    height: 45px;
+    font-size: 1.1rem;
+  }
+
+  .feature-card, .sport-card {
+    padding: 1.25rem;
   }
 }
 

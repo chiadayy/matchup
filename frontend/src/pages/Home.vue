@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen" style="background-color: #F7F9FC">
+  <div class="min-h-screen" style="background-color: #FFFFFF">
     <!-- Logout Button -->
     <!-- <div class="container-fluid px-5 pt-3">
       <div class="d-flex justify-content-end">
@@ -127,88 +127,93 @@
       </div>
 
       <!-- Featured Matches Carousel -->
-<div class="row mb-5">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h3 class="fw-bold mb-1">🎯 Featured Matches</h3>
-      <p class="text-muted mb-0" style="font-size: 0.9rem;">Upcoming and curated matches for you to join</p>
-    </div>
-    <div class="carousel-controls" v-if="!isLoadingMatches && featuredMatchesSlides.length > 0">
-      <button class="carousel-nav-btn" @click="prevSlide" :disabled="isTransitioning">
-        ←
-      </button>
-      <span class="carousel-indicator">{{ currentSlide + 1 }} / {{ featuredMatchesSlides.length }}</span>
-      <button class="carousel-nav-btn" @click="nextSlide" :disabled="isTransitioning">
-        →
-      </button>
-    </div>
-  </div>
+      <div class="row mb-5">
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+              <h3 class="fw-bold mb-1">🎯 Featured Matches</h3>
+              <p class="text-muted mb-0" style="font-size: 0.9rem;">Upcoming and curated matches for you to join</p>
+            </div>
+            <div class="carousel-controls" v-if="!isLoadingMatches && featuredMatchesSlides.length > 0">
+              <button class="carousel-nav-btn" @click="prevSlide" :disabled="isTransitioning">
+                ←
+              </button>
+              <span class="carousel-indicator">{{ currentSlide + 1 }} / {{ featuredMatchesSlides.length }}</span>
+              <button class="carousel-nav-btn" @click="nextSlide" :disabled="isTransitioning">
+                →
+              </button>
+            </div>
+          </div>
 
-  <!-- Loading State -->
-  <div v-if="isLoadingMatches" class="loading-matches">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading matches...</span>
-    </div>
-    <p class="mt-3 text-muted">Loading featured matches...</p>
-  </div>
+          <!-- Loading State -->
+          <div v-if="isLoadingMatches" class="loading-matches">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading matches...</span>
+            </div>
+            <p class="mt-3 text-muted">Loading featured matches...</p>
+          </div>
 
-  <!-- No Matches State -->
-  <div v-else-if="featuredMatches.length === 0" class="no-matches">
-    <p class="text-muted">No matches available at the moment. Check back soon!</p>
-  </div>
+          <!-- No Matches State -->
+          <div v-else-if="featuredMatches.length === 0" class="no-matches">
+            <p class="text-muted">No matches available at the moment. Check back soon!</p>
+          </div>
 
-  <!-- Carousel with Matches -->
-  <div v-else class="carousel-container">
-    <div class="carousel-track" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
-      <div
-        v-for="(slide, slideIndex) in featuredMatchesSlides"
-        :key="slideIndex"
-        class="carousel-slide"
-      >
-        <div class="row g-4">
-          <div
-            v-for="match in slide"
-            :key="match.id"
-            class="col-xl-3 col-lg-6 col-md-6 col-sm-12"
-          >
-            <div class="featured-match-card" @click="openMatchDetail(match)">
-              <!-- Keep existing card content -->
-              <div class="featured-match-header">
-                <img :src="match.image" :alt="match.sport" class="featured-match-image" />
-                <div class="featured-match-overlay" :style="{ background: `linear-gradient(180deg, transparent 0%, ${match.color}99 100%)` }"></div>
-                <div class="featured-match-sport-icon">{{ match.icon }}</div>
-                <div class="featured-match-badge">{{ match.badge }}</div>
-              </div>
-              <div class="featured-match-content">
-                <div class="featured-match-sport" :style="{ color: match.color }">
-                  {{ match.sport }}
-                </div>
-                <h5 class="featured-match-title">{{ match.title }}</h5>
-                <div class="featured-match-details">
-                  <div class="match-detail-item">
-                    <span class="detail-icon">👤</span>
-                    <span class="detail-text">{{ match.host }}</span>
-                  </div>
-                  <div class="match-detail-item">
-                    <span class="detail-icon">📍</span>
-                    <span class="detail-text">{{ match.venue }}</span>
-                  </div>
-                  <div class="match-detail-item">
-                    <span class="detail-icon">🕒</span>
-                    <span class="detail-text">{{ match.time }}</span>
-                  </div>
-                  <div class="match-detail-item">
-                    <span class="detail-icon">🎯</span>
-                    <span class="detail-text">{{ match.skillLevel }}</span>
-                  </div>
-                </div>
-                <div class="featured-match-footer">
-                  <div class="match-capacity">
-                    <span class="capacity-icon">👥</span>
-                    <span class="capacity-text">{{ match.joined }}/{{ match.capacity }}</span>
-                  </div>
-                  <div class="match-price" :class="{ free: match.price === 0 }">
-                    {{ match.price === 0 ? 'Free' : `$${match.price}` }}
+          <!-- Carousel with Matches -->
+          <div v-else class="carousel-container">
+            <div class="carousel-track" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
+              <div
+                v-for="(slide, slideIndex) in featuredMatchesSlides"
+                :key="slideIndex"
+                class="carousel-slide"
+              >
+                <div class="row g-4">
+                  <div
+                    v-for="match in slide"
+                    :key="match.id"
+                    class="col-xl-3 col-lg-6 col-md-6 col-sm-12"
+                  >
+                    <div class="featured-match-card" @click="openMatchDetail(match)">
+                      <!-- Keep existing card content -->
+                      <div class="featured-match-header">
+                        <img :src="match.image" :alt="match.sport" class="featured-match-image" />
+                        <div class="featured-match-overlay" :style="{ background: `linear-gradient(180deg, transparent 0%, ${match.color}99 100%)` }"></div>
+                        <div class="featured-match-sport-icon">{{ match.icon }}</div>
+                        <div class="featured-match-badge">{{ match.badge }}</div>
+                      </div>
+                      <div class="featured-match-content">
+                        <div class="featured-match-sport" :style="{ color: match.color }">
+                          {{ match.sport }}
+                        </div>
+                        <h5 class="featured-match-title">{{ match.title }}</h5>
+                        <div class="featured-match-details">
+                          <div class="match-detail-item">
+                            <span class="detail-icon">👤</span>
+                            <span class="detail-text">{{ match.host }}</span>
+                          </div>
+                          <div class="match-detail-item">
+                            <span class="detail-icon">📍</span>
+                            <span class="detail-text">{{ match.venue }}</span>
+                          </div>
+                          <div class="match-detail-item">
+                            <span class="detail-icon">🕒</span>
+                            <span class="detail-text">{{ match.time }}</span>
+                          </div>
+                          <div class="match-detail-item">
+                            <span class="detail-icon">🎯</span>
+                            <span class="detail-text">{{ match.skillLevel }}</span>
+                          </div>
+                        </div>
+                        <div class="featured-match-footer">
+                          <div class="match-capacity">
+                            <span class="capacity-icon">👥</span>
+                            <span class="capacity-text">{{ match.joined }}/{{ match.capacity }}</span>
+                          </div>
+                          <div class="match-price" :class="{ free: match.price === 0 }">
+                            {{ match.price === 0 ? 'Free' : `$${match.price}` }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -216,21 +221,13 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</div>
-
-        <!-- Auto-slide progress bar
-        <div class="auto-slide-progress">
-          <div class="progress-bar-fill" :style="{ width: autoSlideProgress + '%' }"></div>
-        </div> -->
-      </div>
 
       <!-- Matches Near You -->
       <div class="row mb-5">
-        <h3 class="fw-bold mb-4">Matches Near You</h3>
-        <div class="row g-4">
-          <div class="col-lg-8">
+        <div class="col-12">
+          <h3 class="fw-bold mb-4">Matches Near You</h3>
+        </div>
+        <div class="col-lg-8">
             <!-- Map Container with Caption -->
             <div class="map-container-shadow">
               <p class="map-caption">
@@ -285,23 +282,23 @@
               </div>
             </div>
           </div>
-        </div>
       </div>
-    </div>
-<MatchDetailModal
-  v-if="showMatchDetail && selectedMatch"
-  :isOpen="showMatchDetail"
-  :match="selectedMatch"
-  :currentUser="currentUser || { 
-    id: 'guest', 
-    name: 'Guest User', 
-    profilePic: userProfilePic 
-  }"
-  @close="closeMatchDetail"
-  @join="handleModalJoin"
-  @leave="handleModalLeave"
-/>
+    </div> <!-- Close container-fluid -->
 
+    <MatchDetailModal
+      v-if="showMatchDetail && selectedMatch"
+      :isOpen="showMatchDetail"
+      :match="selectedMatch"
+      :currentUser="currentUser || {
+        id: 'guest',
+        name: 'Guest User',
+        profilePic: userProfilePic
+      }"
+      @close="closeMatchDetail"
+      @join="handleModalJoin"
+      @leave="handleModalLeave"
+    />
+  </div> <!-- Close min-h-screen -->
 </template>
 
 <script>
@@ -2248,5 +2245,402 @@ body {
 
 .text-primary {
   color: #FF6B35 !important;
+}
+
+/* ========== RESPONSIVE DESIGN FOR MOBILE & TABLETS ========== */
+
+/* Base mobile-first approach */
+.min-h-screen {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.container-fluid {
+  width: 100%;
+  max-width: 100%;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* Tablets and below (iPad, smaller screens) */
+@media (max-width: 991px) {
+  .welcome-section {
+    margin: 0 20px 30px 20px;
+  }
+
+  .welcome-title {
+    font-size: 2rem;
+  }
+
+  .welcome-stats {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .stat-card {
+    width: 100%;
+  }
+
+  .quick-actions-card {
+    margin-top: 20px;
+  }
+
+  /* Carousel adjustments */
+  .carousel-container {
+    margin: 0 -10px;
+  }
+
+  /* Featured Players */
+  .featured-card {
+    margin-bottom: 20px;
+  }
+
+  /* Map adjustments */
+  .map-wrapper {
+    height: 300px;
+  }
+
+  .nearby-sidebar {
+    margin-top: 20px;
+    position: relative;
+    top: 0;
+  }
+}
+
+/* Mobile phones (landscape and portrait) */
+@media (max-width: 768px) {
+  .container-fluid {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .welcome-section {
+    margin: 0 15px 25px 15px;
+    padding: 20px 0;
+  }
+
+  .welcome-content {
+    padding: 24px;
+  }
+
+  .welcome-title {
+    font-size: 1.75rem;
+  }
+
+  .welcome-subtitle {
+    font-size: 1rem;
+  }
+
+  .stat-value {
+    font-size: 1.3rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .quick-actions-card {
+    padding: 20px;
+  }
+
+  .btn-quick-action {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+
+  /* Stars of the Week - Stack vertically */
+  .row.g-4 > .col-lg-6 {
+    margin-bottom: 15px;
+  }
+
+  .featured-card {
+    padding: 20px;
+  }
+
+  .featured-name {
+    font-size: 1.2rem;
+  }
+
+  /* Carousel */
+  .carousel-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .carousel-nav-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .featured-match-card {
+    margin-bottom: 15px;
+  }
+
+  .featured-match-header {
+    height: 150px;
+  }
+
+  .featured-match-title {
+    font-size: 1rem;
+  }
+
+  .match-detail-item {
+    font-size: 0.8rem;
+  }
+
+  /* Map section */
+  .map-wrapper {
+    height: 250px;
+  }
+
+  .nearby-match-item {
+    padding: 12px;
+  }
+
+  .sport-icon-small {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+
+  .sport-title {
+    font-size: 0.95rem;
+  }
+
+  .detail-row {
+    font-size: 0.8rem;
+  }
+
+  /* Weather widget */
+  .weather-temp {
+    font-size: 1.2rem;
+  }
+
+  .weather-desc {
+    font-size: 0.8rem;
+  }
+}
+
+/* Small phones (iPhone SE, small Android phones) */
+@media (max-width: 576px) {
+  .container-fluid {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .welcome-section {
+    margin: 0 10px 20px 10px;
+    padding: 15px 0;
+  }
+
+  .welcome-content {
+    padding: 20px;
+  }
+
+  .welcome-title {
+    font-size: 1.5rem;
+  }
+
+  .welcome-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .welcome-stats {
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 12px;
+  }
+
+  .stat-icon {
+    font-size: 1.5rem;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+  }
+
+  .quick-actions-card {
+    padding: 16px;
+  }
+
+  .quick-actions-title {
+    font-size: 0.9rem;
+  }
+
+  .btn-quick-action {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+  }
+
+  .action-icon {
+    font-size: 1rem;
+  }
+
+  /* Hide emojis on very small screens to save space */
+  h3.fw-bold {
+    font-size: 1.3rem;
+  }
+
+  /* Featured players */
+  .featured-badge {
+    font-size: 0.65rem;
+    padding: 4px 10px;
+  }
+
+  .featured-avatar img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .featured-name {
+    font-size: 1.1rem;
+  }
+
+  .featured-stat {
+    font-size: 0.85rem;
+  }
+
+  .sport-tag {
+    font-size: 0.75rem;
+    padding: 3px 10px;
+  }
+
+  .featured-quote {
+    font-size: 0.85rem;
+    padding: 10px 14px;
+  }
+
+  /* Carousel */
+  .carousel-indicator {
+    font-size: 0.8rem;
+  }
+
+  .featured-match-header {
+    height: 120px;
+  }
+
+  .featured-match-sport-icon {
+    font-size: 2.5rem;
+  }
+
+  .featured-match-badge {
+    font-size: 0.65rem;
+    padding: 4px 10px;
+  }
+
+  .featured-match-content {
+    padding: 16px;
+  }
+
+  .featured-match-title {
+    font-size: 0.95rem;
+  }
+
+  .match-detail-item {
+    font-size: 0.75rem;
+  }
+
+  .match-detail-item .detail-icon {
+    font-size: 0.85rem;
+    width: 18px;
+  }
+
+  .capacity-text, .match-price {
+    font-size: 0.8rem;
+  }
+
+  /* Map section */
+  .map-wrapper {
+    height: 200px;
+  }
+
+  .map-caption {
+    font-size: 0.85rem;
+  }
+
+  .nearby-sidebar {
+    padding: 16px;
+  }
+
+  .sidebar-title {
+    font-size: 0.95rem;
+  }
+
+  .nearby-match-item {
+    padding: 10px;
+  }
+
+  .sport-icon-small {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+
+  .sport-title {
+    font-size: 0.9rem;
+  }
+
+  .price-tag {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+  }
+
+  .detail-row {
+    font-size: 0.75rem;
+  }
+
+  .detail-icon {
+    font-size: 0.8rem;
+  }
+
+  /* Weather widget */
+  .weather-widget {
+    padding-top: 12px;
+  }
+
+  .weather-icon {
+    font-size: 2rem;
+  }
+
+  .weather-temp {
+    font-size: 1.1rem;
+  }
+}
+
+/* Extra small phones (very small screens) */
+@media (max-width: 375px) {
+  .welcome-title {
+    font-size: 1.3rem;
+  }
+
+  .welcome-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .stat-value {
+    font-size: 1.1rem;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+  }
+
+  h3.fw-bold {
+    font-size: 1.2rem;
+  }
+
+  .featured-match-title {
+    font-size: 0.9rem;
+  }
+
+  .carousel-nav-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
 }
 </style>

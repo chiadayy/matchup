@@ -9,7 +9,10 @@
       "Bash(taskkill:*)",
       "Bash(move vite.config.js vite.config.ts)",
       "Bash(npm run build:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(for file in *.vue)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []
