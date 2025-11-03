@@ -265,53 +265,85 @@ export default {
       this.card.mount("#card-element");
     },
     async handlePayment() {
-      this.loading = true;
-      this.message = "";
+  this.loading = true;
+  this.message = "";
 
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/payments/create-payment-intent`, { 
+      method: "POST", 
+      headers: { "Content-Type": "application/json" }, 
+      body: JSON.stringify({ amount: this.amountPerPax, currency: "sgd" })
+    });
+
+    const { clientSecret } = await res.json();
+
+    const { error, paymentIntent } = await this.stripe.confirmCardPayment(clientSecret, {
+      payment_method: {
+        card: this.card,
+        billing_details: { name: this.cardName },
+      },
+    });
+
+    if (error) {
+      this.message = error.message;
+    } else if (paymentIntent.status === "succeeded") {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/payments/create-payment-intent`, { 
-          method: "POST", 
-          headers: { "Content-Type": "application/json" }, 
-          body: JSON.stringify({ amount: this.amountPerPax, currency: "sgd" })
+        // Join the match
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/matches/${this.match.id}/join`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: this.currentUser.id,
+            payment_success: true
+          })
         });
+        const result = await res.json();
 
-        const { clientSecret } = await res.json();
+        if (!result.success) {
+          console.error("Failed to join match in DB:", result.error);
+          return;
+        }
 
-        const { error, paymentIntent } = await this.stripe.confirmCardPayment(clientSecret, {
-          payment_method: {
-            card: this.card,
-            billing_details: { name: this.cardName },
-          },
-        });
+        // Check if this join makes it 2 players (chat unlocks)
+        const { count } = await supabase
+          .from('users_matches')
+          .select('*', { count: 'exact', head: true })
+          .eq('match_id', this.match.id)
+          .eq('payment_success', true);
 
-        if (error) this.message = error.message;
-        else if (paymentIntent.status === "succeeded") {
-          this.showSuccessModal = true;
+        if (count === 2) {
+          // Get all users in this match
+          const { data: matchUsers } = await supabase
+            .from('users_matches')
+            .select('user_id')
+            .eq('match_id', this.match.id)
+            .eq('payment_success', true);
 
-          try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/matches/${this.match.id}/join`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                user_id: this.currentUser.id,
-                payment_success: true
-              })
-            });
-            const result = await res.json();
+          // Create notification for each user
+          const notifications = matchUsers.map(user => ({
+            user_id: user.user_id,
+            title: "Chat Unlocked!",
+            message: `The chat for "${this.match.name}" is now available. Head to My Matches to start chatting!`,
+            read: false
+          }));
 
-            if (!result.success) {
-              console.error("Failed to join match in DB:", result.error);
-            }
-          } catch (err) {
-            console.error("Error joining match in DB:", err);
-          }
-        } 
+          await supabase
+            .from('notifications')
+            .insert(notifications);
+        }
+
+        this.showSuccessModal = true;
+
       } catch (err) {
-        this.message = "Error: " + err.message;
-      } finally {
-        this.loading = false;
+        console.error("Error joining match in DB:", err);
       }
-    },
+    } 
+  } catch (err) {
+    this.message = "Error: " + err.message;
+  } finally {
+    this.loading = false;
+  }
+},
     async handleSuccessOk() {
       this.showSuccessModal = false;
       
