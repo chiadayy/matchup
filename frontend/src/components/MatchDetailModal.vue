@@ -140,18 +140,33 @@
       </div>
 
       <!-- leave confirmation -->
-      <div v-if="showLeaveConfirm" class="modal-overlay">
+      <!-- <div v-if="showLeaveConfirm" class="modal-overlay">
         <div class="confirm-box">
-          <p>Are you sure you want to leave this match?</p>
+          <h1>Leave Match?</h1>
+          <p>Are you sure you want to leave this match? This action cannot be undone</p>
           <div class="confirm-actions">
             <button @click="confirmLeave">Yes, leave</button>
             <button @click="showLeaveConfirm = false">Cancel</button>
           </div>
         </div>
+      </div> -->
+      <div v-if="showLeaveConfirm" class="modal-overlay" @click="cancelLeave">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h3>Leave Match?</h3>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to leave this match? This action cannot be undone.</p>
+          </div>
+          <div class="modal-actions">
+            <button @click="confirmLeave"  class="modal-button cancel">Yes, leave</button>
+            <button @click="showLeaveConfirm = false" class="modal-button confirm" :disabled="leavingMatch">Cancel</button>
+          </div>
+        </div>
       </div>
 
       <!-- leave success -->
-      <div v-if="showLeaveSuccess" class="modal-overlay">
+      <div v-if="showLeaveSuccess" class="confirm-overlay">
         <div class="confirm-box">
           <p>You have successfully left the match.</p>
           <p v-if="match.total_price != 0">Refunds have been made.</p>
@@ -440,7 +455,7 @@ export default {
 </script>
 
 <style scoped>
-.modal-overlay {
+/* .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -454,7 +469,7 @@ export default {
   z-index: 2000;
   padding: 20px;
   animation: fadeIn 0.2s ease;
-}
+} */
 
 @keyframes fadeIn {
   from {
@@ -965,6 +980,130 @@ export default {
   }
 
   .confirm-actions button {
+    width: 100%;
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 20px 32px 32px 32px;
+  max-width: 450px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header h3 {
+  margin: 0 0 16px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.modal-body p {
+  margin: 0;
+  color: #4a5568;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.modal-button {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-button.cancel {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.modal-button.cancel:hover {
+  background: #cbd5e0;
+}
+
+.modal-button.confirm {
+  background: #e53e3e;
+  color: white;
+}
+
+.modal-button.confirm:hover:not(:disabled) {
+  background: #c53030;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+}
+
+.modal-button.confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .my-matches-page {
+    padding: 24px 20px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .matches-container {
+    grid-template-columns: 1fr;
+  }
+
+  .match-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .leave-button {
     width: 100%;
   }
 }
