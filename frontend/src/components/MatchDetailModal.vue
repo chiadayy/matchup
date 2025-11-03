@@ -112,7 +112,7 @@
                 </div>
               </div>
               <button
-                v-if="player.id !== currentUser.id"
+                v-if="currentUser && player.id !== currentUser.id"
                 class="btn-message"
                 @click="messagePlayer(player)"
                 title="Send message"
@@ -163,40 +163,63 @@
       </div>
 
       <!-- leave confirmation -->
-      <!-- <div v-if="showLeaveConfirm" class="modal-overlay">
-        <div class="confirm-box">
-          <h1>Leave Match?</h1>
-          <p>Are you sure you want to leave this match? This action cannot be undone</p>
-          <div class="confirm-actions">
-            <button @click="confirmLeave">Yes, leave</button>
-            <button @click="showLeaveConfirm = false">Cancel</button>
-          </div>
-        </div>
-      </div> -->
       <div v-if="showLeaveConfirm" class="modal-overlay" @click="cancelLeave">
         <div class="modal-content" @click.stop>
           <div class="modal-header">
             <h3>Leave Match?</h3>
           </div>
           <div class="modal-body">
-            <p>Are you sure you want to leave this match? This action cannot be undone.</p>
+            <p>Are you sure you want to leave this match?</p>
+            <div v-if="match.total_price > 0" class="refund-notice">
+              <div class="refund-icon">💰</div>
+              <div class="refund-text">
+                <strong>Refund: ${{ match.total_price }}</strong>
+                <p>Your payment will be refunded within 3-5 business days.</p>
+              </div>
+            </div>
+            <p style="color: #dc3545; margin-top: 16px;">This action cannot be undone.</p>
           </div>
           <div class="modal-actions">
-            <button @click="confirmLeave"  class="modal-button cancel">Yes, leave</button>
-            <button @click="showLeaveConfirm = false" class="modal-button confirm" :disabled="leavingMatch">Cancel</button>
+            <button @click="showLeaveConfirm = false" class="modal-button cancel">Cancel</button>
+            <button @click="confirmLeave" class="modal-button confirm" :disabled="leavingMatch">
+              <span v-if="leavingMatch">Leaving...</span>
+              <span v-else-if="match.total_price > 0">Yes, Leave & Refund</span>
+              <span v-else>Yes, Leave</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- payment confirmation -->
+      <div v-if="showPaymentConfirm" class="modal-overlay" @click="cancelPayment">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h3>Confirm Payment</h3>
+          </div>
+          <div class="modal-body">
+            <p>This match requires a payment of <strong style="color: #FF6B35; font-size: 1.2em;">${{ match.total_price }}</strong>.</p>
+            <p>You will be redirected to the payment page to complete your registration.</p>
+          </div>
+          <div class="modal-actions">
+            <button @click="showPaymentConfirm = false" class="modal-button cancel">Cancel</button>
+            <button @click="confirmPayment" class="modal-button confirm-payment">Proceed to Payment</button>
           </div>
         </div>
       </div>
 
       <!-- leave success -->
-      <div v-if="showLeaveSuccess" class="confirm-overlay">
+      <div v-if="showLeaveSuccess" class="confirm-overlay" @click.self="handleSuccessOk">
         <div class="confirm-box">
-          <p>You have successfully left the match.</p>
-          <p v-if="match.total_price != 0">Refunds have been made.</p>
+          <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+          <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 12px;">You have successfully left the match.</p>
+          <div v-if="match.total_price > 0" class="success-refund-info">
+            <p>💰 <strong>Refund Amount: ${{ match.total_price }}</strong></p>
+            <p style="font-size: 0.9rem; color: #6b7280;">Refund will be processed within 3-5 business days.</p>
+          </div>
           <div class="confirm-actions">
             <button
               :style="{ 'background-color': '#FF6B35', color: 'white' }"
-              @click="showLeaveSuccess = false"
+              @click="handleSuccessOk"
             >
               OK
             </button>
@@ -224,23 +247,16 @@ export default {
       type: Object,
       required: true,
     },
-    // currentUser: {
-    //   type: Object,
-    //   default: () => ({
-    //     id: '1',
-    //     name: 'John Doe',
-    //     profilePic: 'https://i.pravatar.cc/150?img=12'
-    //   })
-    // }
   },
   data() {
     return {
       matchPlayers: [],
       currentUser: null,
-      // showJoinSuccessModal: false,
       showLeaveConfirm: false,
       leavingMatchId: null,
+      leavingMatch: false,
       showLeaveSuccess: false,
+      showPaymentConfirm: false,
     };
   },
   mounted() {
@@ -263,6 +279,7 @@ export default {
       return Math.max(0, this.spotsRemaining);
     },
     isUserJoined() {
+      if (!this.currentUser) return false;
       return this.matchPlayers.some((p) => p.id === this.currentUser.id);
     },
   },
@@ -300,7 +317,6 @@ export default {
           console.error("Failed to fetch players data", error);
           return;
         } else {
-          // this.matchPlayers = data;
           this.matchPlayers = data.map((u) => u.profiles);
         }
       } catch (err) {
@@ -309,6 +325,9 @@ export default {
     },
     closeModal() {
       this.$emit("close");
+    },
+    cancelLeave() {
+      this.showLeaveConfirm = false;
     },
     getSportIcon(sport) {
       const icons = {
@@ -326,120 +345,132 @@ export default {
       if (attendance >= 50) return "fair";
       return "poor";
     },
-async joinMatch() {
-  if (!this.isUserJoined && this.spotsRemaining > 0) {
-    // navigate to payment page 
-    if (this.match.total_price !== 0) {
-      this.$router.push({ name: 'Pay', params: { matchid: this.match.id } });
-      this.showPayPage = true;
-      return ;
-    }
-    const paymentSuccess = true;
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/matches/${this.match.id}/join`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: this.currentUser.id,
-          payment_success: paymentSuccess
-        })
-      });
-      const result = await response.json();
-      if (result.success) {
-        this.matchPlayers.push({
-          ...this.currentUser
-        });
-
-        // NEW: Notify existing players that someone joined
-        const { data: existingUsers } = await supabase
-          .from('users_matches')
-          .select('user_id')
-          .eq('match_id', this.match.id)
-          .eq('payment_success', true)
-          .neq('user_id', this.currentUser.id); // Don't notify the person who just joined
-
-        if (existingUsers && existingUsers.length > 0) {
-          const joinNotifications = existingUsers.map(user => ({
-            user_id: user.user_id,
-            title: "New Player Joined!",
-            message: `${this.currentUser.name} has joined "${this.match.name}"`,
-            read: false
-          }));
-
-          await supabase
-            .from('notifications')
-            .insert(joinNotifications);
+    async joinMatch() {
+      if (!this.isUserJoined && this.spotsRemaining > 0) {
+        // Show payment confirmation for paid matches
+        if (this.match.total_price !== 0) {
+          this.showPaymentConfirm = true;
+          return;
         }
+        
+        // For free matches, join directly
+        await this.processJoin();
+      }
+    },
+    cancelPayment() {
+      this.showPaymentConfirm = false;
+    },
+    confirmPayment() {
+      this.showPaymentConfirm = false;
+      // Navigate to payment page
+      this.$router.push({ name: 'Pay', params: { matchid: this.match.id } });
+    },
+    async processJoin() {
+      const paymentSuccess = true;
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/matches/${this.match.id}/join`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: this.currentUser.id,
+            payment_success: paymentSuccess
+          })
+        });
+        const result = await response.json();
+        if (result.success) {
+          this.matchPlayers.push({
+            ...this.currentUser
+          });
 
-        // get the latest match update
-        const { data: latestMatch } = await supabase
-        .from('matches')
-        .select('current_player_count, total_player_count')
-        .eq('id', this.match.id)
-        .single();
-
-        // Check if this is the 2nd player (chat unlocks)
-        if (latestMatch.current_player_count === 2) {
-          // Get all users in this match
-          const { data: matchUsers } = await supabase
+          // NEW: Notify existing players that someone joined
+          const { data: existingUsers } = await supabase
             .from('users_matches')
             .select('user_id')
             .eq('match_id', this.match.id)
-            .eq('payment_success', true);
+            .eq('payment_success', true)
+            .neq('user_id', this.currentUser.id); // Don't notify the person who just joined
 
-          // Create notification for each user
-          const notifications = matchUsers.map(user => ({
-            user_id: user.user_id,
-            title: "Chat Unlocked!",
-            message: `The chat for "${this.match.name}" is now available. Head to My Matches to start chatting!`,
-            read: false
-          }));
+          if (existingUsers && existingUsers.length > 0) {
+            const joinNotifications = existingUsers.map(user => ({
+              user_id: user.user_id,
+              title: "New Player Joined!",
+              message: `${this.currentUser.name} has joined "${this.match.name}"`,
+              read: false
+            }));
 
-          await supabase
-            .from('notifications')
-            .insert(notifications);
-          
-          console.log(`Notified ${notifications.length} players that chat is unlocked.`);
-        }
-
-        // Check if match is full
-        if (latestMatch.current_player_count == latestMatch.total_player_count) {
-          console.log("match players ", this.matchPlayers);
-          const notifications = this.matchPlayers.map(u => ({
-            user_id: u.id,
-            title: "Match Can Begin!",
-            message: `Match "${this.match.name}" is now full and will begin as scheduled.`,
-            read: false
-          }));
-
-          const { error: notifError } = await supabase
-            .from('notifications')
-            .insert(notifications);
-
-          if (notifError) {
-            console.error('Error inserting notification:', notifError)
-          } else {
-            console.log(`Notified ${notifications.length} players that the match is full.`);
+            await supabase
+              .from('notifications')
+              .insert(joinNotifications);
           }
+
+          // get the latest match update
+          const { data: latestMatch } = await supabase
+          .from('matches')
+          .select('current_player_count, total_player_count')
+          .eq('id', this.match.id)
+          .single();
+
+          // Check if this is the 2nd player (chat unlocks)
+          if (latestMatch.current_player_count === 2) {
+            // Get all users in this match
+            const { data: matchUsers } = await supabase
+              .from('users_matches')
+              .select('user_id')
+              .eq('match_id', this.match.id)
+              .eq('payment_success', true);
+
+            // Create notification for each user
+            const notifications = matchUsers.map(user => ({
+              user_id: user.user_id,
+              title: "Chat Unlocked!",
+              message: `The chat for "${this.match.name}" is now available. Head to My Matches to start chatting!`,
+              read: false
+            }));
+
+            await supabase
+              .from('notifications')
+              .insert(notifications);
+            
+            console.log(`Notified ${notifications.length} players that chat is unlocked.`);
+          }
+
+          // Check if match is full
+          if (latestMatch.current_player_count == latestMatch.total_player_count) {
+            console.log("match players ", this.matchPlayers);
+            const notifications = this.matchPlayers.map(u => ({
+              user_id: u.id,
+              title: "Match Can Begin!",
+              message: `Match "${this.match.name}" is now full and will begin as scheduled.`,
+              read: false
+            }));
+
+            const { error: notifError } = await supabase
+              .from('notifications')
+              .insert(notifications);
+
+            if (notifError) {
+              console.error('Error inserting notification:', notifError)
+            } else {
+              console.log(`Notified ${notifications.length} players that the match is full.`);
+            }
+          }
+
+          // send msg back to browser
+          this.$emit('join', this.match.id);
+
+        } else {
+          alert('Failed to join match: ' + result.error);
         }
-
-        // send msg back to browser
-        this.$emit('join', this.match.id);
-
-      } else {
-        alert('Failed to join match: ' + result.error);
+      } catch (err) {
+        alert('Error joining match: ' + err.message);
       }
-    } catch (err) {
-      alert('Error joining match: ' + err.message);
-    }
-  }
-},
+    },
     leaveMatch(match) {
       this.leavingMatchId = this.match.id;
       this.showLeaveConfirm = true;
     },
     async confirmLeave() {
-      // if (confirm('Are you sure you want to leave this match?')) {
+      this.leavingMatch = true;
       try {
         const response = await fetch(
           `${import.meta.env.VITE_API_URL}/matches/${this.match.id}/leave`,
@@ -458,36 +489,43 @@ async joinMatch() {
             (p) => p.id !== this.currentUser.id
           );
           this.$emit("leave", this.match.id);
+
+          // ✅ ONLY show success modal if API call succeeded
+          this.showLeaveSuccess = true;
+
+          // Add refund notification if paid match
+          if (this.match.total_price != 0) {
+            const { error } = await supabase.from("notifications").insert([
+              {
+                user_id: this.currentUser.id,
+                title: "Refund",
+                message: `Refund for match "${this.match.name}" successful`,
+                read: false,
+              },
+            ]);
+
+            if (error) {
+              console.error("Error inserting notification:", error);
+            }
+          }
         } else {
           console.log(
             "Failed to leave match: " + (result.error || "Unknown error")
           );
+          alert("Failed to leave match. Please try again.");
         }
       } catch (err) {
         console.log("Error leaving match: " + err.message);
+        alert("Error leaving match: " + err.message);
       } finally {
-        this.showLeaveConfirm = false; // hide popup
+        this.showLeaveConfirm = false;
         this.leavingMatchId = null;
+        this.leavingMatch = false;
       }
-      // }
-
-      this.showLeaveSuccess = true;
-      if (this.match.total_price != 0) {
-        const { error } = await supabase.from("notifications").insert([
-          {
-            user_id: this.currentUser.id,
-            title: "Refund",
-            message: `Refund for match "${this.match.name}" successful`,
-            read: false,
-          },
-        ]);
-
-        if (error) {
-          console.error("Error inserting notification:", error);
-        } else {
-          console.log("Inserted data:");
-        }
-      }
+    },
+    handleSuccessOk() {
+      this.showLeaveSuccess = false;
+      this.closeModal();
     },
     async fetchMatchPlayers() {
       try {
@@ -511,15 +549,12 @@ async joinMatch() {
     },
     messagePlayer(player) {
       this.$emit("message", player);
-      // Or open chat directly
-      // this.$router.push(`/messages/${player.id}`);
     },
   },
   watch: {
     "match.id": {
       handler(newId) {
         if (newId) {
-          // this.fetchMatchPlayers();
           this.getPlayers();
         }
       },
@@ -530,7 +565,7 @@ async joinMatch() {
 </script>
 
 <style scoped>
-/* .modal-overlay {
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -544,7 +579,7 @@ async joinMatch() {
   z-index: 2000;
   padding: 20px;
   animation: fadeIn 0.2s ease;
-} */
+}
 
 @keyframes fadeIn {
   from {
@@ -1059,25 +1094,7 @@ async joinMatch() {
   }
 }
 
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
+/* New leave confirmation modal styles */
 .modal-content {
   background: white;
   border-radius: 16px;
@@ -1086,17 +1103,6 @@ async joinMatch() {
   width: 90%;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .modal-header h3 {
@@ -1155,31 +1161,74 @@ async joinMatch() {
   cursor: not-allowed;
 }
 
+.modal-button.confirm-payment {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.modal-button.confirm-payment:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
 @media (max-width: 768px) {
-  .my-matches-page {
-    padding: 24px 20px;
+  .modal-content {
+    padding: 16px 24px 24px 24px;
   }
+}
 
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
+/* Refund notice styling */
+.refund-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  margin: 20px 0;
+}
 
-  .matches-container {
-    grid-template-columns: 1fr;
-  }
+.refund-icon {
+  font-size: 32px;
+  line-height: 1;
+  flex-shrink: 0;
+}
 
-  .match-info-grid {
-    grid-template-columns: 1fr;
-  }
+.refund-text {
+  flex: 1;
+}
 
-  .action-buttons {
-    flex-direction: column;
-  }
+.refund-text strong {
+  display: block;
+  font-size: 1.1rem;
+  color: #92400e;
+  margin-bottom: 8px;
+}
 
-  .leave-button {
-    width: 100%;
-  }
+.refund-text p {
+  margin: 0;
+  color: #78350f;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.success-refund-info {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border: 2px solid #10b981;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.success-refund-info p {
+  margin: 4px 0;
+  color: #065f46;
+}
+
+.success-refund-info strong {
+  color: #047857;
+  font-size: 1.1rem;
 }
 </style>
