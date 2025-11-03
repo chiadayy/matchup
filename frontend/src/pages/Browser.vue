@@ -892,6 +892,16 @@ export default {
     filterMatches() {
       this.filteredMatches = [...this.matches];
 
+      this.filteredMatches = this.filteredMatches.filter(
+        m => m.current_player_count < m.total_player_count
+      )
+
+      const now = new Date();
+      this.filteredMatches = this.filteredMatches.filter(m => {
+        const matchDateTime = new Date(`${m.date}T${m.time}`);
+        return matchDateTime > now;
+      })
+
       if (this.selectedSports.length > 0) {
         this.filteredMatches = this.filteredMatches.filter((m) =>
           this.selectedSports.includes(m.sport_type)
@@ -1622,6 +1632,11 @@ export default {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+
 }
 
 @media (max-width: 991px) {
@@ -1642,6 +1657,11 @@ export default {
   cursor: pointer;
   position: relative;
   min-height: 380px;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  word-break: break-word;
+
 }
 
 .match-card:hover {
@@ -2403,14 +2423,14 @@ export default {
 }
 
 .page-link:hover {
-  background-color: var(--primary-orange);
+  background-color: #FF6B35;
   color: white;
   border-color: var(--primary-orange);
 }
 
 .page-item.active .page-link {
-  background-color: var(--dark-bg);
-  border-color: var(--dark-bg);
+  background-color: #FF6B35;
+  border-color: var(--primary-orange);
   color: white;
 }
 
