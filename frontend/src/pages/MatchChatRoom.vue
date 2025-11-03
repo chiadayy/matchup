@@ -724,4 +724,225 @@ export default {
   overflow: hidden;
   min-height: 0;
 }
+
+/* ========== RESPONSIVE DESIGN ========== */
+
+/* Tablets and below (991px) */
+@media (max-width: 991px) {
+  .match-container {
+    padding: 20px;
+  }
+
+  .match-layout {
+    flex-direction: column;
+    max-width: 100%;
+  }
+
+  .sidebar {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .chat-area {
+    width: 100%;
+    height: 500px;
+  }
+
+  .match-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+/* Mobile phones (768px) */
+@media (max-width: 768px) {
+  .match-container {
+    padding: 15px;
+  }
+
+  .match-header {
+    padding: 20px;
+  }
+
+  .match-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .price-badge {
+    font-size: 1.2rem;
+    padding: 8px 16px;
+  }
+
+  .back-button-inline {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+
+  .match-section {
+    padding: 16px 20px;
+  }
+
+  .match-section h3 {
+    font-size: 1rem;
+  }
+
+  .info-item .label {
+    font-size: 11px;
+  }
+
+  .info-item .value {
+    font-size: 13px;
+  }
+
+  .players-list {
+    gap: 10px;
+  }
+
+  .player img {
+    width: 35px;
+    height: 35px;
+  }
+
+  .player-name {
+    font-size: 13px;
+  }
+
+  .player-role {
+    font-size: 11px;
+  }
+
+  .chat-area {
+    height: 450px;
+  }
+
+  .weather-temp {
+    font-size: 2rem;
+  }
+}
+
+/* Small phones (576px) */
+@media (max-width: 576px) {
+  .match-container {
+    padding: 10px;
+  }
+
+  .sidebar {
+    border-radius: 12px;
+  }
+
+  .match-header {
+    padding: 16px;
+  }
+
+  .match-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .price-badge {
+    font-size: 1rem;
+    padding: 6px 12px;
+  }
+
+  .back-button-inline {
+    padding: 8px 16px;
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  .back-icon {
+    font-size: 16px;
+  }
+
+  .match-section {
+    padding: 12px 16px;
+  }
+
+  .match-section h3 {
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+  }
+
+  .icon {
+    font-size: 1rem;
+  }
+
+  .info-item {
+    padding: 8px;
+  }
+
+  .info-item .label {
+    font-size: 10px;
+  }
+
+  .info-item .value {
+    font-size: 12px;
+  }
+
+  .description {
+    font-size: 13px;
+  }
+
+  .weather-card {
+    padding: 12px;
+  }
+
+  .weather-temp {
+    font-size: 1.8rem;
+  }
+
+  .weather-desc {
+    font-size: 13px;
+  }
+
+  .player {
+    padding: 8px;
+  }
+
+  .player img {
+    width: 32px;
+    height: 32px;
+  }
+
+  .player-name {
+    font-size: 12px;
+  }
+
+  .player-role {
+    font-size: 10px;
+  }
+
+  .badge {
+    font-size: 8px;
+    padding: 2px 6px;
+  }
+
+  .chat-area {
+    height: 400px;
+    border-radius: 12px;
+  }
+}
+
+/* Extra small phones (375px) */
+@media (max-width: 375px) {
+  .match-header h2 {
+    font-size: 1rem;
+  }
+
+  .price-badge {
+    font-size: 0.9rem;
+  }
+
+  .match-section h3 {
+    font-size: 0.85rem;
+  }
+
+  .chat-area {
+    height: 350px;
+  }
+}
 </style>

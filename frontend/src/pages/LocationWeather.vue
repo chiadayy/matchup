@@ -701,5 +701,54 @@ select:hover {
   .grid { grid-template-columns: 1fr; }
   .map-panel { height: 420px; }
 }
+
+/* Mobile phones (768px) */
+@media (max-width: 768px) {
+  .dashboard { padding: 20px 15px; }
+
+  .header-bar h1 { font-size: 1.5rem; }
+
+  .filter-section { flex-direction: column; gap: 12px; }
+
+  .games-list { gap: 12px; }
+
+  .game { padding: 14px; }
+
+  .game-title { font-size: 0.95rem; }
+
+  .game-meta { font-size: 11px; }
+
+  .map-panel { height: 350px; padding: 8px; }
+
+  .map-title { font-size: 16px; }
+}
+
+/* Small phones (576px) */
+@media (max-width: 576px) {
+  .dashboard { padding: 15px 10px; }
+
+  .header-bar { flex-direction: column; align-items: flex-start; gap: 12px; }
+
+  .header-bar h1 { font-size: 1.3rem; }
+
+  .filter-section input, .filter-section select { font-size: 0.85rem; }
+
+  .game { padding: 12px; }
+
+  .game-title { font-size: 0.9rem; }
+
+  .weather-chip { padding: 5px 8px; font-size: 11px; }
+
+  .map-panel { height: 300px; }
+}
+
+/* Extra small phones (375px) */
+@media (max-width: 375px) {
+  .header-bar h1 { font-size: 1.2rem; }
+
+  .game-title { font-size: 0.85rem; }
+
+  .map-panel { height: 280px; }
+}
 </style> -->
 

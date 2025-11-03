@@ -1117,4 +1117,126 @@ updateLocationFromSearch() {
     right: 20px;
   }
 }
+
+/* Mobile phones (768px) */
+@media (max-width: 768px) {
+  .creation-container {
+    padding: 20px 15px;
+  }
+
+  .creation-card {
+    padding: 30px 20px;
+  }
+
+  .creation-title {
+    font-size: 1.8rem;
+  }
+
+  .creation-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .step-item {
+    padding: 15px;
+  }
+
+  .step-number {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
+
+  .step-label {
+    font-size: 0.85rem;
+  }
+
+  .form-group label {
+    font-size: 0.9rem;
+  }
+
+  input, textarea, select {
+    font-size: 0.9rem;
+    padding: 10px 14px;
+  }
+}
+
+/* Small phones (576px) */
+@media (max-width: 576px) {
+  .creation-container {
+    padding: 15px 10px;
+  }
+
+  .creation-card {
+    padding: 25px 15px;
+    border-radius: 16px;
+  }
+
+  .creation-title {
+    font-size: 1.5rem;
+  }
+
+  .creation-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .steps-indicator {
+    gap: 12px;
+  }
+
+  .step-item {
+    padding: 12px;
+  }
+
+  .step-number {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+
+  .step-label {
+    font-size: 0.8rem;
+  }
+
+  .form-group {
+    margin-bottom: 18px;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+  }
+
+  input, textarea, select {
+    font-size: 0.85rem;
+    padding: 9px 12px;
+  }
+
+  .btn {
+    padding: 11px 20px;
+    font-size: 0.9rem;
+  }
+
+  .success-icon {
+    font-size: 3rem;
+  }
+
+  .success-title {
+    font-size: 1.5rem;
+  }
+}
+
+/* Extra small phones (375px) */
+@media (max-width: 375px) {
+  .creation-title {
+    font-size: 1.3rem;
+  }
+
+  .step-label {
+    font-size: 0.75rem;
+  }
+
+  input, textarea, select {
+    font-size: 0.8rem;
+  }
+}
 </style>

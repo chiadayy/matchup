@@ -944,4 +944,80 @@ export default {
     grid-template-columns: 1fr;
   }
 }
+
+/* Small phones (576px) */
+@media (max-width: 576px) {
+  .profile-container {
+    padding: 15px 10px;
+  }
+
+  .profile-header {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .profile-name {
+    font-size: 1.3rem;
+  }
+
+  .profile-bio {
+    font-size: 0.85rem;
+  }
+
+  .stat-value {
+    font-size: 1.3rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .section {
+    padding: 18px;
+    border-radius: 12px;
+  }
+
+  .section-title {
+    font-size: 1rem;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+  }
+
+  .form-control {
+    font-size: 0.85rem;
+    padding: 9px 12px;
+  }
+
+  .btn {
+    padding: 10px 18px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Extra small phones (375px) */
+@media (max-width: 375px) {
+  .profile-name {
+    font-size: 1.2rem;
+  }
+
+  .profile-avatar {
+    width: 70px;
+    height: 70px;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+  }
+
+  .section-title {
+    font-size: 0.95rem;
+  }
+}
 </style>

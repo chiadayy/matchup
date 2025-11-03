@@ -1145,7 +1145,72 @@ form-group {
   color: white;
 }
 
+/* Mobile phones (768px) */
+@media (max-width: 768px) {
+  .pay-container {
+    padding: 20px 15px;
+  }
+
+  .pay-card {
+    padding: 30px 25px;
+  }
+
+  .pay-title {
+    font-size: 1.8rem;
+  }
+
+  .payment-method {
+    padding: 14px;
+  }
+
+  .payment-method-label {
+    font-size: 0.95rem;
+  }
+
+  .summary-row {
+    font-size: 0.95rem;
+  }
+
+  .btn-primary {
+    font-size: 0.95rem;
+  }
+}
+
 @media (max-width: 576px) {
+  .pay-container {
+    padding: 15px 10px;
+  }
+
+  .pay-card {
+    padding: 25px 20px;
+    border-radius: 16px;
+  }
+
+  .pay-title {
+    font-size: 1.5rem;
+  }
+
+  .payment-method {
+    padding: 12px;
+  }
+
+  .payment-method-label {
+    font-size: 0.9rem;
+  }
+
+  .summary-item {
+    padding: 12px;
+  }
+
+  .summary-row {
+    font-size: 0.85rem;
+  }
+
+  .btn-primary {
+    padding: 11px 20px;
+    font-size: 0.9rem;
+  }
+
   .confirm-box {
     padding: 24px;
   }
@@ -1157,6 +1222,21 @@ form-group {
 
   .confirm-actions button {
     width: 100%;
+  }
+}
+
+/* Extra small phones (375px) */
+@media (max-width: 375px) {
+  .pay-title {
+    font-size: 1.3rem;
+  }
+
+  .payment-method-label {
+    font-size: 0.85rem;
+  }
+
+  .summary-row {
+    font-size: 0.8rem;
   }
 }
 </style>

@@ -754,4 +754,97 @@ export default {
     width: 100%;
   }
 }
+
+/* Mobile phones (768px) */
+@media (max-width: 768px) {
+  .my-matches-container {
+    padding: 20px 15px;
+  }
+
+  .page-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .filter-tabs {
+    gap: 12px;
+  }
+
+  .match-card {
+    padding: 18px;
+  }
+
+  .match-title {
+    font-size: 1.1rem;
+  }
+
+  .info-label {
+    font-size: 11px;
+  }
+
+  .info-value {
+    font-size: 13px;
+  }
+}
+
+/* Small phones (576px) */
+@media (max-width: 576px) {
+  .my-matches-container {
+    padding: 15px 10px;
+  }
+
+  .page-header {
+    margin-bottom: 20px;
+  }
+
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .filter-tabs {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .filter-tab {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+
+  .match-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .match-title {
+    font-size: 1rem;
+  }
+
+  .match-info-grid {
+    gap: 10px;
+  }
+
+  .action-buttons {
+    gap: 10px;
+  }
+
+  .leave-button, .join-chat-button {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Extra small phones (375px) */
+@media (max-width: 375px) {
+  .page-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .match-title {
+    font-size: 0.95rem;
+  }
+
+  .filter-tab {
+    font-size: 0.8rem;
+  }
+}
 </style>
