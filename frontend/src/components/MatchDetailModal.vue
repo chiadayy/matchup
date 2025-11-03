@@ -82,9 +82,9 @@
               :key="player.id"
               class="player-item"
             >
-              <div class="player-info">
+              <div class="player-info clickable-player" @click="navigateToProfile(player.id)">
                 <img
-                  :src="player.profile_image"
+                  :src="player?.profile_image || defaultProfileImage"
                   :alt="player.name"
                   class="player-avatar"
                 />
@@ -114,7 +114,7 @@
               <button
                 v-if="currentUser && player.id !== currentUser.id"
                 class="btn-message"
-                @click="messagePlayer(player)"
+                @click.stop="messagePlayer(player)"
                 title="Send message"
               >
                 💬
@@ -257,6 +257,7 @@ export default {
       leavingMatch: false,
       showLeaveSuccess: false,
       showPaymentConfirm: false,
+      defaultProfileImage: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/profile_images/default-avatar.png`,
     };
   },
   mounted() {
@@ -549,6 +550,10 @@ export default {
     },
     messagePlayer(player) {
       this.$emit("message", player);
+    },
+    navigateToProfile(playerId) {
+      this.closeModal();
+      this.$router.push(`/profile/${playerId}`);
     },
   },
   watch: {
@@ -1230,5 +1235,21 @@ export default {
 .success-refund-info strong {
   color: #047857;
   font-size: 1.1rem;
+}
+
+.clickable-player {
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-radius: 8px;
+  padding: 4px;
+  margin: -4px;  /* Negative margin to maintain spacing */
+}
+
+.clickable-player:hover {
+  background: #f8f9fa;
+}
+
+.clickable-player:active {
+  transform: scale(0.98);
 }
 </style>

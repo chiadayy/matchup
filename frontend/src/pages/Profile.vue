@@ -7,19 +7,14 @@
           <div class="col-md-3 text-center">
             <!-- View Mode -->
             <div v-if="!isEditMode">
-              <div v-if="profileData.profile_image != null">
+              <div>
                 <img
-                  :src="profileData.profile_image"
+                  :src="profileData?.profile_image || defaultProfileImage"
                   alt="Profile"
                   class="profile-picture"
                 >
               </div>
-              <div v-else>
-                <!-- Default profile icon -->
-                <div class="profile-picture bg-secondary">
-                  <svg>...</svg>
-                </div>
-              </div>
+              
             </div>
             <!-- Edit Mode -->
             <div v-else class="col-md">
@@ -76,15 +71,27 @@
                 <h1 class="fw-bold mb-2">{{ profileData.name }}</h1>
                 <p class="text-muted mb-3">Member since {{ formatDate(profileData.created_at) }}</p>
                 
-                <div class="stats-row mb-4">
-                  <div class="stat-item">
-                    <div class="stat-value">{{ profileData.totalMatches}}</div> <!--NOT DONE-->
-                    <div class="stat-label">Matches Played</div>
+                <div class="row g-3 mb-4">
+                  <!-- Card 1: Matches Played -->
+                  <div class="col-md-6">
+                    <div class="card text-center border-3 shadow-sm">
+                      <div class="card-body">
+                        <h3 class="card-title">{{ profileData?.totalMatches || 0 }}</h3>
+                        <p class="card-text text-muted">Matches Played</p>
+                      </div>
+                    </div>
                   </div>
-                  <!-- <div class="stat-item">
-                    <div class="stat-value">{{ attendanceRate }}%</div>
-                    <div class="stat-label">Attendance Rate</div>
-                  </div> -->
+                  
+                  <!-- Card 2: Matches Hosted -->
+                  <div class="col-md-6">
+                    <div class="card text-center border-3">
+                      <div class="card-body">
+                        <h3 class="card-title">{{ profileData?.matchesHosted || 0 }}</h3>
+                        <p class="card-text text-muted">Matches Hosted</p>
+                      </div>
+                    </div>
+                  </div>
+                  
                 </div>
 
                 <div class="badges-row mb-4">
@@ -151,7 +158,114 @@
         </div>
       </div>
 
-      
+      <!-- Match History Section -->
+      <div class="match-history-section mt-4">
+        <div class="section-header mb-3">
+          <h3 class="fw-bold mb-0">Match History</h3>
+        </div>
+        
+        <!-- Toggle Tabs -->
+        <ul class="nav nav-tabs mb-4" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button 
+              class="nav-link"
+              :class="{ active: matchHistoryFilter === 'upcoming' }"
+              @click="matchHistoryFilter = 'upcoming'"
+              type="button"
+            >
+              <i class="bi bi-calendar-event me-2"></i>
+              Upcoming
+              <span class="badge bg-primary ms-2">{{ upcomingMatches.length }}</span>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button 
+              class="nav-link"
+              :class="{ active: matchHistoryFilter === 'past' }"
+              @click="matchHistoryFilter = 'past'"
+              type="button"
+            >
+              <i class="bi bi-clock-history me-2"></i>
+              Past Matches
+              <span class="badge bg-secondary ms-2">{{ pastMatches.length }}</span>
+            </button>
+          </li>
+        </ul>
+        
+        <!-- Loading State -->
+        <div v-if="isLoadingMatches" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading matches...</span>
+          </div>
+          <p class="text-muted mt-3">Loading matches...</p>
+        </div>
+        
+        <!-- Match Cards -->
+        <div v-else-if="displayedMatches.length > 0" class="row g-3">
+          <div 
+            v-for="item in displayedMatches" 
+            :key="item.id"
+            class="col-md-6 col-lg-4"
+          >
+            <div class="card h-100 border-3 shadow-sm match-card">
+              <div class="card-body">
+                <!-- Card Header -->
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="sport-emoji">{{ sportEmojis[item.matches.sport_type] }}</span>
+                    <h6 class="mb-0 fw-bold">{{ item.matches.sport_type }}</h6>
+                  </div>
+                  <span 
+                    v-if="item.matches.host === profileData.id"
+                    class="badge bg-warning text-dark"
+                  >
+                    <i class="bi bi-star-fill me-1"></i>Host
+                  </span>
+                </div>
+                
+                <!-- Match Name -->
+                <h5 class="card-title mb-3">{{ item.matches.name }}</h5>
+                
+                <!-- Match Details -->
+                <div class="match-info">
+                  <div class="info-item">
+                    <i class="bi bi-calendar3 text-muted"></i>
+                    <span>{{ formatDate(item.matches.date) }}</span>
+                  </div>
+                  <div class="info-item">
+                    <i class="bi bi-clock text-muted"></i>
+                    <span>{{ item.matches.time }}</span>
+                  </div>
+                  <div class="info-item">
+                    <i class="bi bi-geo-alt text-muted"></i>
+                    <span>{{ item.matches.location }}</span>
+                  </div>
+                  <div class="info-item">
+                    <i class="bi bi-people text-muted"></i>
+                    <span>{{ item.matches.current_player_count }} / {{ item.matches.total_player_count }} players</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Empty State -->
+        <div v-else class="empty-state text-center py-5">
+          <div class="empty-icon mb-3">
+            {{ matchHistoryFilter === 'upcoming' ? '📅' : '🕐' }}
+          </div>
+          <h5 class="text-muted mb-2">
+            No {{ matchHistoryFilter }} matches
+          </h5>
+          <p class="text-muted small">
+            {{ matchHistoryFilter === 'upcoming' 
+              ? 'Check back later for new matches!' 
+              : 'Match history will appear here once you attend matches.' 
+            }}
+          </p>
+        </div>
+      </div>
     </div>
 
     <!-- Notification Modal -->
@@ -179,7 +293,6 @@ import { supabase } from '@/lib/supabase';
 
 export default {
   name: 'Profile',
-  
   data() {
     return {
       userId: null,
@@ -216,25 +329,45 @@ export default {
       },
       isLoading: true,
       loadError: null,
-      
+      defaultProfileImage: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/profile_images/default-avatar.png`,
+      matchHistoryFilter: 'upcoming',
+      allMatches: [],
+      isLoadingMatches: false,
+      profileIdToLoad: null,
     }
   },
   computed: {
-    attendanceRate() {
-      
-      return 0
+    upcomingMatches() {
+      const today = new Date().toISOString().split('T')[0];
+      return this.allMatches.filter(item => {
+        return item.matches && item.matches.date >= today;
+      });
     },
     
+    pastMatches() {
+      const today = new Date().toISOString().split('T')[0];
+      return this.allMatches.filter(item => {
+        return item.matches && item.matches.date < today;
+      });
+    },
+    
+    displayedMatches() {
+      return this.matchHistoryFilter === 'upcoming' 
+        ? this.upcomingMatches 
+        : this.pastMatches;
+    }
   },
   async mounted() {
     this.userId = this.$route.params.id;
     await this.loadCurrentUser();
+    await this.loadUserMatches();
   },
   watch: {
     '$route.params.id': {
       async handler(newId) {
         this.userId = newId;
         await this.loadCurrentUser();
+        await this.loadUserMatches();
       }
     }
   },
@@ -247,13 +380,13 @@ export default {
         const { data: authData, error: authError } = await supabase.auth.getUser();
         if (authError) throw authError;
 
-        const profileIdToLoad = this.userId || authData.user.id;
-        this.isOwnProfile = profileIdToLoad === authData.user.id;
+        this.profileIdToLoad = this.userId || authData.user.id;
+        this.isOwnProfile = this.profileIdToLoad === authData.user.id;
 
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', profileIdToLoad)
+          .eq('id', this.profileIdToLoad)
           .single();
 
         if (profileError) throw profileError;
@@ -261,14 +394,22 @@ export default {
         const { count, error: matchCountError } = await supabase
           .from('users_matches')
           .select('*', { count: 'exact', head: true })
-          .eq('user_id', profileIdToLoad)
+          .eq('user_id', this.profileIdToLoad)
           .eq('payment_success', true);
 
         if (matchCountError) console.error(matchCountError);
 
+        const { count: hostedCount, error: hostedError } = await supabase
+          .from('matches')
+          .select('*', { count: 'exact', head: true })
+          .eq('host', this.profileIdToLoad);
+
+        if (hostedError) console.error(hostedError);
+
         this.profileData = {
           ...profileData,
-          totalMatches: count || 0
+          totalMatches: count || 0,
+          matchesHosted: hostedCount || 0,
         };
 
       } catch (err) {
@@ -277,6 +418,42 @@ export default {
       } finally {
         this.isLoading = false;
       }
+    },
+    async loadUserMatches() {
+      this.isLoadingMatches = true;
+
+      try {
+        const { data, error } = await supabase
+          .from('users_matches')
+          .select(`
+            *,
+            matches (
+              id,
+              name,
+              description,
+              date,
+              time,
+              location,
+              sport_type,
+              host,
+              total_player_count,
+              current_player_count
+            )
+          `)
+          .eq('user_id', this.profileIdToLoad)
+          .eq('payment_success', true)
+          .order('matches(date)', { ascending: false });
+        
+        if (error) throw error;
+        
+        this.allMatches = data;
+        
+      } catch (err) {
+        console.error('Error loading matches:', err);
+      } finally {
+        this.isLoadingMatches = false;
+      }
+    
     },
     handleFileSelect(event) {
     const file = event.target.files[0];
@@ -527,6 +704,98 @@ export default {
   --secondary-color: #2C3E50;
 }
 
+/* Stat Cards */
+.stat-icon {
+  font-size: 2rem;
+}
+
+/* Match History Section */
+.match-history-section {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.section-header {
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 15px;
+}
+
+/* Match Cards */
+.match-card {
+  border-color: var(--primary-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+}
+
+.match-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+}
+
+.sport-emoji {
+  font-size: 1.5rem;
+}
+
+.match-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--secondary-color);
+}
+
+.info-item i {
+  width: 16px;
+  flex-shrink: 0;
+}
+
+/* Empty State */
+.empty-state {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 60px 20px;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+/* Tab Styling */
+.nav-tabs .nav-link {
+  color: #6c757d;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 12px 20px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+  color: var(--primary-color);
+  border-bottom-color: rgba(255, 107, 53, 0.3);
+}
+
+.nav-tabs .nav-link.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+  background: none;
+}
+
+.nav-tabs {
+  border-bottom: 1px solid #dee2e6;
+}
+.card {
+  border-color: var(--primary-color);
+}
 .profile-header {
   background: white;
   border-radius: 20px;
