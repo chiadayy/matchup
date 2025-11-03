@@ -311,102 +311,114 @@ export default {
       if (attendance >= 50) return "fair";
       return "poor";
     },
-    async joinMatch() {
-      if (!this.isUserJoined && this.spotsRemaining > 0) {
-        // navigate to payment page
-        if (this.match.total_price !== 0) {
-          this.$router.push({
-            name: "Pay",
-            params: { matchid: this.match.id },
-          });
-          this.showPayPage = true;
-          return;
+async joinMatch() {
+  if (!this.isUserJoined && this.spotsRemaining > 0) {
+    // navigate to payment page 
+    if (this.match.total_price !== 0) {
+      this.$router.push({ name: 'Pay', params: { matchid: this.match.id } });
+      this.showPayPage = true;
+      return ;
+    }
+    const paymentSuccess = true;
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/matches/${this.match.id}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: this.currentUser.id,
+          payment_success: paymentSuccess
+        })
+      });
+      const result = await response.json();
+      if (result.success) {
+        this.matchPlayers.push({
+          ...this.currentUser
+        });
+
+        // NEW: Notify existing players that someone joined
+        const { data: existingUsers } = await supabase
+          .from('users_matches')
+          .select('user_id')
+          .eq('match_id', this.match.id)
+          .eq('payment_success', true)
+          .neq('user_id', this.currentUser.id); // Don't notify the person who just joined
+
+        if (existingUsers && existingUsers.length > 0) {
+          const joinNotifications = existingUsers.map(user => ({
+            user_id: user.user_id,
+            title: "New Player Joined!",
+            message: `${this.currentUser.name} has joined "${this.match.name}"`,
+            read: false
+          }));
+
+          await supabase
+            .from('notifications')
+            .insert(joinNotifications);
         }
-        const paymentSuccess = true;
-        try {
-          const response = await fetch(
-            `${import.meta.env.VITE_API_URL}/matches/${this.match.id}/join`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                user_id: this.currentUser.id,
-                payment_success: paymentSuccess,
-              }),
-            }
-          );
-          const result = await response.json();
-          if (result.success) {
-            this.matchPlayers.push({
-              ...this.currentUser,
-            });
 
-            // get the latest match update
-            const { data: latestMatch } = await supabase
-              .from("matches")
-              .select("current_player_count, total_player_count")
-              .eq("id", this.match.id)
-              .single();
+        // get the latest match update
+        const { data: latestMatch } = await supabase
+        .from('matches')
+        .select('current_player_count, total_player_count')
+        .eq('id', this.match.id)
+        .single();
 
-            // NEW: Check if this is the 2nd player (chat unlocks)
-            if (latestMatch.current_player_count === 2) {
-              // Get all users in this match
-              const { data: matchUsers } = await supabase
-                .from("users_matches")
-                .select("user_id")
-                .eq("match_id", this.match.id)
-                .eq("payment_success", true);
+        // Check if this is the 2nd player (chat unlocks)
+        if (latestMatch.current_player_count === 2) {
+          // Get all users in this match
+          const { data: matchUsers } = await supabase
+            .from('users_matches')
+            .select('user_id')
+            .eq('match_id', this.match.id)
+            .eq('payment_success', true);
 
-              // Create notification for each user
-              const notifications = matchUsers.map((user) => ({
-                user_id: user.user_id,
-                title: "Chat Unlocked!",
-                message: `The chat for "${this.match.name}" is now available. Head to My Matches to start chatting!`,
-                read: false,
-              }));
+          // Create notification for each user
+          const notifications = matchUsers.map(user => ({
+            user_id: user.user_id,
+            title: "Chat Unlocked!",
+            message: `The chat for "${this.match.name}" is now available. Head to My Matches to start chatting!`,
+            read: false
+          }));
 
-              await supabase.from("notifications").insert(notifications);
+          await supabase
+            .from('notifications')
+            .insert(notifications);
+          
+          console.log(`Notified ${notifications.length} players that chat is unlocked.`);
+        }
 
-              console.log(
-                `Notified ${notifications.length} players that chat is unlocked.`
-              );
-            }
+        // Check if match is full
+        if (latestMatch.current_player_count == latestMatch.total_player_count) {
+          console.log("match players ", this.matchPlayers);
+          const notifications = this.matchPlayers.map(u => ({
+            user_id: u.id,
+            title: "Match Can Begin!",
+            message: `Match "${this.match.name}" is now full and will begin as scheduled.`,
+            read: false
+          }));
 
-            // EXISTING: Check if match is full
-            if (
-              latestMatch.current_player_count == latestMatch.total_player_count
-            ) {
-              console.log("match players ", this.matchPlayers);
-              const notifications = this.matchPlayers.map((u) => ({
-                user_id: u.id,
-                title: "Match Can Begin!",
-                message: `Match "${this.match.name}" is now full and will begin as scheduled.`,
-                read: false,
-              }));
+          const { error: notifError } = await supabase
+            .from('notifications')
+            .insert(notifications);
 
-              const { error: notifError } = await supabase
-                .from("notifications")
-                .insert(notifications);
-
-              if (notifError) {
-                console.error("Error inserting notification:", notifError);
-              } else {
-                console.log(
-                  `Notified ${notifications.length} players that the match is full.`
-                );
-              }
-            }
-
-            // send msg back to browser
-            this.$emit("join", this.match.id);
+          if (notifError) {
+            console.error('Error inserting notification:', notifError)
           } else {
-            alert("Failed to join match: " + result.error);
+            console.log(`Notified ${notifications.length} players that the match is full.`);
           }
-        } catch (err) {
-          alert("Error joining match: " + err.message);
         }
+
+        // send msg back to browser
+        this.$emit('join', this.match.id);
+
+      } else {
+        alert('Failed to join match: ' + result.error);
       }
-    },
+    } catch (err) {
+      alert('Error joining match: ' + err.message);
+    }
+  }
+},
     leaveMatch(match) {
       this.leavingMatchId = this.match.id;
       this.showLeaveConfirm = true;

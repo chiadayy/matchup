@@ -9,22 +9,23 @@
       <div class="creation-container">
         <!-- Step Indicator -->
         <div class="steps-indicator">
-          <div v-for="step in 2" :key="step" class="step" :class="{ active: currentStep === step, completed: currentStep > step }">
+          <div v-for="step in 2" :key="step" class="step"
+            :class="{ active: currentStep === step, completed: currentStep > step }">
             <span class="step-number">{{ step }}</span>
             <span class="step-label">{{ getStepLabel(step) }}</span>
           </div>
         </div>
 
         <!-- Step 1: Match info -->
-        <div v-if="currentStep === 1 && match"  class="info-grid">
+        <div v-if="currentStep === 1 && match" class="info-grid">
           <h2 class="section-title">Match Details</h2>
 
           <!-- Match details -->
           <div class="info-section full-width">
             <div class="section-header">
               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
               <h3>Match Information</h3>
             </div>
@@ -38,10 +39,10 @@
           <div class="info-section">
             <div class="section-header">
               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
               </svg>
               <h3>Schedule</h3>
             </div>
@@ -59,8 +60,8 @@
           <div class="info-section">
             <div class="section-header">
               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                <circle cx="12" cy="10" r="3"/>
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
               </svg>
               <h3>Venue & Capacity</h3>
             </div>
@@ -83,14 +84,15 @@
           <div class="info-section full-width">
             <div class="section-header">
               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M6 9c0-2.5 2-4.5 6-4.5s6 2 6 4.5v1c2 1 3 3 3 5.5 0 4-3.6 7-9 7s-9-3-9-7c0-2.5 1-4.5 3-5.5V9z"/>
-                <path d="M8 9h8"/>
-                <path d="M12 12v5"/>
-                <path d="M12 11c-1 0-1.5.4-1.5 1s.5 1 1.5 1 1.5.4 1.5 1-.5 1-1.5 1"/>
+                <path
+                  d="M6 9c0-2.5 2-4.5 6-4.5s6 2 6 4.5v1c2 1 3 3 3 5.5 0 4-3.6 7-9 7s-9-3-9-7c0-2.5 1-4.5 3-5.5V9z" />
+                <path d="M8 9h8" />
+                <path d="M12 12v5" />
+                <path d="M12 11c-1 0-1.5.4-1.5 1s.5 1 1.5 1 1.5.4 1.5 1-.5 1-1.5 1" />
               </svg>
               <h3>Payment Summary</h3>
             </div>
-          
+
             <div class="summary-items">
               <div class="summary-row">
                 <span class="summary-label">Court Rental</span>
@@ -104,9 +106,9 @@
                 <span class="summary-label">Amount Per Pax (SGD)</span>
                 <span class="summary-value">160.00</span>
               </div>
-              
+
               <div class="summary-divider"></div>
-              
+
               <div class="summary-row subtotal">
                 <span class="summary-label">Subtotal</span>
                 <span class="summary-value">$160.00</span>
@@ -115,9 +117,9 @@
                 <span class="summary-label">Processing fees</span>
                 <span class="summary-value">$0.00</span>
               </div>
-              
+
               <div class="summary-divider"></div>
-              
+
               <div class="summary-row total">
                 <span class="summary-label">Total</span>
                 <span class="summary-value">$160.00</span>
@@ -134,16 +136,10 @@
               </svg>
               <h3>Card Details</h3>
             </div>
-            
+
             <div class="form-group">
               <label for="cardholderName">Cardholder Name</label>
-              <input 
-                type="text" 
-                id="cardholderName" 
-                v-model="cardName"
-                placeholder="Sally Lim"
-                required
-              />
+              <input type="text" id="cardholderName" v-model="cardName" placeholder="Sally Lim" required />
             </div>
 
             <div class="form-group">
@@ -154,7 +150,7 @@
             <button class="pay-button" @click="handlePayment" :disabled="loading">
               {{ loading ? 'Processing...' : 'Pay' }}
             </button>
-            
+
             <p v-if="message" class="payment-message">{{ message }}</p>
 
             <div v-if="showSuccessModal" class="confirm-overlay">
@@ -170,21 +166,11 @@
         </div>
 
         <div class="form-navigation">
-          <button 
-            v-if="currentStep === 2"
-            type="button" 
-            class="btn btn-secondary"
-            @click="previousStep"
-          >
+          <button v-if="currentStep === 2" type="button" class="btn btn-secondary" @click="previousStep">
             Back
           </button>
 
-          <button 
-            v-if="currentStep === 1"
-            type="button" 
-            class="btn btn-primary"
-            @click="nextStep"
-          >
+          <button v-if="currentStep === 1" type="button" class="btn btn-primary" @click="nextStep">
             Next
           </button>
         </div>
@@ -234,7 +220,7 @@ export default {
     async retrieveMatchDetails(matchid) {
       try {
         const { data, error } = await supabase
-          .from('matches')       
+          .from('matches')
           .select('*')
           .eq('id', matchid)
           .single();
@@ -245,7 +231,7 @@ export default {
         this.userMatch = data;
         console.log("Match data:", data);
 
-         this.amountPerPax = Math.round((data.total_price / data.total_player_count) * 100);
+        this.amountPerPax = Math.round((data.total_price / data.total_player_count) * 100);
       } catch (err) {
         console.error("Error fetching match:", err.message);
       }
@@ -265,98 +251,119 @@ export default {
       this.card.mount("#card-element");
     },
     async handlePayment() {
-  this.loading = true;
-  this.message = "";
+      this.loading = true;
+      this.message = "";
 
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/payments/create-payment-intent`, { 
-      method: "POST", 
-      headers: { "Content-Type": "application/json" }, 
-      body: JSON.stringify({ amount: this.amountPerPax, currency: "sgd" })
-    });
-
-    const { clientSecret } = await res.json();
-
-    const { error, paymentIntent } = await this.stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: this.card,
-        billing_details: { name: this.cardName },
-      },
-    });
-
-    if (error) {
-      this.message = error.message;
-    } else if (paymentIntent.status === "succeeded") {
       try {
-        // Join the match
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/matches/${this.match.id}/join`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/payments/create-payment-intent`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            user_id: this.currentUser.id,
-            payment_success: true
-          })
+          body: JSON.stringify({ amount: this.amountPerPax, currency: "sgd" })
         });
-        const result = await res.json();
 
-        if (!result.success) {
-          console.error("Failed to join match in DB:", result.error);
-          return;
+        const { clientSecret } = await res.json();
+
+        const { error, paymentIntent } = await this.stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: this.card,
+            billing_details: { name: this.cardName },
+          },
+        });
+
+        if (error) {
+          this.message = error.message;
+        } else if (paymentIntent.status === "succeeded") {
+          try {
+            // Join the match
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/matches/${this.match.id}/join`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                user_id: this.currentUser.id,
+                payment_success: true
+              })
+            });
+            const result = await res.json();
+
+            if (!result.success) {
+              console.error("Failed to join match in DB:", result.error);
+              return;
+            }
+
+            // NEW: Notify existing players that someone joined
+            const { data: existingUsers } = await supabase
+              .from('users_matches')
+              .select('user_id')
+              .eq('match_id', this.match.id)
+              .eq('payment_success', true)
+              .neq('user_id', this.currentUser.id); // Don't notify the person who just joined
+
+            if (existingUsers && existingUsers.length > 0) {
+              const joinNotifications = existingUsers.map(user => ({
+                user_id: user.user_id,
+                title: "New Player Joined!",
+                message: `${this.currentUser.name} has joined "${this.match.name}"`,
+                read: false
+              }));
+
+              await supabase
+                .from('notifications')
+                .insert(joinNotifications);
+            }
+
+            // Check if this join makes it 2 players (chat unlocks)
+            const { count } = await supabase
+              .from('users_matches')
+              .select('*', { count: 'exact', head: true })
+              .eq('match_id', this.match.id)
+              .eq('payment_success', true);
+
+            if (count === 2) {
+              // Get all users in this match
+              const { data: matchUsers } = await supabase
+                .from('users_matches')
+                .select('user_id')
+                .eq('match_id', this.match.id)
+                .eq('payment_success', true);
+
+              // Create notification for each user
+              const notifications = matchUsers.map(user => ({
+                user_id: user.user_id,
+                title: "Chat Unlocked!",
+                message: `The chat for "${this.match.name}" is now available. Head to My Matches to start chatting!`,
+                read: false
+              }));
+
+              await supabase
+                .from('notifications')
+                .insert(notifications);
+            }
+
+            this.showSuccessModal = true;
+
+          } catch (err) {
+            console.error("Error joining match in DB:", err);
+          }
         }
-
-        // Check if this join makes it 2 players (chat unlocks)
-        const { count } = await supabase
-          .from('users_matches')
-          .select('*', { count: 'exact', head: true })
-          .eq('match_id', this.match.id)
-          .eq('payment_success', true);
-
-        if (count === 2) {
-          // Get all users in this match
-          const { data: matchUsers } = await supabase
-            .from('users_matches')
-            .select('user_id')
-            .eq('match_id', this.match.id)
-            .eq('payment_success', true);
-
-          // Create notification for each user
-          const notifications = matchUsers.map(user => ({
-            user_id: user.user_id,
-            title: "Chat Unlocked!",
-            message: `The chat for "${this.match.name}" is now available. Head to My Matches to start chatting!`,
-            read: false
-          }));
-
-          await supabase
-            .from('notifications')
-            .insert(notifications);
-        }
-
-        this.showSuccessModal = true;
-
       } catch (err) {
-        console.error("Error joining match in DB:", err);
+        this.message = "Error: " + err.message;
+      } finally {
+        this.loading = false;
       }
-    } 
-  } catch (err) {
-    this.message = "Error: " + err.message;
-  } finally {
-    this.loading = false;
-  }
-},
+    },
     async handleSuccessOk() {
       this.showSuccessModal = false;
-      
+
       const { error } = await supabase
-      .from('notifications')
-      .insert([
-        { 
-          user_id: this.currentUser.id,
-          title: "Payment",
-          message: `Payment for match "${this.match.name}" successful`,
-          read: false
-        }
-      ])
+        .from('notifications')
+        .insert([
+          {
+            user_id: this.currentUser.id,
+            title: "Payment",
+            message: `Payment for match "${this.match.name}" successful`,
+            read: false
+          }
+        ])
 
       if (error) {
         console.error('Error inserting notification:', error)
@@ -365,20 +372,20 @@ export default {
       }
 
       // redirect back to browser page 
-      this.$router.push({ name: 'Browser' }); 
+      this.$router.push({ name: 'Browser' });
     },
     getStepLabel(step) {
       const labels = ['Match Details', 'Payment'];
       return labels[step - 1];
     },
-    
+
     nextStep() {
       this.currentStep++;
       if (this.currentStep === 2) {
-        this.$nextTick(() => this.setupStripe()); 
+        this.$nextTick(() => this.setupStripe());
       }
     },
-    
+
     previousStep() {
       this.currentStep--;
     }
@@ -482,8 +489,13 @@ export default {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .section-title {
@@ -554,6 +566,7 @@ export default {
     opacity: 0;
     transform: translateX(100px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -884,6 +897,7 @@ export default {
   font-size: 0.875rem;
   text-align: center;
 }
+
 .summary-section {
   border: 1px solid #e5e7eb;
   border-radius: 12px;
@@ -959,7 +973,7 @@ form-group {
   font-size: 0.875rem;
   font-weight: 500;
   color: #2c3e50;
-  margin-top:  1rem;
+  margin-top: 1rem;
   margin-bottom: 0.5rem;
 }
 
@@ -1048,11 +1062,13 @@ form-group {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0,0,0,0.5); /* semi-transparent background */
+  background-color: rgba(0, 0, 0, 0.5);
+  /* semi-transparent background */
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000; /* make sure it’s on top of everything */
+  z-index: 1000;
+  /* make sure it’s on top of everything */
 }
 
 .modal-content {
@@ -1062,8 +1078,9 @@ form-group {
   max-width: 400px;
   width: 90%;
   text-align: center;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
+
 .confirm-overlay {
   position: fixed;
   top: 0;
