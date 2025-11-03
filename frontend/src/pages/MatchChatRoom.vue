@@ -221,7 +221,7 @@ export default {
         ) {
           try {
             const createChatResponse = await fetch(
-              "${import.meta.env.VITE_API_URL}/chat/check-and-create",
+              `${import.meta.env.VITE_API_URL}/chat/check-and-create`,
               {
                 method: "POST",
                 headers: {
