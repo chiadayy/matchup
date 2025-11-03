@@ -51,7 +51,7 @@
         </div>
 
         <div class="match-section" v-if="matchData.description">
-          <h3><span class="icon">📝</span> Details</h3>
+          <h3><span class="icon">📝</span> Match Details</h3>
           <p class="description">{{ matchData.description }}</p>
         </div>
 
@@ -66,37 +66,22 @@
         <div class="match-section">
           <h3><span class="icon">👥</span> Match Players</h3>
           <div class="players-list">
-            <div class="player" v-if="hostProfile">
+            <div class="player" v-for="player in allPlayers" :key="player.id">
               <img
                 :src="
-                  hostProfile.profile_image ||
+                  player.profile_image ||
                   'https://ui-avatars.com/api/?name=' +
-                    hostProfile.name +
+                    player.name +
                     '&background=1a1a1a&color=fff'
                 "
-                alt="host"
+                :alt="player.name"
               />
               <div class="player-info">
                 <p class="player-name">
-                  {{ hostProfile.name }}
-                  <span class="badge">Host</span>
+                  {{ player.name }}
+                  <span class="badge" v-if="player.isHost">Host</span>
                 </p>
-                <p class="player-role">{{ hostProfile.role }}</p>
-              </div>
-            </div>
-            <div class="player" v-if="playerProfile">
-              <img
-                :src="
-                  playerProfile.profile_image ||
-                  'https://ui-avatars.com/api/?name=' +
-                    playerProfile.name +
-                    '&background=2d2d2d&color=fff'
-                "
-                alt="player"
-              />
-              <div class="player-info">
-                <p class="player-name">{{ playerProfile.name }}</p>
-                <p class="player-role">{{ playerProfile.role }}</p>
+                <p class="player-role">{{ player.role }}</p>
               </div>
             </div>
           </div>
@@ -116,8 +101,13 @@
       <div class="no-chat-icon">⏳</div>
       <h3>Chat Room Not Available</h3>
       <p>Waiting for more players to join and confirm their participation.</p>
-      <p class="sub-info">The chat will open automatically once 2 or more players have joined this match.</p>
-      <router-link to="/my-matches" class="back-link">Back to My Matches</router-link>
+      <p class="sub-info">
+        The chat will open automatically once 2 or more players have joined this
+        match.
+      </p>
+      <router-link to="/my-matches" class="back-link"
+        >Back to My Matches</router-link
+      >
     </div>
   </div>
 </template>
@@ -141,8 +131,9 @@ export default {
     const currentUserId = ref(null);
     const matchData = ref({});
     const weather = ref(null);
-    const hostProfile = ref(null);
-    const playerProfile = ref(null);
+    // const hostProfile = ref(null);
+    // const playerProfile = ref(null);
+    const allPlayers = ref([]);
 
     const formatDate = (dateStr) => {
       return new Date(dateStr).toLocaleDateString("en-US", {
@@ -187,7 +178,7 @@ export default {
 
     const fetchProfile = async (userId) => {
       try {
-        const response = await fetch(`http://localhost:3000/users/${userId}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/${userId}`);
         return await response.json();
       } catch (err) {
         console.error("Profile fetch failed:", err);
@@ -198,52 +189,61 @@ export default {
     onMounted(async () => {
       try {
         // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('Not authenticated');
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
         currentUserId.value = user.id;
 
         // Fetch match data
         const matchResponse = await fetch(
-          `http://localhost:3000/matches/${matchId.value}`
+          `${import.meta.env.VITE_API_URL}/matches/${matchId.value}`
         );
         matchData.value = await matchResponse.json();
-        console.log('🎯 MATCH DATA:', matchData.value);
+        console.log("🎯 MATCH DATA:", matchData.value);
 
         // Check if chat exists, if not try to create it
-        console.log('🔎 Raw conversation_id:', matchData.value.conversation_id);
-        console.log('🔎 Type:', typeof matchData.value.conversation_id);
-        console.log('🔎 Equals 0?', matchData.value.conversation_id === 0);
+        console.log("🔎 Raw conversation_id:", matchData.value.conversation_id);
+        console.log("🔎 Type:", typeof matchData.value.conversation_id);
+        console.log("🔎 Equals 0?", matchData.value.conversation_id === 0);
         console.log('🔎 Equals "0"?', matchData.value.conversation_id === "0");
-        console.log('🔎 Is falsy (!)?', !matchData.value.conversation_id);
-        console.log('🔎 Full condition:', !matchData.value.conversation_id || matchData.value.conversation_id === 0);
+        console.log("🔎 Is falsy (!)?", !matchData.value.conversation_id);
+        console.log(
+          "🔎 Full condition:",
+          !matchData.value.conversation_id ||
+            matchData.value.conversation_id === 0
+        );
 
-        if (!matchData.value.conversation_id || 
-          matchData.value.conversation_id === 0 || 
-          matchData.value.conversation_id === "0") {
+        if (
+          !matchData.value.conversation_id ||
+          matchData.value.conversation_id === 0 ||
+          matchData.value.conversation_id === "0"
+        ) {
           try {
             const createChatResponse = await fetch(
-              'http://localhost:3000/chat/check-and-create',
+              `${import.meta.env.VITE_API_URL}/chat/check-and-create`,
               {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                  'Content-Type': 'application/json',
+                  "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ match_id: matchId.value })
+                body: JSON.stringify({ match_id: matchId.value }),
               }
             );
 
             const createChatResult = await createChatResponse.json();
-            console.log('🔍 CHAT CREATION RESULT:', createChatResult); 
-            
+            console.log("🔍 CHAT CREATION RESULT:", createChatResult);
+
             if (createChatResult.conversation_id) {
               conversationId.value = createChatResult.conversation_id;
-              matchData.value.conversation_id = createChatResult.conversation_id;
+              matchData.value.conversation_id =
+                createChatResult.conversation_id;
             } else {
               // Not enough players yet
               console.log(createChatResult.message);
             }
           } catch (chatError) {
-            console.error('Error creating chat:', chatError);
+            console.error("Error creating chat:", chatError);
           }
         } else {
           conversationId.value = matchData.value.conversation_id;
@@ -253,19 +253,20 @@ export default {
           await fetchWeather(matchData.value.location);
         }
 
-        if (matchData.value.host) {
-          hostProfile.value = await fetchProfile(matchData.value.host);
-        }
-
         const usersResponse = await fetch(
-          `http://localhost:3000/matches/${matchId.value}/users`
+          `${import.meta.env.VITE_API_URL}/matches/${matchId.value}/users`
         );
         const users = await usersResponse.json();
+
         if (Array.isArray(users)) {
-          const player = users.find((u) => u.user_id !== matchData.value.host);
-          if (player) {
-            playerProfile.value = await fetchProfile(player.user_id);
-          }
+          // Fetch all player profiles
+          const profiles = await Promise.all(
+            users.map((u) => fetchProfile(u.user_id))
+          );
+          allPlayers.value = profiles.map((profile) => ({
+            ...profile,
+            isHost: profile.id === matchData.value.host,
+          }));
         }
       } catch (err) {
         error.value = err.message;
@@ -282,8 +283,9 @@ export default {
       currentUserId,
       matchData,
       weather,
-      hostProfile,
-      playerProfile,
+      // hostProfile,
+      // playerProfile,
+      allPlayers,
       formatDate,
     };
   },
@@ -301,7 +303,7 @@ export default {
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   position: relative;
 }
 
@@ -316,6 +318,8 @@ export default {
   font-size: 14px;
   transition: all 0.2s ease;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 2;
 }
 
 .back-button-inline:hover {
@@ -451,7 +455,7 @@ export default {
   display: flex;
   width: 100%;
   max-width: 1400px;
-  height: 85vh;
+  height: calc(100vh - 64px);
   max-height: 900px;
   background: white;
   border-radius: 20px;
@@ -473,122 +477,120 @@ export default {
 
 .sidebar {
   width: 380px;
-  background: #ffffff;
+  background: #fafbfc;
   overflow-y: auto;
   border-right: 1px solid #e2e8f0;
   flex-shrink: 0;
 }
 
 .sidebar::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .sidebar::-webkit-scrollbar-track {
-  background: #f1f3f5;
+  background: transparent;
 }
 
 .sidebar::-webkit-scrollbar-thumb {
   background: #cbd5e0;
-  border-radius: 4px;
-}
-
-.sidebar::-webkit-scrollbar-thumb:hover {
-  background: #a0aec0;
+  border-radius: 3px;
 }
 
 .match-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   padding: 0;
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  color: white;
-  position: relative;
-  overflow: hidden;
+  background: #ffffff;
+  color: #1a1a1a;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .match-header::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.1) 0%,
-    transparent 70%
-  );
-  animation: shimmer 3s ease-in-out infinite;
+  display: none;
 }
 
-@keyframes shimmer {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(-20%, -20%);
-  }
+.back-button-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.back-button-inline:hover {
+  color: #1a1a1a;
+  background: #f8fafc;
+}
+
+.back-icon {
+  font-size: 16px;
 }
 
 .header-content {
-  position: relative;
-  padding: 36px 28px;
-  z-index: 1;
+  padding: 24px;
 }
 
 .match-header h2 {
-  margin: 0 0 16px 0;
-  font-size: 32px;
-  font-weight: 700;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 0 0 12px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #0f172a;
+  text-shadow: none;
 }
 
 .price-badge {
   display: inline-flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
+  background: #0f172a;
   color: white;
-  padding: 10px 20px;
-  border-radius: 24px;
-  font-weight: 700;
-  font-size: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 18px;
+  border: none;
+  box-shadow: none;
 }
 
 .dollar {
-  font-size: 16px;
-  margin-right: 4px;
-  opacity: 0.9;
+  font-size: 14px;
+  margin-right: 2px;
+  opacity: 0.8;
 }
 
 .match-section {
   background: white;
-  padding: 24px 28px;
-  margin: 0;
-  border-bottom: 1px solid #f1f3f5;
-  transition: all 0.3s ease;
+  padding: 20px 24px;
+  margin: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
 }
 
 .match-section:hover {
-  background: #fafbfc;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .match-section h3 {
-  margin: 0 0 20px 0;
-  font-size: 14px;
-  font-weight: 700;
-  color: #4a5568;
+  margin: 0 0 16px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .icon {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .info-grid {
@@ -600,128 +602,119 @@ export default {
 .info-item {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .label {
-  font-size: 12px;
-  color: #a0aec0;
-  font-weight: 600;
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .value {
-  font-size: 15px;
-  color: #2d3748;
-  font-weight: 600;
+  font-size: 14px;
+  color: #0f172a;
+  font-weight: 500;
 }
 
 .description {
   margin: 0;
-  color: #4a5568;
-  font-size: 15px;
-  line-height: 1.7;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .weather-section {
-  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-  border: none;
-}
-
-.weather-section h3 {
-  color: #2d3748;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #fde68a;
 }
 
 .weather-card {
   text-align: center;
-  padding: 16px;
+  padding: 12px;
 }
 
 .weather-temp {
-  font-size: 48px;
-  font-weight: 700;
-  color: #2d3748;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 36px;
+  font-weight: 600;
+  color: #0f172a;
+  text-shadow: none;
 }
 
 .weather-desc {
-  font-size: 16px;
-  color: #4a5568;
+  font-size: 14px;
+  color: #475569;
   font-weight: 500;
-  margin-top: 8px;
-  text-transform: capitalize;
+  margin-top: 4px;
 }
 
 .players-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .player {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 16px;
-  transition: all 0.3s ease;
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 10px;
+  transition: all 0.2s ease;
   cursor: pointer;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
 }
 
 .player:hover {
-  transform: translateX(8px) scale(1.02);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  border-color: #1a1a1a;
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  transform: translateX(4px);
 }
 
 .player img {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #1a1a1a;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
+  border: 2px solid #e2e8f0;
+  box-shadow: none;
+  transition: all 0.2s ease;
 }
 
 .player:hover img {
-  transform: rotate(5deg) scale(1.1);
-}
-
-.player-info {
-  flex: 1;
+  transform: none;
+  border-color: #cbd5e0;
 }
 
 .player-name {
-  margin: 0 0 4px 0;
-  font-weight: 700;
-  font-size: 16px;
-  color: #2d3748;
+  margin: 0 0 2px 0;
+  font-weight: 600;
+  font-size: 14px;
+  color: #0f172a;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .player-role {
   margin: 0;
-  font-size: 13px;
-  color: #718096;
-  text-transform: capitalize;
+  font-size: 12px;
+  color: #64748b;
 }
 
 .badge {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  background: #0f172a;
   color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.3px;
+  box-shadow: none;
 }
 
 .chat-area {
@@ -729,5 +722,6 @@ export default {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
 }
 </style>

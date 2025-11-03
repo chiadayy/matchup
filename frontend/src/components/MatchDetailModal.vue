@@ -1,10 +1,6 @@
 <template>
   <!-- Match Detail Modal -->
-  <div 
-    v-if="isOpen" 
-    class="modal-overlay" 
-    @click.self="closeModal"
-  >
+  <div v-if="isOpen" class="modal-overlay" @click.self="closeModal">
     <div class="modal-container">
       <!-- Modal Header -->
       <div class="modal-header">
@@ -30,7 +26,9 @@
             </div>
             <div class="info-item">
               <span class="info-label">📅 Date & Time</span>
-              <span class="info-value">{{ match.date }} at {{ match.time }}</span>
+              <span class="info-value"
+                >{{ match.date }} at {{ match.time }}</span
+              >
             </div>
             <div class="info-item">
               <span class="info-label">🎯 Skill Level</span>
@@ -38,8 +36,13 @@
             </div>
             <div class="info-item">
               <span class="info-label">💰 Entry Fee</span>
-              <span :class="['info-value', match.total_price === 0 ? 'text-success' : 'text-danger']">
-                {{ match.total_price === 0 ? 'Free' : `$${match.total_price}` }}
+              <span
+                :class="[
+                  'info-value',
+                  match.total_price === 0 ? 'text-success' : 'text-danger',
+                ]"
+              >
+                {{ match.total_price === 0 ? "Free" : `$${match.total_price}` }}
               </span>
             </div>
           </div>
@@ -47,12 +50,19 @@
           <!-- Player Count -->
           <div class="player-status">
             <div class="progress-bar-container">
-              <div class="progress-bar" :style="{ width: playerPercentage + '%' }"></div>
+              <div
+                class="progress-bar"
+                :style="{ width: playerPercentage + '%' }"
+              ></div>
             </div>
             <p class="player-count-text">
-              <strong>{{ currentPlayers }}</strong> out of <strong>{{ maxPlayers }}</strong> players joined
+              <strong>{{ currentPlayers }}</strong> out of
+              <strong>{{ maxPlayers }}</strong> players joined
               <span v-if="spotsRemaining > 0" class="spots-remaining">
-                ({{ spotsRemaining }} spot{{ spotsRemaining > 1 ? 's' : '' }} remaining)
+                ({{ spotsRemaining }} spot{{
+                  spotsRemaining > 1 ? "s" : ""
+                }}
+                remaining)
               </span>
               <span v-else class="match-full">Match Full!</span>
             </p>
@@ -65,23 +75,34 @@
             Players ({{ matchPlayers.length }})
             <!-- <span class="organizer-badge" v-if="match.organizer">Organized by {{ match.organizer }}</span> -->
           </h3>
-          
+
           <div class="players-list">
-            <div 
-              v-for="player in matchPlayers" 
+            <div
+              v-for="player in matchPlayers"
               :key="player.id"
               class="player-item"
             >
               <div class="player-info">
-                <img :src="player.profile_image" :alt="player.name" class="player-avatar">
+                <img
+                  :src="player.profile_image"
+                  :alt="player.name"
+                  class="player-avatar"
+                />
                 <div class="player-details">
                   <div class="player-name">
                     {{ player.name }}
-                    <span v-if="player.isOrganizer" class="badge badge-organizer">Organizer</span>
+                    <span
+                      v-if="player.isOrganizer"
+                      class="badge badge-organizer"
+                      >Organizer</span
+                    >
                   </div>
                   <div class="player-stats">
                     <!-- <span class="attendance-rate" :class="getAttendanceClass(player.attendance)"> -->
-                    <span class="attendance-rate" :class="getAttendanceClass(90)">
+                    <span
+                      class="attendance-rate"
+                      :class="getAttendanceClass(90)"
+                    >
                       <!-- {{ player.attendance }}% attendance -->
                       90% attendance
                     </span>
@@ -90,9 +111,9 @@
                   </div>
                 </div>
               </div>
-              <button 
+              <button
                 v-if="player.id !== currentUser.id"
-                class="btn-message" 
+                class="btn-message"
                 @click="messagePlayer(player)"
                 title="Send message"
               >
@@ -101,15 +122,17 @@
             </div>
 
             <!-- Empty Slots -->
-            <div 
-              v-for="slot in emptySlots" 
+            <div
+              v-for="slot in emptySlots"
               :key="'empty-' + slot"
               class="player-item empty-slot"
             >
               <div class="player-info">
                 <div class="empty-avatar">?</div>
                 <div class="player-details">
-                  <div class="player-name text-muted">Waiting for player...</div>
+                  <div class="player-name text-muted">
+                    Waiting for player...
+                  </div>
                 </div>
               </div>
             </div>
@@ -125,13 +148,13 @@
 
       <!-- Modal Footer -->
       <div class="modal-footer">
-        <button 
-          v-if="!isUserJoined" 
+        <button
+          v-if="!isUserJoined"
           class="btn-join-modal"
           :disabled="spotsRemaining === 0"
           @click="joinMatch"
         >
-          {{ spotsRemaining === 0 ? 'Match Full' : 'Join Match' }}
+          {{ spotsRemaining === 0 ? "Match Full" : "Join Match" }}
         </button>
         <div v-else class="joined-status">
           <span class="joined-badge">✓ You're in this match!</span>
@@ -170,8 +193,13 @@
         <div class="confirm-box">
           <p>You have successfully left the match.</p>
           <p v-if="match.total_price != 0">Refunds have been made.</p>
-          <div class="confirm-actions"> 
-            <button :style="{'background-color': '#FF6B35', 'color': 'white'}" @click="showLeaveSuccess = false">OK</button>
+          <div class="confirm-actions">
+            <button
+              :style="{ 'background-color': '#FF6B35', color: 'white' }"
+              @click="showLeaveSuccess = false"
+            >
+              OK
+            </button>
           </div>
         </div>
       </div>
@@ -181,20 +209,20 @@
 
 <script>
 // import { match } from 'assert';
-import { supabase } from '@/lib/supabase';
-import PayPage from '@/pages/Pay.vue';
+import { supabase } from "@/lib/supabase";
+import PayPage from "@/pages/Pay.vue";
 
 export default {
-  name: 'MatchDetailModal',
+  name: "MatchDetailModal",
   components: { PayPage },
   props: {
     isOpen: {
       type: Boolean,
-      required: true
+      required: true,
     },
     match: {
       type: Object,
-      required: true
+      required: true,
     },
     // currentUser: {
     //   type: Object,
@@ -210,7 +238,7 @@ export default {
       matchPlayers: [],
       currentUser: null,
       // showJoinSuccessModal: false,
-      showLeaveConfirm: false,  
+      showLeaveConfirm: false,
       leavingMatchId: null,
       showLeaveSuccess: false,
     };
@@ -235,17 +263,19 @@ export default {
       return Math.max(0, this.spotsRemaining);
     },
     isUserJoined() {
-      return this.matchPlayers.some(p => p.id === this.currentUser.id);
-    }
+      return this.matchPlayers.some((p) => p.id === this.currentUser.id);
+    },
   },
   methods: {
     async fetchCurrentUser() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       try {
         const { data: user_profile, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
           .single();
 
         if (error) {
@@ -254,7 +284,6 @@ export default {
         }
 
         this.currentUser = user_profile;
-
       } catch (err) {
         console.error("Error fetching current user's profile:", err);
       }
@@ -262,110 +291,149 @@ export default {
     async getPlayers() {
       try {
         const { data, error } = await supabase
-        .from('users_matches')
-        .select('profiles(*)')
-        .eq("match_id", this.match.id)
-        .eq("payment_success", true);
+          .from("users_matches")
+          .select("profiles(*)")
+          .eq("match_id", this.match.id)
+          .eq("payment_success", true);
 
         if (error) {
           console.error("Failed to fetch players data", error);
           return;
-        }
-        else {
+        } else {
           // this.matchPlayers = data;
-          this.matchPlayers = data.map(u => u.profiles);
+          this.matchPlayers = data.map((u) => u.profiles);
         }
-      }
-      catch (err) {
+      } catch (err) {
         console.error("Unexpected error:", err);
       }
-
-    }, 
+    },
     closeModal() {
-      this.$emit('close');
+      this.$emit("close");
     },
     getSportIcon(sport) {
       const icons = {
-        'Basketball': '🏀',
-        'Tennis': '🎾',
-        'Football': '⚽',
-        'Badminton': '🏸',
-        'Volleyball': '🏐'
+        Basketball: "🏀",
+        Tennis: "🎾",
+        Football: "⚽",
+        Badminton: "🏸",
+        Volleyball: "🏐",
       };
-      return icons[sport] || '🏆';
+      return icons[sport] || "🏆";
     },
     getAttendanceClass(attendance) {
-      if (attendance >= 90) return 'excellent';
-      if (attendance >= 75) return 'good';
-      if (attendance >= 50) return 'fair';
-      return 'poor';
+      if (attendance >= 90) return "excellent";
+      if (attendance >= 75) return "good";
+      if (attendance >= 50) return "fair";
+      return "poor";
     },
-    async joinMatch() {
-      if (!this.isUserJoined && this.spotsRemaining > 0) {
-        // navigate to payment page 
-        if (this.match.total_price !== 0) {
-          this.$router.push({ name: 'Pay', params: { matchid: this.match.id } });
-          this.showPayPage = true;
-          return ;
+async joinMatch() {
+  if (!this.isUserJoined && this.spotsRemaining > 0) {
+    // navigate to payment page 
+    if (this.match.total_price !== 0) {
+      this.$router.push({ name: 'Pay', params: { matchid: this.match.id } });
+      this.showPayPage = true;
+      return ;
+    }
+    const paymentSuccess = true;
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/matches/${this.match.id}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: this.currentUser.id,
+          payment_success: paymentSuccess
+        })
+      });
+      const result = await response.json();
+      if (result.success) {
+        this.matchPlayers.push({
+          ...this.currentUser
+        });
+
+        // NEW: Notify existing players that someone joined
+        const { data: existingUsers } = await supabase
+          .from('users_matches')
+          .select('user_id')
+          .eq('match_id', this.match.id)
+          .eq('payment_success', true)
+          .neq('user_id', this.currentUser.id); // Don't notify the person who just joined
+
+        if (existingUsers && existingUsers.length > 0) {
+          const joinNotifications = existingUsers.map(user => ({
+            user_id: user.user_id,
+            title: "New Player Joined!",
+            message: `${this.currentUser.name} has joined "${this.match.name}"`,
+            read: false
+          }));
+
+          await supabase
+            .from('notifications')
+            .insert(joinNotifications);
         }
-        const paymentSuccess = true;
-        try {
-          const response = await fetch(`http://localhost:3000/matches/${this.match.id}/join`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              user_id: this.currentUser.id,
-              payment_success: paymentSuccess
-            })
-          });
-          const result = await response.json();
-          if (result.success) {
-            this.matchPlayers.push({
-              ...this.currentUser
-              // ...this.currentUser,
-              // attendance: 95,
-              // skillLevel: 'Intermediate',
-              // isOrganizer: false
-            });
 
-            // get the latest match update
-            const { data: latestMatch } = await supabase
-            .from('matches')
-            .select('current_player_count, total_player_count')
-            .eq('id', this.match.id)
-            .single();
+        // get the latest match update
+        const { data: latestMatch } = await supabase
+        .from('matches')
+        .select('current_player_count, total_player_count')
+        .eq('id', this.match.id)
+        .single();
 
-            if (latestMatch.current_player_count == latestMatch.total_player_count) {
-              console.log("match players ", this.matchPlayers);
-              const notifications = this.matchPlayers.map(u => ({
-                user_id: u.id,
-                title: "Match Can Begin!",
-                message: `Match "${this.match.name}" is now full and will begin as scheduled.`,
-                read: false
-              }));
+        // Check if this is the 2nd player (chat unlocks)
+        if (latestMatch.current_player_count === 2) {
+          // Get all users in this match
+          const { data: matchUsers } = await supabase
+            .from('users_matches')
+            .select('user_id')
+            .eq('match_id', this.match.id)
+            .eq('payment_success', true);
 
-              const { error: notifError } = await supabase
-                .from('notifications')
-                .insert(notifications);
+          // Create notification for each user
+          const notifications = matchUsers.map(user => ({
+            user_id: user.user_id,
+            title: "Chat Unlocked!",
+            message: `The chat for "${this.match.name}" is now available. Head to My Matches to start chatting!`,
+            read: false
+          }));
 
-              if (notifError) {
-                console.error('Error inserting notification:', error)
-              } else {
-                console.log(`Notified ${notifications.length} players that the match is full.`);
-              }
-            }
+          await supabase
+            .from('notifications')
+            .insert(notifications);
+          
+          console.log(`Notified ${notifications.length} players that chat is unlocked.`);
+        }
 
-            // send msg back to browser
-            this.$emit('join', this.match.id);
+        // Check if match is full
+        if (latestMatch.current_player_count == latestMatch.total_player_count) {
+          console.log("match players ", this.matchPlayers);
+          const notifications = this.matchPlayers.map(u => ({
+            user_id: u.id,
+            title: "Match Can Begin!",
+            message: `Match "${this.match.name}" is now full and will begin as scheduled.`,
+            read: false
+          }));
 
+          const { error: notifError } = await supabase
+            .from('notifications')
+            .insert(notifications);
+
+          if (notifError) {
+            console.error('Error inserting notification:', notifError)
           } else {
-            alert('Failed to join match: ' + result.error);
+            console.log(`Notified ${notifications.length} players that the match is full.`);
           }
-        } catch (err) {
-          alert('Error joining match: ' + err.message);
         }
+
+        // send msg back to browser
+        this.$emit('join', this.match.id);
+
+      } else {
+        alert('Failed to join match: ' + result.error);
       }
-    },
+    } catch (err) {
+      alert('Error joining match: ' + err.message);
+    }
+  }
+},
     leaveMatch(match) {
       this.leavingMatchId = this.match.id;
       this.showLeaveConfirm = true;
@@ -373,23 +441,30 @@ export default {
     async confirmLeave() {
       // if (confirm('Are you sure you want to leave this match?')) {
       try {
-        const response = await fetch(`http://localhost:3000/matches/${this.match.id}/leave`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: this.currentUser.id
-          })
-        });
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/matches/${this.match.id}/leave`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              user_id: this.currentUser.id,
+            }),
+          }
+        );
         const result = await response.json();
         if (result.success) {
           // Remove current user from matchPlayers list
-          this.matchPlayers = this.matchPlayers.filter(p => p.id !== this.currentUser.id);
-          this.$emit('leave', this.match.id);
+          this.matchPlayers = this.matchPlayers.filter(
+            (p) => p.id !== this.currentUser.id
+          );
+          this.$emit("leave", this.match.id);
         } else {
-          console.log('Failed to leave match: ' + (result.error || 'Unknown error'));
+          console.log(
+            "Failed to leave match: " + (result.error || "Unknown error")
+          );
         }
       } catch (err) {
-        console.log('Error leaving match: ' + err.message);
+        console.log("Error leaving match: " + err.message);
       } finally {
         this.showLeaveConfirm = false; // hide popup
         this.leavingMatchId = null;
@@ -398,59 +473,59 @@ export default {
 
       this.showLeaveSuccess = true;
       if (this.match.total_price != 0) {
-        const { error } = await supabase
-          .from('notifications')
-          .insert([
-            { 
-              user_id: this.currentUser.id,
-              title: "Refund",
-              message: `Refund for match "${this.match.name}" successful`,
-              read: false
-            }
-          ])
+        const { error } = await supabase.from("notifications").insert([
+          {
+            user_id: this.currentUser.id,
+            title: "Refund",
+            message: `Refund for match "${this.match.name}" successful`,
+            read: false,
+          },
+        ]);
 
         if (error) {
-          console.error('Error inserting notification:', error)
+          console.error("Error inserting notification:", error);
         } else {
-          console.log('Inserted data:')
+          console.log("Inserted data:");
         }
       }
     },
     async fetchMatchPlayers() {
       try {
-        const response = await fetch(`http://localhost:3000/matches/${this.match.id}/users`);
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/matches/${this.match.id}/users`
+        );
         const result = await response.json();
         this.matchPlayers = Array.isArray(result)
-          ? result.map(u => ({
+          ? result.map((u) => ({
               id: u.user_id,
-              name: `User ${u.user_id.substring(0, 6)}`, 
-              profilePic: 'https://i.pravatar.cc/150?u=' + u.user_id, 
-              attendance: 100, 
-              skillLevel: 'Unknown', 
-              isOrganizer: false 
+              name: `User ${u.user_id.substring(0, 6)}`,
+              profilePic: "https://i.pravatar.cc/150?u=" + u.user_id,
+              attendance: 100,
+              skillLevel: "Unknown",
+              isOrganizer: false,
             }))
           : [];
       } catch (err) {
-        console.error('Failed to fetch match players:', err);
+        console.error("Failed to fetch match players:", err);
       }
     },
     messagePlayer(player) {
-      this.$emit('message', player);
+      this.$emit("message", player);
       // Or open chat directly
       // this.$router.push(`/messages/${player.id}`);
-    }
+    },
   },
   watch: {
-    'match.id': {
+    "match.id": {
       handler(newId) {
         if (newId) {
           // this.fetchMatchPlayers();
           this.getPlayers();
         }
       },
-      immediate: true
-    }
-  }
+      immediate: true,
+    },
+  },
 };
 </script>
 
@@ -526,7 +601,7 @@ export default {
   margin: 0;
   font-size: 1.75rem;
   font-weight: bold;
-  color: #2C3E50;
+  color: #2c3e50;
 }
 
 .modal-subtitle {
@@ -553,7 +628,7 @@ export default {
 
 .close-btn:hover {
   background: #e9ecef;
-  color: #2C3E50;
+  color: #2c3e50;
 }
 
 .modal-body {
@@ -574,7 +649,7 @@ export default {
 .section-title {
   font-size: 1.25rem;
   font-weight: bold;
-  color: #2C3E50;
+  color: #2c3e50;
   margin-bottom: 20px;
   display: flex;
   justify-content: space-between;
@@ -612,7 +687,7 @@ export default {
 .info-value {
   font-size: 1rem;
   font-weight: 600;
-  color: #2C3E50;
+  color: #2c3e50;
 }
 
 .player-status {
@@ -629,7 +704,7 @@ export default {
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #FF6B35 0%, #FF5722 100%);
+  background: linear-gradient(90deg, #ff6b35 0%, #ff5722 100%);
   transition: width 0.3s ease;
   border-radius: 20px;
 }
@@ -692,7 +767,7 @@ export default {
   height: 50px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #FF6B35;
+  border: 3px solid #ff6b35;
 }
 
 .empty-avatar {
@@ -714,7 +789,7 @@ export default {
 
 .player-name {
   font-weight: 600;
-  color: #2C3E50;
+  color: #2c3e50;
   margin-bottom: 4px;
   display: flex;
   align-items: center;
@@ -729,8 +804,8 @@ export default {
 }
 
 .badge-organizer {
-  background: #FFE0B2;
-  color: #E65100;
+  background: #ffe0b2;
+  color: #e65100;
 }
 
 .player-stats {
@@ -775,7 +850,7 @@ export default {
 }
 
 .btn-message:hover {
-  background: #FF6B35;
+  background: #ff6b35;
   transform: scale(1.1);
 }
 
@@ -794,7 +869,7 @@ export default {
 .btn-join-modal {
   width: 100%;
   padding: 16px;
-  background: linear-gradient(135deg, #FF6B35 0%, #FF5722 100%);
+  background: linear-gradient(135deg, #ff6b35 0%, #ff5722 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -892,7 +967,7 @@ export default {
 }
 
 .modal-body::-webkit-scrollbar-thumb {
-  background: #FF6B35;
+  background: #ff6b35;
   border-radius: 10px;
 }
 
@@ -924,7 +999,7 @@ export default {
 
 .confirm-box p {
   font-size: 1.1rem;
-  color: #2C3E50;
+  color: #2c3e50;
   margin-bottom: 24px;
   font-weight: 500;
   line-height: 1.6;

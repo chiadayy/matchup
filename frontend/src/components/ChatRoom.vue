@@ -5,8 +5,7 @@
         <div class="header-left">
           <div class="status-indicator"></div>
           <div>
-            <h2>💬 Match Chat</h2>
-            <p>Real-time conversation</p>
+            <h2> Match Chat</h2>
           </div>
         </div>
       </div>
@@ -37,12 +36,12 @@ export default {
 
   methods: {
     async fetchUserProfile(userId) {
-      const response = await fetch(`http://localhost:3000/users/${userId}`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/${userId}`);
       return await response.json();
     },
 
     async fetchMatchParticipants() {
-      const response = await fetch(`http://localhost:3000/matches/${this.matchId}/users`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/matches/${this.matchId}/users`);
       const participants = await response.json();
       
       // Fetch full profiles for all participants
@@ -83,7 +82,7 @@ export default {
           name: currentUserProfile.name,
           email: `${currentUserProfile.id}@test.com`,
           photoUrl: currentUserProfile.profile_image || `https://ui-avatars.com/api/?name=${currentUserProfile.name}&background=1a1a1a&color=fff`,
-          role: currentUserProfile.role
+          role: 'default'
         });
 
         const session = new Talk.Session({
@@ -102,7 +101,7 @@ export default {
               name: participant.name,
               email: `${participant.id}@test.com`,
               photoUrl: participant.profile_image || `https://ui-avatars.com/api/?name=${participant.name}&background=2d2d2d&color=fff`,
-              role: participant.role
+              role: 'default'
             });
             conversation.setParticipant(user);
             console.log('Added participant:', participant.name);
@@ -126,6 +125,7 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
   background: #fff;
 }
 
@@ -136,6 +136,7 @@ export default {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .chat-header::before {
@@ -213,6 +214,8 @@ export default {
   flex: 1;
   position: relative;
   background: #f8f9fa;
+  min-height: 0;
+  width: 100%;
 }
 
 .chat-loading {
