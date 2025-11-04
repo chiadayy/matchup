@@ -688,15 +688,41 @@ export default {
     async executeRemoveMatch() {
       this.removingMatch = true;
       try {
+        console.log('Removing match with ID:', this.selectedMatch.id, 'Type:', typeof this.selectedMatch.id);
+        const { data: joinedUsers, error: fetchError } = await supabase
+        .from('users_matches')
+        .select('user_id')
+        .eq('match_id', this.selectedMatch.id);
+
+        if (fetchError) {
+          console.error('Error fetching joined users:', fetchError);
+        } else if (joinedUsers && joinedUsers.length > 0) {
+          const notifications = joinedUsers.map(u => ({
+            user_id: u.user_id,
+            title: "Match Cancelled",
+            message: `The match "${this.selectedMatch.name}" has been cancelled. Refunds (if any) will be processed within 3-5 business days.`,
+            read: false,
+          }));
+          const { error: notifError } = await supabase.from('notifications').insert(notifications);
+          if (notifError) {
+            console.error('Error inserting notifications:', notifError);
+          }
+        }
+
         // Delete the match from Supabase
-        const { error } = await supabase
+        const { data,error: matchError } = await supabase
           .from('matches')
           .delete()
-          .eq('id', this.selectedMatch.id);
+          .eq('id', this.selectedMatch.id)
+          .select();
 
-        if (error) {
-          console.error('Error removing match:', error);
-          alert('Failed to remove match. Please try again.');
+
+        console.log('Deleted rows:', data);
+        console.log('Count:', data ? data.length : 0);
+
+        if (matchError) {
+          console.error('Error removing match:', matchError);
+          alert('Failed to remove match or related user matches. Please try again.');
           return;
         }
 
