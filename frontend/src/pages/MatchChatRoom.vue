@@ -1,113 +1,122 @@
 <template>
   <div class="match-container">
-    <div v-if="loading" class="loading">
-      <div class="spinner"></div>
-      <p>Loading your match...</p>
-    </div>
-    <div v-else-if="error" class="error">
-      <span>⚠️</span>
-      <p>{{ error }}</p>
+    <!-- Background Video -->
+    <div class="video-background">
+      <video autoplay muted loop playsinline>
+        <source src="/cool.mp4" type="video/mp4">
+      </video>
     </div>
 
-    <div v-else-if="conversationId" class="match-layout">
-      <!-- Sidebar -->
-      <div class="sidebar">
-        <!-- Move back button here, inside match-header -->
-        <div class="match-header">
-          <router-link to="/my-matches" class="back-button-inline">
-            <span class="back-icon">←</span>
-            <span>Back to Matches</span>
-          </router-link>
-          <div class="header-content">
-            <h2>{{ matchData.name }}</h2>
-            <div class="price-badge">
-              <span class="dollar">$</span>{{ matchData.total_price }}
+    <div class="content-wrapper">
+      <div v-if="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading your match...</p>
+      </div>
+      <div v-else-if="error" class="error">
+        <span>⚠️</span>
+        <p>{{ error }}</p>
+      </div>
+
+      <div v-else-if="conversationId" class="match-layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+          <!-- Move back button here, inside match-header -->
+          <div class="match-header">
+            <router-link to="/my-matches" class="back-button-inline">
+              <span class="back-icon">←</span>
+              <span>Back to Matches</span>
+            </router-link>
+            <div class="header-content">
+              <h2>{{ matchData.name }}</h2>
+              <div class="price-badge">
+                <span class="dollar">$</span>{{ matchData.total_price }}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="match-section">
-          <h3><span class="icon">📍</span> Location & Time</h3>
-          <div class="info-grid">
-            <div class="info-item">
-              <span class="label">Location</span>
-              <span class="value">{{ matchData.location }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">Date</span>
-              <span class="value">{{ formatDate(matchData.date) }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">Time</span>
-              <span class="value">{{ matchData.time }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">Players</span>
-              <span class="value"
-                >{{ matchData.total_player_count }} spots</span
-              >
+          <div class="match-section">
+            <h3><span class="icon">📍</span> Location & Time</h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="label">Location</span>
+                <span class="value">{{ matchData.location }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Date</span>
+                <span class="value">{{ formatDate(matchData.date) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Time</span>
+                <span class="value">{{ matchData.time }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Players</span>
+                <span class="value"
+                  >{{ matchData.total_player_count }} spots</span
+                >
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="match-section" v-if="matchData.description">
-          <h3><span class="icon">📝</span> Match Details</h3>
-          <p class="description">{{ matchData.description }}</p>
-        </div>
-
-        <div class="match-section weather-section" v-if="weather">
-          <h3><span class="icon">🌤️</span> Weather Forecast</h3>
-          <div class="weather-card">
-            <div class="weather-temp">{{ weather.temp }}°C</div>
-            <div class="weather-desc">{{ weather.description }}</div>
+          <div class="match-section" v-if="matchData.description">
+            <h3><span class="icon">📝</span> Match Details</h3>
+            <p class="description">{{ matchData.description }}</p>
           </div>
-        </div>
 
-        <div class="match-section">
-          <h3><span class="icon">👥</span> Match Players</h3>
-          <div class="players-list">
-            <div class="player" v-for="player in allPlayers" :key="player.id">
-              <img
-                :src="
-                  player.profile_image ||
-                  'https://ui-avatars.com/api/?name=' +
-                    player.name +
-                    '&background=1a1a1a&color=fff'
-                "
-                :alt="player.name"
-              />
-              <div class="player-info">
-                <p class="player-name">
-                  {{ player.name }}
-                  <span class="badge" v-if="player.isHost">Host</span>
-                </p>
-                <p class="player-role">{{ player.role }}</p>
+          <div class="match-section weather-section" v-if="weather">
+            <h3><span class="icon">🌤️</span> Weather Forecast</h3>
+            <div class="weather-card">
+              <div class="weather-temp">{{ weather.temp }}°C</div>
+              <div class="weather-desc">{{ weather.description }}</div>
+            </div>
+          </div>
+
+          <div class="match-section">
+            <h3><span class="icon">👥</span> Match Players</h3>
+            <div class="players-list">
+              <div class="player" v-for="player in allPlayers" :key="player.id">
+                <img
+                  :src="
+                    player.profile_image ||
+                    'https://ui-avatars.com/api/?name=' +
+                      player.name +
+                      '&background=1a1a1a&color=fff'
+                  "
+                  :alt="player.name"
+                />
+                <div class="player-info">
+                  <p class="player-name">
+                    {{ player.name }}
+                    <span class="badge" v-if="player.isHost">Host</span>
+                  </p>
+                  <p class="player-role">{{ player.role }}</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Chat Area -->
-      <div class="chat-area">
-        <ChatRoom
-          :matchId="matchId"
-          :conversationId="conversationId"
-          :currentUserId="currentUserId"
-        />
+        <!-- Chat Area -->
+        <div class="chat-area">
+          <ChatRoom
+            :matchId="matchId"
+            :conversationId="conversationId"
+            :currentUserId="currentUserId"
+          />
+        </div>
       </div>
-    </div>
-    <div v-else class="no-chat">
-      <div class="no-chat-icon">⏳</div>
-      <h3>Chat Room Not Available</h3>
-      <p>Waiting for more players to join and confirm their participation.</p>
-      <p class="sub-info">
-        The chat will open automatically once 2 or more players have joined this
-        match.
-      </p>
-      <router-link to="/my-matches" class="back-link"
-        >Back to My Matches</router-link
-      >
+      <div v-else class="no-chat">
+        <div class="no-chat-icon">⏳</div>
+        <h3>Chat Room Not Available</h3>
+        <p>Waiting for more players to join and confirm their participation.</p>
+        <p class="sub-info">
+          The chat will open automatically once 2 or more players have joined this
+          match.
+        </p>
+        <router-link to="/my-matches" class="back-link"
+          >Back to My Matches</router-link
+        >
+      </div>
     </div>
   </div>
 </template>
@@ -131,8 +140,6 @@ export default {
     const currentUserId = ref(null);
     const matchData = ref({});
     const weather = ref(null);
-    // const hostProfile = ref(null);
-    // const playerProfile = ref(null);
     const allPlayers = ref([]);
 
     const formatDate = (dateStr) => {
@@ -188,21 +195,18 @@ export default {
 
     onMounted(async () => {
       try {
-        // Get current user
         const {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user) throw new Error("Not authenticated");
         currentUserId.value = user.id;
 
-        // Fetch match data
         const matchResponse = await fetch(
           `${import.meta.env.VITE_API_URL}/matches/${matchId.value}`
         );
         matchData.value = await matchResponse.json();
         console.log("🎯 MATCH DATA:", matchData.value);
 
-        // Check if chat exists, if not try to create it
         console.log("🔎 Raw conversation_id:", matchData.value.conversation_id);
         console.log("🔎 Type:", typeof matchData.value.conversation_id);
         console.log("🔎 Equals 0?", matchData.value.conversation_id === 0);
@@ -239,7 +243,6 @@ export default {
               matchData.value.conversation_id =
                 createChatResult.conversation_id;
             } else {
-              // Not enough players yet
               console.log(createChatResult.message);
             }
           } catch (chatError) {
@@ -259,7 +262,6 @@ export default {
         const users = await usersResponse.json();
 
         if (Array.isArray(users)) {
-          // Fetch all player profiles
           const profiles = await Promise.all(
             users.map((u) => fetchProfile(u.user_id))
           );
@@ -283,8 +285,6 @@ export default {
       currentUserId,
       matchData,
       weather,
-      // hostProfile,
-      // playerProfile,
       allPlayers,
       formatDate,
     };
@@ -297,14 +297,39 @@ export default {
   box-sizing: border-box;
 }
 
+/* Video Background */
+.video-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.video-background video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .match-container {
+  position: relative;
   min-height: 100vh;
   padding: 32px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  position: relative;
+}
+
+.content-wrapper {
+  width: 100%;
+  max-width: 1400px;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 40px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
 }
 
 .back-button-inline {
@@ -454,8 +479,7 @@ export default {
 .match-layout {
   display: flex;
   width: 100%;
-  max-width: 1400px;
-  height: calc(100vh - 64px);
+  height: calc(100vh - 200px);
   max-height: 900px;
   background: white;
   border-radius: 20px;
@@ -733,6 +757,10 @@ export default {
     padding: 20px;
   }
 
+  .content-wrapper {
+    padding: 30px 20px;
+  }
+
   .match-layout {
     flex-direction: column;
     max-width: 100%;
@@ -763,6 +791,10 @@ export default {
 @media (max-width: 768px) {
   .match-container {
     padding: 15px;
+  }
+
+  .content-wrapper {
+    padding: 25px 15px;
   }
 
   .match-header {
@@ -829,6 +861,10 @@ export default {
 @media (max-width: 576px) {
   .match-container {
     padding: 10px;
+  }
+
+  .content-wrapper {
+    padding: 20px 10px;
   }
 
   .sidebar {

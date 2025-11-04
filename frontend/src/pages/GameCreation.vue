@@ -1,312 +1,321 @@
 <template>
-  <div style="background-color: #F7F9FC; min-height: 100vh; padding: 40px 20px;">
+  <div class="game-creation-page">
+    <!-- Background Video -->
+    <div class="video-background">
+      <video autoplay muted loop playsinline>
+        <source src="/game-creation.mp4" type="video/mp4">
+      </video>
+    </div>
+
     <div class="container-fluid px-5 py-4">
-      <div class="page-header">
-        <h1 class="fw-bold">Create a Match</h1>
-        <p class="subtitle">Start organizing your next game and connect with players</p>
-      </div>
+      <div class="content-wrapper">
+        <div class="page-header">
+          <h1 class="fw-bold">Create a Match</h1>
+          <p class="subtitle">Start organizing your next game and connect with players</p>
+        </div>
 
-      <div class="creation-container">
-        <form @submit.prevent="createMatch">
-          <!-- Step Indicator -->
-          <div class="steps-indicator">
-            <div v-for="step in 4" :key="step" class="step" :class="{ active: currentStep === step, completed: currentStep > step }">
-              <span class="step-number">{{ step }}</span>
-              <span class="step-label">{{ getStepLabel(step) }}</span>
-            </div>
-          </div>
-
-          <!-- Step 1: Basic Info -->
-          <div v-if="currentStep === 1" class="form-section">
-            <h2 class="section-title">Match Details</h2>
-            
-            <div class="form-group">
-              <label class="form-label">Match Name</label>
-              <input 
-                ref="matchNameInput"
-                type="text" 
-                class="form-control" 
-                v-model="formData.matchName"
-                placeholder="e.g., Weekly Basketball Game, Doubles Badminton"
-                required
-              >
-              <div v-if="fieldErrors.matchName" class="input-error">{{ fieldErrors.matchName }}</div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Sport Type</label>
-                <input 
-                      ref="sportInput"
-                      type="text" 
-                      class="form-control" 
-                      v-model="formData.sport"
-                      placeholder="e.g., Basketball, Tennis, Football, Badminton"
-                      required
-                    > 
-                    <div v-if="fieldErrors.sport" class="input-error">{{ fieldErrors.sport }}</div>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Skill Level</label>
-                <select ref="skillLevelInput" class="form-control" v-model="formData.skillLevel" required>
-                  <option value="">Select skill level</option>
-                  <option value="Beginner">Beginner</option>
-                  <option value="Intermediate">Intermediate</option>
-                  <option value="Advanced">Advanced</option>
-                  <option value="Any Level">Any Level</option>
-                </select>
-                <div v-if="fieldErrors.skillLevel" class="input-error">{{ fieldErrors.skillLevel }}</div>
+        <div class="creation-container">
+          <form @submit.prevent="createMatch">
+            <!-- Step Indicator -->
+            <div class="steps-indicator">
+              <div v-for="step in 4" :key="step" class="step" :class="{ active: currentStep === step, completed: currentStep > step }">
+                <span class="step-number">{{ step }}</span>
+                <span class="step-label">{{ getStepLabel(step) }}</span>
               </div>
             </div>
-            <div class="form-row">
+
+            <!-- Step 1: Basic Info -->
+            <div v-if="currentStep === 1" class="form-section">
+              <h2 class="section-title">Match Details</h2>
+              
               <div class="form-group">
-                <label class="form-label">Maximum Players</label>
+                <label class="form-label">Match Name</label>
                 <input 
-                  ref="maxPlayersInput"
+                  ref="matchNameInput"
+                  type="text" 
+                  class="form-control" 
+                  v-model="formData.matchName"
+                  placeholder="e.g., Weekly Basketball Game, Doubles Badminton"
+                  required
+                >
+                <div v-if="fieldErrors.matchName" class="input-error">{{ fieldErrors.matchName }}</div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Sport Type</label>
+                  <input 
+                        ref="sportInput"
+                        type="text" 
+                        class="form-control" 
+                        v-model="formData.sport"
+                        placeholder="e.g., Basketball, Tennis, Football, Badminton"
+                        required
+                      > 
+                      <div v-if="fieldErrors.sport" class="input-error">{{ fieldErrors.sport }}</div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Skill Level</label>
+                  <select ref="skillLevelInput" class="form-control" v-model="formData.skillLevel" required>
+                    <option value="">Select skill level</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                    <option value="Any Level">Any Level</option>
+                  </select>
+                  <div v-if="fieldErrors.skillLevel" class="input-error">{{ fieldErrors.skillLevel }}</div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Maximum Players</label>
+                  <input 
+                    ref="maxPlayersInput"
+                    type="number" 
+                    class="form-control" 
+                    v-model.number="formData.maxPlayers"
+                    min="2"
+                    max="100"
+                    required
+                  >
+                  <div v-if="fieldErrors.maxPlayers" class="input-error">{{ fieldErrors.maxPlayers }}</div>
+                </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Pick Location on Map</label>
+                  <div ref="pickerMap" style="width:100%;height:400px;border-radius:12px;overflow:hidden;margin-bottom:1em;"></div>
+                  <div class="form-row" hidden>
+                    <div class="form-group">
+                      <label class="form-label">Latitude</label>
+                      <input
+                        ref="latitudeInput"
+                        type="number"
+                        class="form-control"
+                        v-model="formData.latitude"
+                        placeholder="Latitude"
+                        required
+                      >
+                      <div v-if="fieldErrors.latitude" class="input-error">{{ fieldErrors.latitude }}</div>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Longitude</label>
+                      <input
+                        ref="longitudeInput"
+                        type="number"
+                        class="form-control"
+                        v-model="formData.longitude"
+                        placeholder="Longitude"
+                        required
+                      >
+                      <div v-if="fieldErrors.longitude" class="input-error">{{ fieldErrors.longitude }}</div>
+                    </div>
+                  </div>
+                  <div style="margin-top:1em;">
+                  <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <input
+                      ref="addressInput"
+                      type="text"
+                      class="form-control"
+                      placeholder="Search for a location..."
+                      v-model="searchQuery"
+                      @input="() => { searchPlace(); updateLocationFromSearch(); }"
+                      @keydown.down.prevent="moveSelection(1)"
+                      @keydown.up.prevent="moveSelection(-1)"
+                      @keydown.enter.prevent="selectPrediction(selectedIndex)"
+                    />
+                    <div v-if="fieldErrors.location" class="input-error">{{ fieldErrors.location }}</div>
+                  </div>
+
+
+                  <div v-if="predictions.length" class="suggestions-dropdown">
+                    <div
+                      v-for="(prediction, index) in predictions"
+                      :key="prediction.place_id"
+                      :class="{ 'suggestion-item': true, active: index === selectedIndex }"
+                      @click="selectPrediction(index)"
+                      @mouseover="hoverPrediction(index)"
+                    >
+                      {{ prediction.description }}
+                    </div>
+                  </div>
+
+  <button class="btn btn-primary" style="margin-top:8px;" @click="searchPlace">Search</button>
+                  </div>
+                <!-- </div> -->
+              </div>
+            </div>
+
+            <!-- Step 2: Date & Time -->
+            <div v-if="currentStep === 2" class="form-section">
+              <h2 class="section-title">Schedule</h2>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Date</label>
+                  <input 
+                    ref="dateInput"
+                    type="date" 
+                    class="form-control" 
+                    v-model="formData.date"
+                    required
+                  >
+                  <div v-if="fieldErrors.date" class="input-error">{{ fieldErrors.date }}</div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Time</label>
+                  <input 
+                    ref="timeInput"
+                    type="time" 
+                    class="form-control" 
+                    v-model="formData.time"
+                    required
+                  >
+                  <div v-if="fieldErrors.time" class="input-error">{{ fieldErrors.time }}</div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Duration (minutes)</label>
+                <input 
+                  ref="durationInput"
                   type="number" 
                   class="form-control" 
-                  v-model.number="formData.maxPlayers"
-                  min="2"
-                  max="100"
+                  v-model.number="formData.duration"
+                  placeholder="e.g., 60, 90"
+                  min="15"
                   required
                 >
-                <div v-if="fieldErrors.maxPlayers" class="input-error">{{ fieldErrors.maxPlayers }}</div>
-              </div>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Pick Location on Map</label>
-                <div ref="pickerMap" style="width:100%;height:400px;border-radius:12px;overflow:hidden;margin-bottom:1em;"></div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label class="form-label">Latitude</label>
-                    <input
-                      ref="latitudeInput"
-                      type="number"
-                      class="form-control"
-                      v-model="formData.latitude"
-                      placeholder="Latitude"
-                      required
-                    >
-                    <div v-if="fieldErrors.latitude" class="input-error">{{ fieldErrors.latitude }}</div>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Longitude</label>
-                    <input
-                      ref="longitudeInput"
-                      type="number"
-                      class="form-control"
-                      v-model="formData.longitude"
-                      placeholder="Longitude"
-                      required
-                    >
-                    <div v-if="fieldErrors.longitude" class="input-error">{{ fieldErrors.longitude }}</div>
-                  </div>
-                </div>
-                <div style="margin-top:1em;">
-                <div class="form-group">
-                  <label class="form-label">Address</label>
-                  <input
-                    ref="addressInput"
-                    type="text"
-                    class="form-control"
-                    placeholder="Search for a location..."
-                    v-model="searchQuery"
-                    @input="() => { searchPlace(); updateLocationFromSearch(); }"
-                    @keydown.down.prevent="moveSelection(1)"
-                    @keydown.up.prevent="moveSelection(-1)"
-                    @keydown.enter.prevent="selectPrediction(selectedIndex)"
-                  />
-                  <div v-if="fieldErrors.location" class="input-error">{{ fieldErrors.location }}</div>
-                </div>
-
-
-                <div v-if="predictions.length" class="suggestions-dropdown">
-                  <div
-                    v-for="(prediction, index) in predictions"
-                    :key="prediction.place_id"
-                    :class="{ 'suggestion-item': true, active: index === selectedIndex }"
-                    @click="selectPrediction(index)"
-                    @mouseover="hoverPrediction(index)"
-                  >
-                    {{ prediction.description }}
-                  </div>
-                </div>
-
-<button class="btn btn-primary" style="margin-top:8px;" @click="searchPlace">Search</button>
-                </div>
-              <!-- </div> -->
-            </div>
-          </div>
-
-          <!-- Step 2: Date & Time -->
-          <div v-if="currentStep === 2" class="form-section">
-            <h2 class="section-title">Schedule</h2>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Date</label>
-                <input 
-                  ref="dateInput"
-                  type="date" 
-                  class="form-control" 
-                  v-model="formData.date"
-                  required
-                >
-                <div v-if="fieldErrors.date" class="input-error">{{ fieldErrors.date }}</div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Time</label>
-                <input 
-                  ref="timeInput"
-                  type="time" 
-                  class="form-control" 
-                  v-model="formData.time"
-                  required
-                >
-                <div v-if="fieldErrors.time" class="input-error">{{ fieldErrors.time }}</div>
+                <div v-if="fieldErrors.duration" class="input-error">{{ fieldErrors.duration }}</div>
               </div>
             </div>
 
-            <div class="form-group">
-              <label class="form-label">Duration (minutes)</label>
-              <input 
-                ref="durationInput"
-                type="number" 
-                class="form-control" 
-                v-model.number="formData.duration"
-                placeholder="e.g., 60, 90"
-                min="15"
-                required
+            <!-- Step 3: Pricing -->
+            <div v-if="currentStep === 3" class="form-section">
+              <h2 class="section-title">Entry Fee</h2>
+
+              <div class="pricing-options">
+                <div class="option-card" :class="{ selected: formData.isPaid === false }" @click="formData.isPaid = false">
+                  <div class="option-icon">🎁</div>
+                  <h3>Free Match</h3>
+                  <p>No entry fee</p>
+                </div>
+
+                <div class="option-card" :class="{ selected: formData.isPaid === true }" @click="formData.isPaid = true">
+                  <div class="option-icon">💰</div>
+                  <h3>Paid Match</h3>
+                  <p>Players pay to join</p>
+                </div>
+              </div>
+
+              <div v-if="formData.isPaid" class="paid-details">
+                    <div class="form-group">
+                          <label class="form-label">Total Match Price ($)</label>
+                          <input 
+                            ref="totalPriceInput"
+                            type="number" 
+                            class="form-control" 
+                            v-model.number="formData.totalPrice"
+                            placeholder="e.g., 50"
+                            min="0"
+                            step="0.01"
+                            required
+                          >
+                          <div v-if="fieldErrors.totalPrice" class="input-error">{{ fieldErrors.totalPrice }}</div>
+                    </div>
+
+                    <div class="price-info">
+                      <p class="info-text">
+                        <strong>Total Price:</strong> ${{ formData.totalPrice.toFixed(2) }}
+                      </p>
+                    </div>
+              </div>
+            </div>
+
+            <!-- Step 4: Description -->
+            <div v-if="currentStep === 4" class="form-section">
+              <h2 class="section-title">Match Description</h2>
+
+              <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea 
+                  class="form-control" 
+                  v-model="formData.description"
+                  placeholder="Describe what you'll be playing. E.g., 'We'll be playing doubles in badminton. Bring your own rackets. Beginner-friendly!'"
+                  rows="5"
+                  required
+                ></textarea>
+                <p class="char-count">{{ formData.description.length }}/500</p>
+              </div>
+
+              <!-- Match Summary -->
+              <div class="summary-card">
+                <h3 class="summary-title">Match Summary</h3>
+                <div class="summary-grid">
+                  <div class="summary-item">
+                    <span class="label">Sport</span>
+                    <span class="value">{{ formData.sport }}</span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="label">Date & Time</span>
+                    <span class="value">{{ formatDateDisplay(formData.date) }} at {{ formData.time }}</span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="label">Location</span>
+                    <span class="value">{{ formData.location }}</span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="label">Players</span>
+                    <span class="value">{{ formData.maxPlayers }} max</span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="label">Skill Level</span>
+                    <span class="value">{{ formData.skillLevel }}</span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="label">Entry Fee</span>
+                    <span class="value" :class="formData.isPaid ? 'text-danger' : 'text-success'">
+                      {{ formData.isPaid ? `$${formData.totalPrice}` : 'Free' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-navigation">
+              <button 
+                v-if="currentStep > 1"
+                type="button" 
+                class="btn btn-secondary"
+                @click="previousStep"
+                :disabled="isSubmitting"
               >
-              <div v-if="fieldErrors.duration" class="input-error">{{ fieldErrors.duration }}</div>
+                Back
+              </button>
+
+              <button 
+                v-if="currentStep < 4"
+                type="button" 
+                class="btn btn-primary"
+                @click="nextStep"
+                :disabled="isSubmitting"
+              >
+                Next
+              </button>
+
+              <button 
+                v-if="currentStep === 4"
+                type="submit" 
+                class="btn btn-success"
+                :disabled="isSubmitting"
+              >
+                <span v-if="isSubmitting">Creating Match...</span>
+                <span v-else>Create Match</span>
+              </button>
             </div>
-          </div>
-
-          <!-- Step 3: Pricing -->
-          <div v-if="currentStep === 3" class="form-section">
-            <h2 class="section-title">Entry Fee</h2>
-
-            <div class="pricing-options">
-              <div class="option-card" :class="{ selected: formData.isPaid === false }" @click="formData.isPaid = false">
-                <div class="option-icon">🎁</div>
-                <h3>Free Match</h3>
-                <p>No entry fee</p>
-              </div>
-
-              <div class="option-card" :class="{ selected: formData.isPaid === true }" @click="formData.isPaid = true">
-                <div class="option-icon">💰</div>
-                <h3>Paid Match</h3>
-                <p>Players pay to join</p>
-              </div>
-            </div>
-
-            <div v-if="formData.isPaid" class="paid-details">
-                  <div class="form-group">
-                        <label class="form-label">Total Match Price ($)</label>
-                        <input 
-                          ref="totalPriceInput"
-                          type="number" 
-                          class="form-control" 
-                          v-model.number="formData.totalPrice"
-                          placeholder="e.g., 50"
-                          min="0"
-                          step="0.01"
-                          required
-                        >
-                        <div v-if="fieldErrors.totalPrice" class="input-error">{{ fieldErrors.totalPrice }}</div>
-                  </div>
-
-                  <div class="price-info">
-                    <p class="info-text">
-                      <strong>Total Price:</strong> ${{ formData.totalPrice.toFixed(2) }}
-                    </p>
-                  </div>
-            </div>
-          </div>
-
-          <!-- Step 4: Description -->
-          <div v-if="currentStep === 4" class="form-section">
-            <h2 class="section-title">Match Description</h2>
-
-            <div class="form-group">
-              <label class="form-label">Description</label>
-              <textarea 
-                class="form-control" 
-                v-model="formData.description"
-                placeholder="Describe what you'll be playing. E.g., 'We'll be playing doubles in badminton. Bring your own rackets. Beginner-friendly!'"
-                rows="5"
-                required
-              ></textarea>
-              <p class="char-count">{{ formData.description.length }}/500</p>
-            </div>
-
-            <!-- Match Summary -->
-            <div class="summary-card">
-              <h3 class="summary-title">Match Summary</h3>
-              <div class="summary-grid">
-                <div class="summary-item">
-                  <span class="label">Sport</span>
-                  <span class="value">{{ formData.sport }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="label">Date & Time</span>
-                  <span class="value">{{ formatDateDisplay(formData.date) }} at {{ formData.time }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="label">Location</span>
-                  <span class="value">{{ formData.location }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="label">Players</span>
-                  <span class="value">{{ formData.maxPlayers }} max</span>
-                </div>
-                <div class="summary-item">
-                  <span class="label">Skill Level</span>
-                  <span class="value">{{ formData.skillLevel }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="label">Entry Fee</span>
-                  <span class="value" :class="formData.isPaid ? 'text-danger' : 'text-success'">
-                    {{ formData.isPaid ? `$${formData.totalPrice}` : 'Free' }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-navigation">
-            <button 
-              v-if="currentStep > 1"
-              type="button" 
-              class="btn btn-secondary"
-              @click="previousStep"
-              :disabled="isSubmitting"
-            >
-              Back
-            </button>
-
-            <button 
-              v-if="currentStep < 4"
-              type="button" 
-              class="btn btn-primary"
-              @click="nextStep"
-              :disabled="isSubmitting"
-            >
-              Next
-            </button>
-
-            <button 
-              v-if="currentStep === 4"
-              type="submit" 
-              class="btn btn-success"
-              :disabled="isSubmitting"
-            >
-              <span v-if="isSubmitting">Creating Match...</span>
-              <span v-else>Create Match</span>
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
 
@@ -677,6 +686,38 @@ export default {
 </script>
 
 <style scoped>
+/* Video Background */
+.video-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.video-background video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.game-creation-page {
+  position: relative;
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+
+.content-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 40px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+}
+
 :root {
   --primary-color: #FF6B35;
   --secondary-color: #2C3E50;
@@ -694,7 +735,6 @@ export default {
 .form-row .form-group {
   width: 100%;
 }
-
 
 .page-header {
   margin-bottom: 40px;
@@ -1154,6 +1194,14 @@ export default {
 }
 
 @media (max-width: 768px) {
+  .game-creation-page {
+    padding: 24px 20px;
+  }
+
+  .content-wrapper {
+    padding: 30px 20px;
+  }
+
   .creation-container {
     padding: 20px;
   }
