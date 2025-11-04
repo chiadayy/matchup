@@ -1,5 +1,12 @@
 <template>
   <div class="my-matches-page">
+    <!-- Background Video -->
+    <div class="video-background">
+      <video autoplay muted loop playsinline>
+        <source src="/my-matches-video.mp4" type="video/mp4">
+      </video>
+    </div>
+
     <div class="page-content">
       <div class="page-header">
         <div>
@@ -311,15 +318,36 @@ export default {
 </script>
 
 <style scoped>
+/* Video Background */
+.video-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.video-background video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .my-matches-page {
+  position: relative;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
   padding: 40px 60px;
 }
 
 .page-content {
   max-width: 1400px;
   margin: 0 auto;
+  background: rgba(255, 255, 255, 0.75);  /* white with 75% opacity */
+  padding: 40px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);  /* optional: adds a nice blur effect */
 }
 
 .page-header {
