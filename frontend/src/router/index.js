@@ -11,6 +11,7 @@ import Browser from '@/pages/Browser.vue'
 import Calendar from '@/pages/Calendar.vue'
 import GameCreation from '@/pages/GameCreation.vue'
 import Profile from '@/pages/Profile.vue'
+import AdminDashboard from '@/pages/AdminDashboard.vue'
 import { supabase } from '@/lib/supabase'
 
 const routes = [
@@ -85,6 +86,12 @@ const routes = [
     name: 'Calendar',
     component: Calendar,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin-dashboard',
+    name: 'AdminDashboard',
+    component: AdminDashboard,
+    meta: { requiresAuth: true, requiresAdmin: true }
   }
 ]
 
@@ -110,6 +117,17 @@ router.beforeEach(async (to, _from, next) => {
       query: { next: to.fullPath }
     })
     return
+  }
+
+  // Only for admin
+  if (to.meta.requiresAdmin) {
+    const { data: { user } } = await supabase.auth.getUser()
+    const role = user?.user_metadata?.role // or load from profiles table if you prefer
+
+    if (role !== 'admin') {
+      next('/home') // redirect normal users
+      return
+    }
   }
 
   next()
