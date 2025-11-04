@@ -10,7 +10,7 @@
     </div> -->
 
     <!-- Dynamic Welcome Back Section -->
-    <div class="welcome-section">
+    <div class="welcome-section" ref="vantaRef">
       <div class="container-fluid px-5">
         <div class="row py-4">
           <div class="col-lg-8">
@@ -340,10 +340,11 @@ export default {
     autoSlideTimer: null,
     gameHighlights: [ /* keep your existing gameHighlights */ ],
     nearbyMatches: [ /* keep your existing nearbyMatches */ ],
-    
+
     // REPLACE THIS - start with empty array, will be populated from DB
     featuredMatches: [],
-    isLoadingMatches: true  // Add loading state
+    isLoadingMatches: true,  // Add loading state
+    vantaEffect: null  // Store the Vanta.js effect instance
   };
 },
   computed: {
@@ -450,15 +451,65 @@ export default {
     // this.startAutoSlide();
 
     await this.fetchMatchesFromDB();
-    await this.loadCurrentUser()
+    await this.loadCurrentUser();
+
+    // Load Vanta.js scripts and initialize birds animation
+    this.loadVantaScripts();
   },
 
   beforeUnmount() {
     window.removeEventListener('scroll', this.handleScroll);
     this.stopAutoSlide();
+
+    // Cleanup Vanta effect
+    if (this.vantaEffect) {
+      this.vantaEffect.destroy();
+    }
   },
   
   methods: {
+  loadVantaScripts() {
+    // Load Three.js first
+    const threeScript = document.createElement('script');
+    threeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js';
+    threeScript.onload = () => {
+      // Load Vanta.js Birds effect after Three.js
+      const vantaScript = document.createElement('script');
+      vantaScript.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.birds.min.js';
+      vantaScript.onload = () => {
+        this.initVanta();
+      };
+      document.head.appendChild(vantaScript);
+    };
+    document.head.appendChild(threeScript);
+  },
+
+  initVanta() {
+    if (this.$refs.vantaRef && window.VANTA) {
+      this.vantaEffect = window.VANTA.BIRDS({
+        el: this.$refs.vantaRef,
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        minHeight: 200.00,
+        minWidth: 200.00,
+        scale: 1.00,
+        scaleMobile: 1.00,
+        backgroundColor: 0xffffff,  // White background
+        color1: 0xff6b35,  // Primary orange color
+        color2: 0x10b981,  // Secondary green color
+        colorMode: 'lerp',
+        birdSize: 1.20,
+        wingSpan: 20.00,
+        speedLimit: 4.00,
+        separation: 30.00,
+        alignment: 30.00,
+        cohesion: 30.00,
+        quantity: 3.00
+      });
+    }
+  },
+
   openMatchDetail(match) {
     console.log('🔍 Opening match detail:', match);
     console.log('🔍 Match data check:', {
@@ -466,11 +517,11 @@ export default {
       sport: match.sport,
       hasAllProps: !!(match.sport_type && match.location)
     });
-    
+
     this.selectedMatch = match;
     this.showMatchDetail = true;
     document.body.style.overflow = 'hidden';
-    
+
     console.log('🔍 Modal should be visible now:', this.showMatchDetail);
   },
 
