@@ -124,7 +124,7 @@ router.beforeEach(async (to, _from, next) => {
     const { data: { user } } = await supabase.auth.getUser()
     const role = user?.user_metadata?.role // or load from profiles table if you prefer
 
-    if (role !== 'admin') {
+    if (role !== 'organiser') {
       next('/home') // redirect normal users
       return
     }
