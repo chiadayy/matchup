@@ -1180,4 +1180,38 @@ export default {
     font-size: 0.95rem;
   }
 }
+
+/* ========== LANDSCAPE ORIENTATION SUPPORT ========== */
+
+/* Tablets and phones in landscape */
+@media (max-height: 600px) and (orientation: landscape) {
+  .profile-page {
+    padding: 20px 15px;
+  }
+
+  .content-wrapper {
+    padding: 25px 20px;
+  }
+
+  .profile-header {
+    padding: 24px;
+  }
+
+  .profile-picture {
+    width: 120px;
+    height: 120px;
+  }
+
+  .match-history-section {
+    padding: 20px;
+  }
+
+  .match-card {
+    margin-bottom: 12px;
+  }
+
+  .row.g-3 {
+    gap: 0.75rem !important;
+  }
+}
 </style>

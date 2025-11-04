@@ -21,6 +21,7 @@
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
     "talkjs": "^0.42.1",
+    "three": "^0.181.0",
     "vue": "^3.5.22",
     "vue-router": "^4.5.1"
   },

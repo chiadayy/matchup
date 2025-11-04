@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import Intro from '@/pages/Intro.vue'
 import Landing from '@/pages/Landing.vue'
 import Home from '@/pages/Home.vue'
 import MatchChatRoom from '@/pages/MatchChatRoom.vue'
@@ -17,6 +18,12 @@ import { supabase } from '@/lib/supabase'
 const routes = [
   {
     path: '/',
+    name: 'Intro',
+    component: Intro,
+    meta: { public: true }
+  },
+  {
+    path: '/landing',
     name: 'Landing',
     component: Landing,
     meta: { guestOnly: true }

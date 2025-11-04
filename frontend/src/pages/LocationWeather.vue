@@ -617,6 +617,174 @@ select:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
 }
+
+/* ========== RESPONSIVE DESIGN ========== */
+
+/* Tablets and smaller laptops (991px) */
+@media (max-width: 991px) {
+  div[style*="padding: 32px"] {
+    padding: 24px !important;
+  }
+
+  div[style*="grid-template-columns: 380px 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  div[style*="position: sticky"] {
+    position: static !important;
+  }
+
+  div[style*="height: 650px"] {
+    height: 500px !important;
+  }
+}
+
+/* Mobile phones (768px) */
+@media (max-width: 768px) {
+  div[style*="padding: 32px"],
+  div[style*="padding: 24px"] {
+    padding: 20px !important;
+  }
+
+  div[style*="grid-template-columns: 380px 1fr"],
+  div[style*="grid-template-columns: 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Filter section */
+  div[style*="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))"] {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Stats display */
+  div[style*="display: flex; gap: 2rem"] {
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+
+  /* Game list max height */
+  div[style*="max-height: calc(100vh - 220px)"] {
+    max-height: 400px !important;
+  }
+
+  /* Map height */
+  div[style*="height: 650px"],
+  div[style*="height: 500px"] {
+    height: 400px !important;
+  }
+
+  /* Hero content grid */
+  div[style*="display: grid; grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Game cards - reduce padding */
+  div[style*="padding: 16px"] {
+    padding: 12px !important;
+  }
+
+  /* Icon sizes */
+  div[style*="font-size: 40px"] {
+    font-size: 32px !important;
+  }
+
+  /* Text sizes */
+  div[style*="font-size: 15px"] {
+    font-size: 14px !important;
+  }
+
+  div[style*="font-size: 12px"] {
+    font-size: 11px !important;
+  }
+}
+
+/* Small phones (576px) */
+@media (max-width: 576px) {
+  div[style*="padding: 32px"],
+  div[style*="padding: 24px"],
+  div[style*="padding: 20px"] {
+    padding: 16px !important;
+  }
+
+  /* Further reduce game card padding */
+  div[style*="padding: 16px"],
+  div[style*="padding: 12px"] {
+    padding: 10px !important;
+  }
+
+  /* Reduce gaps */
+  div[style*="gap: 12px"] {
+    gap: 8px !important;
+  }
+
+  div[style*="gap: 10px"] {
+    gap: 8px !important;
+  }
+
+  /* Smaller icons */
+  div[style*="font-size: 32px"] {
+    font-size: 28px !important;
+  }
+
+  /* Map height on small screens */
+  div[style*="height: 400px"] {
+    height: 350px !important;
+  }
+
+  /* Filter labels and inputs */
+  label[style*="font-size: 14px"] {
+    font-size: 13px !important;
+  }
+
+  select[style*="font-size: 14px"],
+  input[style*="font-size: 14px"] {
+    font-size: 13px !important;
+    padding: 10px 14px !important;
+  }
+
+  /* Stats badges */
+  div[style*="padding: 3px 8px"] {
+    padding: 2px 6px !important;
+    font-size: 10px !important;
+  }
+
+  /* Progress bar */
+  div[style*="height: 8px"] {
+    height: 6px !important;
+  }
+}
+
+/* Extra small phones (375px) */
+@media (max-width: 375px) {
+  div[style*="padding: 16px"],
+  div[style*="padding: 10px"] {
+    padding: 8px !important;
+  }
+
+  /* Ultra compact icons */
+  div[style*="font-size: 28px"] {
+    font-size: 24px !important;
+  }
+
+  /* Compact text */
+  div[style*="font-size: 14px"],
+  div[style*="font-size: 13px"] {
+    font-size: 12px !important;
+  }
+
+  /* Map minimum height */
+  div[style*="height: 350px"] {
+    height: 300px !important;
+  }
+
+  /* Small filter section */
+  div[style*="padding: 24px"] {
+    padding: 12px !important;
+  }
+}
 </style>
 
 <!-- <style scoped>

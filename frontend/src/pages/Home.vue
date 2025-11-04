@@ -1,11 +1,11 @@
 <template>
   <div class="min-h-screen" style="background-color: #FFFFFF">
     <!-- Dynamic Welcome Back Section -->
-    <div class="welcome-section" ref="vantaRef">
+    <div class="welcome-section" ref="vantaFogRef">
       <div class="container-fluid px-5">
         <div class="row py-4">
           <div class="col-lg-8">
-            <div class="welcome-content">
+            <div class="welcome-content" ref="vantaBirdsRef">
               <div class="welcome-greeting">
                 <h1 class="welcome-title">{{ greetingMessage }} 👋</h1>
                 <p class="welcome-subtitle">{{ personalizedMessage }}</p>
@@ -347,7 +347,8 @@ export default {
       topOrganiser: null
     },
     isLoadingMatches: true,  // Add loading state
-    vantaEffect: null  // Store the Vanta.js effect instance
+    vantaBirdsEffect: null,  // Store the Vanta.js birds effect instance
+    vantaFogEffect: null  // Store the Vanta.js fog effect instance
   };
 },
   computed: {
@@ -549,9 +550,12 @@ export default {
     window.removeEventListener('scroll', this.handleScroll);
     // this.stopAutoSlide();
 
-    // Cleanup Vanta effect
-    if (this.vantaEffect) {
-      this.vantaEffect.destroy();
+    // Cleanup Vanta effects
+    if (this.vantaBirdsEffect) {
+      this.vantaBirdsEffect.destroy();
+    }
+    if (this.vantaFogEffect) {
+      this.vantaFogEffect.destroy();
     }
     // this.stopAutoSlide();
   },
@@ -562,21 +566,47 @@ export default {
     const threeScript = document.createElement('script');
     threeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js';
     threeScript.onload = () => {
-      // Load Vanta.js Birds effect after Three.js
-      const vantaScript = document.createElement('script');
-      vantaScript.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.birds.min.js';
-      vantaScript.onload = () => {
-        this.initVanta();
+      // Load Vanta.js FOG effect
+      const vantaFogScript = document.createElement('script');
+      vantaFogScript.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.fog.min.js';
+      vantaFogScript.onload = () => {
+        // Load Vanta.js Birds effect
+        const vantaBirdsScript = document.createElement('script');
+        vantaBirdsScript.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.birds.min.js';
+        vantaBirdsScript.onload = () => {
+          this.initVantaEffects();
+        };
+        document.head.appendChild(vantaBirdsScript);
       };
-      document.head.appendChild(vantaScript);
+      document.head.appendChild(vantaFogScript);
     };
     document.head.appendChild(threeScript);
   },
 
-  initVanta() {
-    if (this.$refs.vantaRef && window.VANTA) {
-      this.vantaEffect = window.VANTA.BIRDS({
-        el: this.$refs.vantaRef,
+  initVantaEffects() {
+    // Initialize FOG effect on outer section
+    if (this.$refs.vantaFogRef && window.VANTA && window.VANTA.FOG) {
+      this.vantaFogEffect = window.VANTA.FOG({
+        el: this.$refs.vantaFogRef,
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        minHeight: 200.00,
+        minWidth: 200.00,
+        highlightColor: 0xffc300,  // Yellow/orange highlights
+        midtoneColor: 0xff1100,    // Red midtones
+        lowlightColor: 0x2d00ff,   // Blue lowlights
+        baseColor: 0xfebeb,        // Light peachy base
+        blurFactor: 0.6,
+        speed: 1.00,
+        zoom: 1.00
+      });
+    }
+
+    // Initialize BIRDS effect on inner card
+    if (this.$refs.vantaBirdsRef && window.VANTA && window.VANTA.BIRDS) {
+      this.vantaBirdsEffect = window.VANTA.BIRDS({
+        el: this.$refs.vantaBirdsRef,
         mouseControls: true,
         touchControls: true,
         gyroControls: false,
@@ -1448,6 +1478,8 @@ body {
     margin: 0 40px 40px 40px;
     border-radius: 24px;
     padding: 32px 0;
+    position: relative;
+    overflow: hidden;
 }
 
 .welcome-content {
@@ -1456,10 +1488,14 @@ body {
     padding: 32px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     height: 100%;
+    position: relative;
+    overflow: hidden;
 }
 
 .welcome-greeting {
     margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
 }
 
 .welcome-title {
@@ -1479,6 +1515,8 @@ body {
 .welcome-stats {
     display: flex;
     gap: 16px;
+    position: relative;
+    z-index: 1;
 }
 
 .stat-card {

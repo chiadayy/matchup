@@ -16,6 +16,7 @@
             <div class="logo">MatchUp</div>
             <div class="logo-badge">BETA</div>
           </div>
+          <!-- Desktop Navigation -->
           <nav class="nav">
             <a href="#features" class="nav-link">Features</a>
             <a href="#how-it-works" class="nav-link">How it works</a>
@@ -27,9 +28,40 @@
             </template>
             <RouterLink v-else to="/register" class="btn btn-primary btn-sm glow-btn">Get Started</RouterLink>
           </nav>
+
+          <!-- Mobile Menu Button -->
+          <button class="mobile-menu-btn" @click="mobileMenuOpen = !mobileMenuOpen" aria-label="Toggle menu">
+            <span class="hamburger-line" :class="{ 'active': mobileMenuOpen }"></span>
+            <span class="hamburger-line" :class="{ 'active': mobileMenuOpen }"></span>
+            <span class="hamburger-line" :class="{ 'active': mobileMenuOpen }"></span>
+          </button>
         </div>
       </div>
     </header>
+
+    <!-- Mobile Navigation Menu -->
+    <transition name="slide-fade">
+      <div v-if="mobileMenuOpen" class="mobile-menu-overlay" @click="mobileMenuOpen = false">
+        <div class="mobile-menu" @click.stop>
+          <div class="mobile-menu-header">
+            <div class="logo">MatchUp</div>
+            <button @click="mobileMenuOpen = false" class="mobile-menu-close" aria-label="Close menu">×</button>
+          </div>
+          <nav class="mobile-nav">
+            <a href="#features" class="mobile-nav-link" @click="mobileMenuOpen = false">Features</a>
+            <a href="#how-it-works" class="mobile-nav-link" @click="mobileMenuOpen = false">How it works</a>
+            <a href="#pricing" class="mobile-nav-link" @click="mobileMenuOpen = false">Pricing</a>
+            <a href="#testimonials" class="mobile-nav-link" @click="mobileMenuOpen = false">Reviews</a>
+            <div class="mobile-menu-divider"></div>
+            <template v-if="isLoggedIn">
+              <RouterLink to="/location-weather" class="btn btn-primary w-100" @click="mobileMenuOpen = false">Dashboard</RouterLink>
+              <button @click="handleLogout(); mobileMenuOpen = false" class="btn btn-secondary w-100">Logout</button>
+            </template>
+            <RouterLink v-else to="/register" class="btn btn-primary w-100" @click="mobileMenuOpen = false">Get Started</RouterLink>
+          </nav>
+        </div>
+      </div>
+    </transition>
 
     <!-- Hero Section with Enhanced Design -->
     <section class="hero">
@@ -270,6 +302,7 @@ const currentYear = computed(() => new Date().getFullYear())
 const isLoggedIn = ref(false)
 const isScrolled = ref(false)
 const scrollProgress = ref(0)
+const mobileMenuOpen = ref(false)
 
 // Stats with animation
 const stats = ref([
@@ -1705,10 +1738,167 @@ async function handleLogout() {
   }
 }
 
+/* Mobile Menu Button */
+.mobile-menu-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 32px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1001;
+}
+
+.hamburger-line {
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(135deg, #FF8B3D, #F59E0B);
+  border-radius: 3px;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.hamburger-line.active:nth-child(1) {
+  transform: translateY(10.5px) rotate(45deg);
+}
+
+.hamburger-line.active:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-line.active:nth-child(3) {
+  transform: translateY(-10.5px) rotate(-45deg);
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 85%;
+  max-width: 400px;
+  background: white;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+  z-index: 1001;
+}
+
+.mobile-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #E5E7EB;
+  background: linear-gradient(135deg, rgba(255, 139, 61, 0.05), rgba(245, 158, 11, 0.05));
+}
+
+.mobile-menu-close {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: rgba(255, 139, 61, 0.1);
+  color: #FF8B3D;
+  font-size: 2rem;
+  line-height: 1;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.mobile-menu-close:hover {
+  background: rgba(255, 139, 61, 0.2);
+  transform: rotate(90deg);
+}
+
+.mobile-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  gap: 0.5rem;
+}
+
+.mobile-nav-link {
+  padding: 1rem 1.25rem;
+  color: #1F2937;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.05rem;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.mobile-nav-link:hover {
+  background: rgba(255, 139, 61, 0.08);
+  color: #FF8B3D;
+  border-color: rgba(255, 139, 61, 0.2);
+  transform: translateX(4px);
+}
+
+.mobile-menu-divider {
+  height: 1px;
+  background: #E5E7EB;
+  margin: 1rem 0;
+}
+
+.mobile-nav .btn {
+  margin-top: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+  justify-content: center;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+/* Slide Fade Transition */
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  opacity: 0;
+}
+
+.slide-fade-enter-from .mobile-menu,
+.slide-fade-leave-to .mobile-menu {
+  transform: translateX(100%);
+}
+
+.slide-fade-enter-to .mobile-menu,
+.slide-fade-leave-from .mobile-menu {
+  transform: translateX(0);
+}
+
 /* Tablets and mobile phones */
 @media (max-width: 768px) {
   .nav {
     display: none;
+  }
+
+  .mobile-menu-btn {
+    display: flex;
   }
 
   .container {

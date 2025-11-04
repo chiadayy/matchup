@@ -981,4 +981,64 @@ export default {
     height: 350px;
   }
 }
+
+/* ========== LANDSCAPE ORIENTATION SUPPORT ========== */
+
+/* Tablets in landscape */
+@media (max-height: 768px) and (orientation: landscape) {
+  .match-layout {
+    max-height: 90vh;
+  }
+
+  .sidebar {
+    max-height: 90vh;
+  }
+
+  .chat-area {
+    height: 90vh;
+  }
+
+  .match-section {
+    padding: 16px 20px;
+  }
+}
+
+/* Mobile phones in landscape */
+@media (max-height: 500px) and (orientation: landscape) {
+  .match-container {
+    padding: 16px;
+  }
+
+  .content-wrapper {
+    padding: 20px;
+  }
+
+  .match-layout {
+    flex-direction: row;
+    max-height: 85vh;
+  }
+
+  .sidebar {
+    width: 320px;
+    max-height: 85vh;
+  }
+
+  .match-header {
+    padding: 16px;
+  }
+
+  .match-section {
+    padding: 12px 16px;
+    margin: 8px 12px;
+  }
+
+  .chat-area {
+    height: 85vh;
+  }
+
+  .player img {
+    width: 40px;
+    height: 40px;
+  }
+}
 </style>

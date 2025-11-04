@@ -754,6 +754,8 @@ export default {
       return this.filteredMatches.slice(startIndex, endIndex);
     },
     mapGames() {
+      console.log("🗺️ mapGames computing with", this.filteredMatches.length, "filtered matches");
+
       // Map coordinates for Singapore locations
       const locationCoords = {
         Hougang: { lat: 1.3712, lng: 103.8863 },
@@ -781,11 +783,16 @@ export default {
         Badminton: { icon: "🏸", color: "#ec4899" },
       };
 
-      return this.filteredMatches.map((match) => {
+      const result = this.filteredMatches.map((match) => {
         const coords = locationCoords[match.location] || {
           lat: 1.3521,
           lng: 103.8198,
         };
+
+        if (!locationCoords[match.location]) {
+          console.warn(`⚠️ No coordinates found for location: "${match.location}" - using default`);
+        }
+
         const config = sportConfig[match.sport_type] || {
           icon: "🏃",
           color: "#3b82f6",
@@ -815,6 +822,9 @@ export default {
           price: match.total_price,
         };
       });
+
+      console.log("🗺️ Returning", result.length, "games for map");
+      return result;
     },
   },
   async mounted() {
@@ -884,6 +894,8 @@ export default {
           return;
         } else {
           this.matches = data;
+          console.log("📊 All matches loaded:", data.length);
+          console.log("📍 Sample match locations:", data.slice(0, 3).map(m => m.location));
         }
       } catch (err) {
         console.error("Unexpected error:", err);
@@ -919,6 +931,9 @@ export default {
         // Use exact coordinates if available (from address search), otherwise use predefined coords
         const searchCoords =
           this.selectedLocationCoords || this.getMatchCoords(this.location);
+        console.log("🔍 Filtering by location:", this.location, "coords:", searchCoords);
+
+        const beforeCount = this.filteredMatches.length;
         this.filteredMatches = this.filteredMatches.filter((m) => {
           const matchCoords = this.getMatchCoords(m.location);
           const distance = this.calculateDistance(
@@ -927,10 +942,13 @@ export default {
             matchCoords.lat,
             matchCoords.lng
           );
+          console.log(`📍 Match at "${m.location}" (${matchCoords.lat}, ${matchCoords.lng}): ${distance.toFixed(2)}km away`);
           return distance <= 5; // Within 5km
         });
+        console.log(`✅ Location filter: ${beforeCount} → ${this.filteredMatches.length} matches`);
       } else if (this.locationSearch.trim()) {
         const query = this.locationSearch.toLowerCase();
+        console.log("🔍 Searching location text:", query);
         this.filteredMatches = this.filteredMatches.filter((m) =>
           m.location.toLowerCase().includes(query)
         );
@@ -2954,8 +2972,10 @@ export default {
   padding-right: 15px;
 }
 
-/* Responsive text sizing */
-@media (max-width: 1400px) {
+/* ========== RESPONSIVE DESIGN (STANDARDIZED BREAKPOINTS) ========== */
+
+/* Large screens (1200px) - Consolidates 1400px and 1200px */
+@media (max-width: 1200px) {
   .page-header h1 {
     font-size: 2rem;
   }
@@ -2967,9 +2987,7 @@ export default {
   .shortcuts-container {
     justify-content: flex-start;
   }
-}
 
-@media (max-width: 1200px) {
   .container {
     padding-left: 20px;
     padding-right: 20px;
@@ -3140,8 +3158,8 @@ export default {
   }
 }
 
-/* High zoom levels (zoom > 150%) */
-@media (max-width: 480px) {
+/* Extra small phones (375px) - Replaces 480px for consistency */
+@media (max-width: 375px) {
   .page-header h1 {
     font-size: 1.2rem;
   }
