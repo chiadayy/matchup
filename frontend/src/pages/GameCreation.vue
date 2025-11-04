@@ -84,7 +84,7 @@
                 <div class="form-group">
                   <label class="form-label">Pick Location on Map</label>
                   <div ref="pickerMap" style="width:100%;height:400px;border-radius:12px;overflow:hidden;margin-bottom:1em;"></div>
-                  <div class="form-row">
+                  <div class="form-row" hidden>
                     <div class="form-group">
                       <label class="form-label">Latitude</label>
                       <input
