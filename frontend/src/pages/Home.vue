@@ -1,14 +1,5 @@
 <template>
   <div class="min-h-screen" style="background-color: #FFFFFF">
-    <!-- Logout Button -->
-    <!-- <div class="container-fluid px-5 pt-3">
-      <div class="d-flex justify-content-end">
-        <button class="btn-logout-custom" @click="logout">
-          Logout
-        </button>
-      </div>
-    </div> -->
-
     <!-- Dynamic Welcome Back Section -->
     <div class="welcome-section" ref="vantaRef">
       <div class="container-fluid px-5">
@@ -32,13 +23,6 @@
                   <div class="stat-info">
                     <div class="stat-value">{{ userStats.reliability }}%</div>
                     <div class="stat-label">Reliability</div>
-                  </div>
-                </div>
-                <div class="stat-card">
-                  <div class="stat-icon">🏆</div>
-                  <div class="stat-info">
-                    <div class="stat-value">{{ userStats.badges }}</div>
-                    <div class="stat-label">Badges Earned</div>
                   </div>
                 </div>
               </div>
@@ -72,53 +56,70 @@
 
     <div class="container-fluid px-5">
 
-      <!-- Featured Players of the Week -->
-      <div class="row mb-5">
+      <!-- Stars of the Week -->
+      <div class="row mb-5" v-if="starsOfWeek.topPlayer || starsOfWeek.topOrganiser">
         <div class="col-12">
           <h3 class="fw-bold mb-4">⭐ Stars of the Week</h3>
           <div class="row g-4">
-            <div class="col-lg-6">
-              <div class="featured-card player-of-week">
+            <!-- Player of the Week -->
+            <div class="col-lg-6" v-if="starsOfWeek.topPlayer">
+              <div class="featured-card player-of-week" @click="navigateToProfile(starsOfWeek.topPlayer.id)" style="cursor: pointer;">
                 <div class="featured-badge">🏅 PLAYER OF THE WEEK</div>
                 <div class="featured-content">
                   <div class="featured-avatar">
-                    <img src="https://i.pravatar.cc/150?img=33" alt="Jason Lee" />
+                    <img :src="starsOfWeek.topPlayer.image" :alt="starsOfWeek.topPlayer.name" />
                     <div class="featured-ring"></div>
                   </div>
                   <div class="featured-info">
-                    <h4 class="featured-name">Jason Lee</h4>
-                    <p class="featured-stat">Joined <strong>5 games</strong> this week</p>
+                    <h4 class="featured-name">{{ starsOfWeek.topPlayer.name }}</h4>
+                    <p class="featured-stat">
+                      Joined <strong>{{ starsOfWeek.topPlayer.gamesCount }} games</strong> this week
+                    </p>
                     <div class="featured-sports">
-                      <span class="sport-tag">🏀 Basketball</span>
-                      <span class="sport-tag">🎾 Tennis</span>
-                      <span class="sport-tag">⚽ Football</span>
+                      <span 
+                        v-for="sport in starsOfWeek.topPlayer.favourites?.slice(0, 3)" 
+                        :key="sport"
+                        class="sport-tag"
+                      >
+                        {{ getSportIcon(sport) }} {{ sport }}
+                      </span>
                     </div>
                   </div>
                 </div>
                 <div class="featured-quote">
-                  "Always ready to play! Great sportsmanship and team player."
+                  "Always ready to play! Active community member."
                 </div>
               </div>
             </div>
-            <div class="col-lg-6">
-              <div class="featured-card organiser-of-week">
+
+            <!-- Top Organiser -->
+            <div class="col-lg-6" v-if="starsOfWeek.topOrganiser">
+              <div class="featured-card organiser-of-week" @click="navigateToProfile(starsOfWeek.topOrganiser.id)" style="cursor: pointer;">
                 <div class="featured-badge organiser">🎯 TOP ORGANISER</div>
                 <div class="featured-content">
                   <div class="featured-avatar">
-                    <img src="https://i.pravatar.cc/150?img=20" alt="Rachel Wong" />
+                    <img :src="starsOfWeek.topOrganiser.image" :alt="starsOfWeek.topOrganiser.name" />
                     <div class="featured-ring organiser"></div>
                   </div>
                   <div class="featured-info">
-                    <h4 class="featured-name">Rachel Wong</h4>
-                    <p class="featured-stat">Hosted <strong>12 badminton sessions</strong></p>
+                    <h4 class="featured-name">{{ starsOfWeek.topOrganiser.name }}</h4>
+                    <p class="featured-stat">
+                      Hosted <strong>{{ starsOfWeek.topOrganiser.gamesCount }} matches</strong> this week
+                    </p>
                     <div class="featured-sports">
-                      <span class="sport-tag organiser">🏸 Badminton Expert</span>
-                      <span class="sport-tag organiser">⭐ 98% Rating</span>
+                      <span 
+                        v-for="sport in starsOfWeek.topOrganiser.favourites?.slice(0, 2)" 
+                        :key="sport"
+                        class="sport-tag organiser"
+                      >
+                        {{ getSportIcon(sport) }} {{ sport }}
+                      </span>
+                      <span class="sport-tag organiser">⭐ Top Host</span>
                     </div>
                   </div>
                 </div>
                 <div class="featured-quote">
-                  "Bringing the community together, one match at a time!"
+                  "Bringing the community together!"
                 </div>
               </div>
             </div>
@@ -188,7 +189,7 @@
                         <div class="featured-match-details">
                           <div class="match-detail-item">
                             <span class="detail-icon">👤</span>
-                            <span class="detail-text">{{ match.host }}</span>
+                            <span class="detail-text">{{ match.hostName }}</span>
                           </div>
                           <div class="match-detail-item">
                             <span class="detail-icon">📍</span>
@@ -318,18 +319,17 @@ export default {
     selectedMatch: null,
     isScrolled: false,
     isLoggedIn: false,
-    userProfilePic: 'https://i.pravatar.cc/150?img=12',
     currentUser: null,
     profileData: null,
     userStats: {
-      gamesPlayed: 23,
-      reliability: 95,
-      badges: 5,
-      favoriteSport: 'Tennis'
+      gamesPlayed: 0,
+      reliability: 0,
+      badges: 0,
+      favoriteSport: ''
     },
     weatherData: {
-      temp: 28,
-      description: 'Perfect for sports',
+      temp: '--',
+      description: 'Loading...',
       icon: '☀️'
     },
     mapCenter: { lat: 1.3521, lng: 103.8198 },
@@ -338,11 +338,14 @@ export default {
     autoSlideInterval: null,
     autoSlideProgress: 0,
     autoSlideTimer: null,
-    gameHighlights: [ /* keep your existing gameHighlights */ ],
     nearbyMatches: [ /* keep your existing nearbyMatches */ ],
-
+    userCurrentLocation: null,
     // REPLACE THIS - start with empty array, will be populated from DB
     featuredMatches: [],
+    starsOfWeek: {
+      topPlayer: null,
+      topOrganiser: null
+    },
     isLoadingMatches: true,  // Add loading state
     vantaEffect: null  // Store the Vanta.js effect instance
   };
@@ -353,7 +356,7 @@ export default {
 
       const hour = new Date().getHours();
       const isWeekend = [0, 6].includes(new Date().getDay());
-      console.log("hi");
+      // console.log("hi");
 
       if (isWeekend) {
         return `Happy ${hour < 12 ? 'Weekend Morning' : 'Weekend'}, ${this.profileData.name}`;
@@ -399,27 +402,42 @@ export default {
         'Badminton': { icon: '🏸', color: '#ec4899' }
       };
 
-      const games = this.nearbyMatches.map((match, index) => {
-        const coords = locationCoords[match.location] || { lat: 1.3521, lng: 103.8198 };
-        const sport = sportConfig[match.sport] || { icon: '🏃', color: '#3b82f6' };
+      const games = this.nearbyMatches.map((match) => {
+      const matchCoords = this.getMatchCoords(match.location);
+      const sportConfig = this.getSportConfigForMatch(match.sport);
 
-        return {
-          id: `nearby-${index}`,
-          title: match.sport,
-          venue: match.location,
-          startTimeISO: this.parseDateTime(match.date),
-          lat: coords.lat,
-          lng: coords.lng,
-          icon: sport.icon,
-          color: sport.color,
-          skillLevel: match.skill,
-          price: match.isFree ? 0 : parseFloat(match.price.replace('$', '')),
-          joined: Math.floor(Math.random() * 8) + 2,
-          capacity: 10
-        };
-      });
+      // Fix: Better date handling
+      let startTimeISO;
+      try {
+        if (match.matchData?.date && match.matchData?.time) {
+          const dateStr = match.matchData.date; // "2025-11-05"
+          const timeStr = match.matchData.time; // "18:00:00"
+          startTimeISO = new Date(`${dateStr}T${timeStr}`).toISOString();
+        } else {
+          startTimeISO = new Date().toISOString();
+        }
+      } catch (error) {
+        console.warn('Invalid date for match:', match);
+        startTimeISO = new Date().toISOString();
+      }
 
-      console.log('🗺️ Map Games:', games);
+      return {
+        id: match.matchData?.id || `nearby-${match.location}`,
+        title: match.sport,
+        venue: match.location,
+        startTimeISO: startTimeISO,
+        lat: matchCoords.lat,
+        lng: matchCoords.lng,
+        icon: sportConfig.icon,
+        color: sportConfig.color,
+        skillLevel: match.skill,
+        price: match.matchData?.price || 0,
+        joined: match.matchData?.current_player_count || 0,
+        capacity: match.matchData?.total_player_count || 10
+      };
+    });
+
+      // console.log('🗺️ Map Games:', games);
       return games;
     },
     tipsCarouselSlides() {
@@ -443,15 +461,85 @@ export default {
       }
 
       return slides;
+    },
+    mapGames() {
+      // Use nearby matches (already sorted by distance)
+      const games = this.nearbyMatches.map((match) => {
+        const matchCoords = this.getMatchCoords(match.location);
+        const sportConfig = this.getSportConfigForMatch(match.sport);
+
+        return {
+          id: match.matchData?.id || `nearby-${match.location}`,
+          title: match.sport,
+          venue: match.location,
+          startTimeISO: (() => {
+            if (!match.matchData?.date || !match.matchData?.time) {
+              return new Date().toISOString();
+            }
+             
+            // Remove day name prefix from time if present (e.g., "Thu, ")
+            let cleanTime = match.matchData.time.replace(/^[A-Za-z]+,\s*/, '');
+            
+            // Combine date and time
+            const fullDateTime = `${match.matchData.date} ${cleanTime}`;
+            
+            const parsed = new Date(fullDateTime);
+        
+            // Check if valid
+            if (isNaN(parsed.getTime())) {
+              console.error('Invalid date/time:', fullDateTime);
+              return new Date().toISOString();
+            }
+            
+            return parsed.toISOString();
+          })(),
+          lat: matchCoords.lat,
+          lng: matchCoords.lng,
+          icon: sportConfig.icon,
+          color: sportConfig.color,
+          skillLevel: match.skill,
+          price: match.matchData?.price || 0,
+          joined: match.matchData?.current_player_count || 0,
+          capacity: match.matchData?.total_player_count || 10
+        };
+      });
+
+      // console.log('🗺️ Map Games:', games.length, 'markers');
+      return games;
+    }
+    
+    
+  },
+  watch: {
+    featuredMatches: {
+      handler(newMatches) {
+        if (newMatches && newMatches.length > 0) {
+          // console.log('👀 Featured matches changed, recalculating nearby');
+          this.calculateNearbyMatches();
+        }
+      },
+      immediate: false
+    },
+    userCurrentLocation: {
+      handler(newLocation) {
+        if (newLocation && this.featuredMatches.length > 0) {
+          // console.log('👀 Watcher: Location updated, recalculating nearby');
+          this.calculateNearbyMatches();
+        }
+      }
     }
   },
   async mounted() {
     window.addEventListener('scroll', this.handleScroll);
 
-    // this.startAutoSlide();
-
-    await this.fetchMatchesFromDB();
-    await this.loadCurrentUser();
+    this.getUserCurrentLocation();
+    await Promise.all([
+      this.fetchMatchesFromDB(),
+      this.loadCurrentUser(),
+      this.fetchWeather(),
+      this.fetchStarsOfWeek()
+    ]);
+    
 
     // Load Vanta.js scripts and initialize birds animation
     this.loadVantaScripts();
@@ -459,12 +547,13 @@ export default {
 
   beforeUnmount() {
     window.removeEventListener('scroll', this.handleScroll);
-    this.stopAutoSlide();
+    // this.stopAutoSlide();
 
     // Cleanup Vanta effect
     if (this.vantaEffect) {
       this.vantaEffect.destroy();
     }
+    // this.stopAutoSlide();
   },
   
   methods: {
@@ -511,18 +600,18 @@ export default {
   },
 
   openMatchDetail(match) {
-    console.log('🔍 Opening match detail:', match);
-    console.log('🔍 Match data check:', {
-      id: match.id,
-      sport: match.sport,
-      hasAllProps: !!(match.sport_type && match.location)
-    });
+    // console.log('🔍 Opening match detail:', match);
+    // console.log('🔍 Match data check:', {
+    //   id: match.id,
+    //   sport: match.sport,
+    //   hasAllProps: !!(match.sport_type && match.location)
+    // });
 
     this.selectedMatch = match;
     this.showMatchDetail = true;
     document.body.style.overflow = 'hidden';
 
-    console.log('🔍 Modal should be visible now:', this.showMatchDetail);
+    // console.log('🔍 Modal should be visible now:', this.showMatchDetail);
   },
 
     async loadCurrentUser() {
@@ -541,118 +630,282 @@ export default {
 
           if (profileError) console.error(profileError);
           else this.profileData = profileData;
+
+          const { count: gamesPlayed, error: gamesError } = await supabase
+            .from('users_matches')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', data.user.id)
+            .eq('payment_success', true);
+
+          if (!gamesError) {
+            this.userStats.gamesPlayed = gamesPlayed || 0;
+          }
+
+          this.userStats.reliability = gamesPlayed > 0 ? 100 : 0;
+
+          const { data: matchesData, error: matchesError } = await supabase
+            .from('users_matches')
+            .select('matches(sport_type)')
+            .eq('user_id', data.user.id)
+            .eq('payment_success', true);
+
+          if (!matchesError && matchesData) {
+            // Count occurrences of each sport
+            const sportCounts = {};
+            matchesData.forEach(item => {
+              const sport = item.matches?.sport_type;
+              if (sport) {
+                sportCounts[sport] = (sportCounts[sport] || 0) + 1;
+              }
+            });
+            const favoriteSport = Object.keys(sportCounts).reduce((a, b) => 
+              sportCounts[a] > sportCounts[b] ? a : b, 
+              profileData?.favourites?.[0] || 'Basketball'  // Fallback to first favorite or Basketball
+            );
+
+            this.userStats.favoriteSport = favoriteSport;
+          } else {
+            this.userStats.favoriteSport = profileData?.favourites?.[0] || '';
+          }
+
+          this.userStats.badges = Math.floor((gamesPlayed || 0) / 5);
         }
+          
       } catch (err) {
         console.error('Unexpected error loading user:', err);
       }
     },
-   async fetchMatchesFromDB() {
-  this.isLoadingMatches = true;
-  
-  try {
-    console.log('Fetching matches from backend...');
-
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/matches`);
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch matches');
-    }
-
-    const data = await response.json();
-    console.log('Received matches from DB:', data);
-
-    if (data.success && data.matches && data.matches.length > 0) {
-      const dbMatches = data.matches.map(match => {
-        const sportConfig = this.getSportConfigForMatch(match.sport_type);
-        const badge = this.getMatchBadge(match);
-
-        const totalPlayers = parseInt(match.total_player_count) || 10;
-        const currentPlayers = parseInt(match.current_player_count) || 0;
-        const price = parseFloat(match.total_price) || 0;
-
-        return {
-          id: match.id,
-          sport: match.sport_type,
-          sport_type: match.sport_type,
-          icon: sportConfig.icon,
-          color: sportConfig.color,
-          badge: badge,
-          image: sportConfig.image,
-          title: match.name || `${match.sport_type} Match`,
-          name: match.name || `${match.sport_type} Match`,
-          host: match.host || 'Anonymous Host',
-          venue: match.location,
-          location: match.location,
-          time: this.formatDateTimeForDisplay(match.date, match.time),
-          date: match.date,
-          skillLevel: match.skill_level,
-          skill_level: match.skill_level,
-          joined: currentPlayers,
-          capacity: totalPlayers,
-          total_player_count: totalPlayers,
-          current_player_count: currentPlayers,
-          price: price,
-          total_price: price,
-          description: match.description || 'Join us for a great game!',
-          duration: match.duration || '2 hours',
-          players: `${currentPlayers}/${totalPlayers}`
-        };
-      });
-
-      this.featuredMatches = dbMatches; // Take ALL matches, not just first 8
-      console.log('✅ Featured matches loaded:', this.featuredMatches.length, 'matches');
-    } else {
-      console.log('No matches found in DB');
-      this.featuredMatches = [];
-    }
-  } catch (error) {
-    console.error('❌ Error fetching matches:', error);
-    this.featuredMatches = [];
-  } finally {
-    this.isLoadingMatches = false;
-  }
-},
-    // Format date and time for display
-    formatDateTime(date, time) {
+    async fetchWeather() {
       try {
-        // Handle date format
-        const dateObj = new Date(date);
-        const day = dateObj.getDate();
-        const month = dateObj.getMonth() + 1;
-        const year = dateObj.getFullYear().toString().slice(-2);
-
-        // Handle time format (remove seconds if present)
-        const timeStr = time.split(':').slice(0, 2).join(':');
-
-        return `${day}/${month}/${year} ${timeStr}`;
-      } catch (error) {
-        console.error('Error formatting date/time:', error);
-        return 'TBD';
-      }
-    },
-
-    // Parse date string for ISO format
-    parseDateTime(dateStr) {
-      try {
-        // Example: "8/10/25 6pm" -> ISO string
-        const parts = dateStr.match(/(\d+)\/(\d+)\/(\d+)\s+(\d+)(am|pm)/i);
-        if (parts) {
-          const day = parseInt(parts[1]);
-          const month = parseInt(parts[2]) - 1; // 0-indexed
-          const year = 2000 + parseInt(parts[3]);
-          let hour = parseInt(parts[4]);
-          const isPM = parts[5].toLowerCase() === 'pm';
-
-          if (isPM && hour !== 12) hour += 12;
-          if (!isPM && hour === 12) hour = 0;
-
-          return new Date(year, month, day, hour, 0, 0).toISOString();
+        // Singapore default coordinates
+        const lat = 1.3521;
+        const lng = 103.8198;
+        const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+        
+        if (!apiKey) {
+          console.warn('OpenWeather API key not found');
+          this.weatherData = {
+            temp: 28,
+            description: 'Perfect for sports',
+            icon: '☀️',
+            humidity: 75
+          };
+          return;
         }
+        
+        // Fetch weather from OpenWeatherMap API
+        const response = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&units=metric&appid=${apiKey}`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Weather API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Format condition with proper capitalization
+        const condition = data.weather[0].description.charAt(0).toUpperCase() + 
+                        data.weather[0].description.slice(1);
+        
+        this.weatherData = {
+          temp: Math.round(data.main.temp),
+          description: this.getWeatherDescription(condition, data.main.temp, data.main.humidity),
+          icon: this.getWeatherIcon(condition),
+          humidity: data.main.humidity,
+          condition: condition,
+          raw: data
+        };
+        
+        // console.log('🌤️ Weather updated:', this.weatherData);
+        
       } catch (error) {
-        console.error('Error parsing date:', error);
+        // console.error('Error fetching weather:', error);
+        // Fallback to default
+        this.weatherData = {
+          temp: 28,
+          description: 'Perfect for sports',
+          icon: '☀️',
+          humidity: 75
+        };
       }
-      return new Date().toISOString();
     },
+
+    getWeatherDescription(condition, temp, humidity) {
+      const c = condition.toLowerCase();
+      
+      if (c.includes('rain') || c.includes('drizzle')) {
+        return 'Indoor sports today?';
+      }
+      
+      if (c.includes('thunder') || c.includes('storm')) {
+        return 'Stay safe indoors';
+      }
+      
+      if (c.includes('clear') || c.includes('cloud')) {
+        if (temp > 32) {
+          return 'Hot! Stay hydrated';
+        } else if (temp > 28) {
+          if (humidity > 80) {
+            return 'Humid - bring water';
+          }
+          return 'Perfect for sports';
+        } else if (temp < 24) {
+          return 'Great weather!';
+        } else {
+          return 'Nice and cool';
+        }
+      }
+      
+      if (c.includes('mist') || c.includes('fog') || c.includes('haze')) {
+        return 'Low visibility';
+      }
+      
+      return 'Check conditions';
+    },
+    getWeatherIcon(condition) {
+      const c = condition.toLowerCase();
+      if (c.includes('thunder') || c.includes('storm')) return '⛈️';
+      if (c.includes('rain') || c.includes('drizzle')) return '🌧️';
+      if (c.includes('snow')) return '❄️';
+      if (c.includes('mist') || c.includes('fog') || c.includes('haze')) return '🌫️';
+      if (c.includes('cloud')) return '☁️';
+      if (c.includes('clear')) return '☀️';
+      return '🌤️';
+    },
+    getWeatherDescription(condition, temp, humidity) {
+      // More detailed logic like Browser.vue
+      const c = condition.toLowerCase();
+      
+      // Rain conditions
+      if (c.includes('rain') || c.includes('drizzle')) {
+        return 'Indoor sports today?';
+      }
+      
+      // Thunderstorm
+      if (c.includes('thunder') || c.includes('storm')) {
+        return 'Stay safe indoors';
+      }
+      
+      // Temperature-based for clear/cloudy weather
+      if (c.includes('clear') || c.includes('cloud')) {
+        if (temp > 32) {
+          return 'Hot! Stay hydrated';
+        } else if (temp > 28) {
+          if (humidity > 80) {
+            return 'Humid - bring water';
+          }
+          return 'Perfect for sports';
+        } else if (temp < 24) {
+          return 'Great weather!';
+        } else {
+          return 'Nice and cool';
+        }
+      }
+      
+      // Fog/Mist
+      if (c.includes('mist') || c.includes('fog') || c.includes('haze')) {
+        return 'Low visibility';
+      }
+      
+      // Default
+      return 'Check conditions';
+    },
+    async fetchMatchesFromDB() {
+      this.isLoadingMatches = true;
+      
+      try {
+        // console.log('📡 Fetching matches from Supabase...');
+
+        // Step 1: Get all matches
+        const { data, error } = await supabase
+          .from('matches')
+          .select('*')
+          .order('date', { ascending: true });
+
+        if (error) {
+          console.error('Error fetching matches:', error);
+          this.featuredMatches = [];
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          this.featuredMatches = [];
+          return;
+        }
+
+        // Step 2: Get unique host IDs
+        const hostIds = [...new Set(data.map(match => match.host))];
+        
+        // Step 3: Fetch all host profiles in one query
+        const { data: profiles, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, name, profile_image')
+          .in('id', hostIds);
+
+        if (profileError) {
+          console.error('Error fetching profiles:', profileError);
+        }
+
+        // Step 4: Create a lookup map for quick access
+        const profileMap = {};
+        if (profiles) {
+          profiles.forEach(profile => {
+            profileMap[profile.id] = profile;
+          });
+        }
+
+        // Step 5: Filter matches
+        const now = new Date();
+        const filteredData = data.filter(match => {
+          const matchDateTime = new Date(`${match.date}T${match.time}`);
+          if (matchDateTime <= now) return false;
+          if (match.current_player_count >= match.total_player_count) return false;
+          return true;
+        });
+
+        // Step 6: Transform for display
+        const dbMatches = filteredData.map(match => {
+          const sportConfig = this.getSportConfigForMatch(match.sport_type);
+          const badge = this.getMatchBadge(match);
+          
+          // Get host profile from map
+          const hostProfile = profileMap[match.host];
+
+          return {
+            ...match,
+            icon: sportConfig.icon,
+            color: sportConfig.color,
+            badge: badge,
+            image: sportConfig.image,
+            sport: match.sport_type,
+            title: match.name || `${match.sport_type} Match`,
+            venue: match.location,
+            skillLevel: match.skill_level,
+            joined: match.current_player_count,
+            capacity: match.total_player_count,
+            price: match.total_price,
+            players: `${match.current_player_count}/${match.total_player_count}`,
+            time: this.formatDateTimeForDisplay(match.date, match.time),
+            
+            // Use host profile data
+            hostName: hostProfile?.name || 'Anonymous',
+            hostImage: hostProfile?.profile_image || null
+          };
+        });
+
+        this.featuredMatches = dbMatches;
+        // console.log('✅ Featured matches loaded:', this.featuredMatches.length, 'matches');
+        this.calculateNearbyMatches();
+
+      } catch (error) {
+        // console.error('❌ Error fetching matches:', error);
+        this.featuredMatches = [];
+      } finally {
+        this.isLoadingMatches = false;
+      }
+    },
+    
 
     closeMatchDetail() {
       this.showMatchDetail = false;
@@ -703,38 +956,38 @@ export default {
       // this.resetAutoSlide();
     },
 
-    startAutoSlide() {
-      // Auto-slide every 4 seconds
-      this.autoSlideInterval = setInterval(() => {
-        this.nextSlide();
-      }, 4000);
+    // startAutoSlide() {
+    //   // Auto-slide every 4 seconds
+    //   this.autoSlideInterval = setInterval(() => {
+    //     this.nextSlide();
+    //   }, 4000);
 
-      // Progress bar animation (updates every 50ms)
-      this.autoSlideProgress = 0;
-      this.autoSlideTimer = setInterval(() => {
-        this.autoSlideProgress += (100 / 4000) * 50; // 50ms interval
-        if (this.autoSlideProgress >= 100) {
-          this.autoSlideProgress = 0;
-        }
-      }, 50);
-    },
+    //   // Progress bar animation (updates every 50ms)
+    //   this.autoSlideProgress = 0;
+    //   this.autoSlideTimer = setInterval(() => {
+    //     this.autoSlideProgress += (100 / 4000) * 50; // 50ms interval
+    //     if (this.autoSlideProgress >= 100) {
+    //       this.autoSlideProgress = 0;
+    //     }
+    //   }, 50);
+    // },
 
-    stopAutoSlide() {
-      if (this.autoSlideInterval) {
-        clearInterval(this.autoSlideInterval);
-        this.autoSlideInterval = null;
-      }
-      if (this.autoSlideTimer) {
-        clearInterval(this.autoSlideTimer);
-        this.autoSlideTimer = null;
-      }
-    },
+    // stopAutoSlide() {
+    //   if (this.autoSlideInterval) {
+    //     clearInterval(this.autoSlideInterval);
+    //     this.autoSlideInterval = null;
+    //   }
+    //   if (this.autoSlideTimer) {
+    //     clearInterval(this.autoSlideTimer);
+    //     this.autoSlideTimer = null;
+    //   }
+    // },
 
-    resetAutoSlide() {
-      this.stopAutoSlide();
-      this.autoSlideProgress = 0;
-      this.startAutoSlide();
-    },
+    // resetAutoSlide() {
+    //   this.stopAutoSlide();
+    //   this.autoSlideProgress = 0;
+    //   this.startAutoSlide();
+    // },
 
     getSportIcon(sport) {
       const icons = {
@@ -757,48 +1010,55 @@ export default {
     },
 
     getSportConfigForMatch(sportType) {
-      const sportConfigs = {
+      const configs = {
         'Basketball': {
           icon: '🏀',
           color: '#f97316',
-          image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&h=600&fit=crop'
-        },
-        'Badminton': {
-          icon: '🏸',
-          color: '#ec4899',
-          image: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&h=600&fit=crop'
-        },
-        'Football': {
-          icon: '⚽',
-          color: '#10b981',
-          image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&h=600&fit=crop'
-        },
-        'Soccer': {
-          icon: '⚽',
-          color: '#10b981',
-          image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&h=600&fit=crop'
-        },
-        'Futsal': {
-          icon: '⚽',
-          color: '#10b981',
-          image: 'https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=800&h=600&fit=crop'
+          image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop'
         },
         'Tennis': {
           icon: '🎾',
           color: '#84cc16',
-          image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&h=600&fit=crop'
+          image: 'https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=800&auto=format&fit=crop'
+        },
+        'Football': {
+          icon: '⚽',
+          color: '#10b981',
+          image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&auto=format&fit=crop'
+        },
+        'Badminton': {
+          icon: '🏸',
+          color: '#ec4899',
+          image: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&auto=format&fit=crop'
         },
         'Volleyball': {
           icon: '🏐',
-          color: '#06b6d4',
-          image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&h=600&fit=crop'
+          color: '#8b5cf6',
+          image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&auto=format&fit=crop'
         }
       };
 
-      return sportConfigs[sportType] || {
+      // Try exact match first
+      if (configs[sportType]) {
+        return configs[sportType];
+      }
+
+      // Try case-insensitive match
+      const normalizedSport = sportType.charAt(0).toUpperCase() + sportType.slice(1).toLowerCase();
+      if (configs[normalizedSport]) {
+        // console.warn(`⚠️ Sport type case mismatch: "${sportType}" → "${normalizedSport}"`);
+        return configs[normalizedSport];
+      }
+
+      // Log unknown sport
+      // console.warn(`⚠️ Unknown sport type: "${sportType}" - using default config`);
+      // console.warn(`Available sports: ${Object.keys(configs).join(', ')}`);
+
+      // Return default
+      return {
         icon: '🏃',
         color: '#3b82f6',
-        image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&h=600&fit=crop'
+        image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&auto=format&fit=crop'
       };
     },
 
@@ -876,6 +1136,235 @@ export default {
         console.error('Error formatting date/time:', error);
         return 'TBD';
       }
+    },
+
+    async getUserCurrentLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            this.userCurrentLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            };
+            // console.log('📍 User location obtained:', this.userCurrentLocation);
+          },
+          (error) => {
+            console.warn("Could not get user location:", error);
+            // Default to Singapore if geolocation fails
+            this.userCurrentLocation = { lat: 1.3521, lng: 103.8198 };
+          }
+        );
+      } else {
+        // Default to Singapore if geolocation not supported
+        this.userCurrentLocation = { lat: 1.3521, lng: 103.8198 };
+      }
+    },
+
+    // Get match coordinates (exact copy from Browser.vue)
+    getMatchCoords(location) {
+      const locationCoords = {
+        Hougang: { lat: 1.3712, lng: 103.8863 },
+        Sengkang: { lat: 1.3917, lng: 103.8951 },
+        Punggol: { lat: 1.4043, lng: 103.9021 },
+        Tampines: { lat: 1.3529, lng: 103.9446 },
+        Bedok: { lat: 1.3236, lng: 103.9273 },
+        "Serangoon CC": { lat: 1.3537, lng: 103.8721 },
+        "Choa Chu Kang CC": { lat: 1.3853, lng: 103.7459 },
+        "Bukit Merah CC": { lat: 1.2827, lng: 103.8179 },
+        Woodlands: { lat: 1.4382, lng: 103.7891 },
+        Yishun: { lat: 1.4304, lng: 103.8354 },
+        "Ang Mo Kio": { lat: 1.3691, lng: 103.8454 },
+        Bishan: { lat: 1.3526, lng: 103.8352 },
+        "Toa Payoh": { lat: 1.3343, lng: 103.8567 },
+        "Jurong East": { lat: 1.3329, lng: 103.7436 },
+        Clementi: { lat: 1.3162, lng: 103.7649 },
+      };
+      return locationCoords[location] || { lat: 1.3521, lng: 103.8198 };
+    },
+
+    // Calculate distance between two coordinates (exact copy from Browser.vue)
+    calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371; // Radius of Earth in kilometers
+      const dLat = this.toRadians(lat2 - lat1);
+      const dLon = this.toRadians(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(this.toRadians(lat1)) *
+          Math.cos(this.toRadians(lat2)) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distance = R * c; // Distance in kilometers
+      return distance;
+    },
+
+    toRadians(degrees) {
+      return degrees * (Math.PI / 180);
+    },
+
+    // Calculate distance for a specific match (similar to Browser.vue's getMatchDistance)
+    getMatchDistance(match) {
+      // Use user's current location or default to Singapore
+      const refLocation = this.userCurrentLocation || { lat: 1.3521, lng: 103.8198 };
+      
+      const matchCoords = this.getMatchCoords(match.location);
+      const distance = this.calculateDistance(
+        refLocation.lat,
+        refLocation.lng,
+        matchCoords.lat,
+        matchCoords.lng
+      );
+      return distance.toFixed(1); // Return with 1 decimal place
+    },
+    calculateNearbyMatches() {
+      if (!this.featuredMatches.length) {
+        // console.log('⏳ Waiting for matches to load...');
+        return;
+      }
+
+      // console.log('📍 Calculating nearby matches...');
+
+      // Add distance to each match
+      const matchesWithDistance = this.featuredMatches.map(match => {
+        const distance = parseFloat(this.getMatchDistance(match));
+        
+        return {
+          ...match,
+          distanceKm: distance,
+          distanceText: `${distance} km away`
+        };
+      });
+
+      // Sort by distance (ascending) and take top 5
+      const sortedMatches = matchesWithDistance
+        .sort((a, b) => a.distanceKm - b.distanceKm)
+        .slice(0, 5);
+
+      // Transform to display format
+      this.nearbyMatches = sortedMatches.map(match => ({
+        sport: match.sport_type,
+        location: match.location,
+        skill: match.skill_level,
+        date: match.time, // Already formatted from fetchMatchesFromDB
+        distance: match.distanceText,
+        price: match.price === 0 ? 'Free' : `$${match.price}`,
+        isFree: match.price === 0,
+        distanceKm: match.distanceKm, // Keep for reference
+        matchData: match // Keep full match data for modal
+      }));
+
+      // console.log('✅ Nearby matches calculated:', this.nearbyMatches.length, 'matches');
+      // console.log('📊 Distances:', this.nearbyMatches.map(m => m.distance));
+    },
+    async fetchStarsOfWeek() {
+      try {
+        // Get date range for this week
+        const today = new Date();
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday
+        startOfWeek.setHours(0, 0, 0, 0);
+        
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 7);
+
+        // console.log('📊 Fetching stars of the week from', startOfWeek, 'to', endOfWeek);
+
+        // Get all matches this week
+        const { data: weekMatches, error: matchError } = await supabase
+          .from('matches')
+          .select('id, host, date')
+          .gte('date', startOfWeek.toISOString().split('T')[0])
+          .lt('date', endOfWeek.toISOString().split('T')[0]);
+
+        if (matchError) throw matchError;
+
+        // Get all user-match joins this week
+        const { data: userMatches, error: joinError } = await supabase
+          .from('users_matches')
+          .select('user_id, match_id, matches!inner(date)')
+          .gte('matches.date', startOfWeek.toISOString().split('T')[0])
+          .lt('matches.date', endOfWeek.toISOString().split('T')[0])
+          .eq('payment_success', true);
+
+        if (joinError) throw joinError;
+
+        // Count games joined per user
+        const playerCounts = {};
+        userMatches.forEach(um => {
+          playerCounts[um.user_id] = (playerCounts[um.user_id] || 0) + 1;
+        });
+
+        // Count games hosted per user
+        const hostCounts = {};
+        weekMatches.forEach(match => {
+          hostCounts[match.host] = (hostCounts[match.host] || 0) + 1;
+        });
+
+        // Get top player (most games joined)
+        let topPlayerId = null;
+        let topPlayerCount = 0;
+        Object.entries(playerCounts).forEach(([userId, count]) => {
+          if (count > topPlayerCount) {
+            topPlayerId = userId;
+            topPlayerCount = count;
+          }
+        });
+
+        // Get top organiser (most games hosted)
+        let topOrganiserId = null;
+        let topOrganiserCount = 0;
+        Object.entries(hostCounts).forEach(([userId, count]) => {
+          if (count > topOrganiserCount) {
+            topOrganiserId = userId;
+            topOrganiserCount = count;
+          }
+        });
+
+        // Fetch profiles
+        if (topPlayerId) {
+          const { data: playerProfile } = await supabase
+            .from('profiles')
+            .select('id, name, profile_image, favourites')
+            .eq('id', topPlayerId)
+            .single();
+
+          if (playerProfile) {
+            this.starsOfWeek.topPlayer = {
+              ...playerProfile,
+              gamesCount: topPlayerCount,
+              image: playerProfile.profile_image || `https://i.pravatar.cc/150?u=${playerProfile.id}`
+            };
+          }
+        }
+
+        if (topOrganiserId) {
+          const { data: organiserProfile } = await supabase
+            .from('profiles')
+            .select('id, name, profile_image, favourites')
+            .eq('id', topOrganiserId)
+            .single();
+
+          if (organiserProfile) {
+            this.starsOfWeek.topOrganiser = {
+              ...organiserProfile,
+              gamesCount: topOrganiserCount,
+              image: organiserProfile.profile_image || `https://i.pravatar.cc/150?u=${organiserProfile.id}`
+            };
+          }
+        }
+
+        // console.log('⭐ Stars of the week:', this.starsOfWeek);
+
+      } catch (error) {
+        console.error('Error fetching stars of the week:', error);
+      }
+    },
+    navigateToProfile(userId) {
+      if (!userId) {
+        console.warn('No user ID provided');
+        return;
+      }
+      this.$router.push(`/profile/${userId}`);
     }
   }
 };

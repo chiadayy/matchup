@@ -141,7 +141,7 @@
                   {{ userInfo?.name || 'User' }}
                 </span>
               </router-link>
-              <button @click="logout" class="mobile-nav-link logout-link">
+              <button @click="showLogoutConfirm = true" class="mobile-nav-link logout-link">
                 Logout
               </button>
             </div>
@@ -236,7 +236,7 @@
             <!-- Logout Button (player User) - Desktop -->
             <button 
               v-if="userInfo && userRole !== 'admin'"
-              @click="logout" 
+              @click="showLogoutConfirm = true"
               class="btn btn-danger btn-sm d-md-inline-block logout-btn rounded-pill"
             >
               Logout
@@ -278,18 +278,20 @@
           </template> -->
         </div>
 
-        <!-- confirm logout -->
-        <div v-if="showLogoutConfirm" class="confirm-overlay">
-          <div class="confirm-box">
-            <p>Are you sure you want to logout?</p>
-            <div class="confirm-actions">
-              <button @click="logout()">Yes, leave</button>
-              <button @click="showLogoutConfirm = false">Cancel</button>
-            </div>
-          </div>
-        </div>
+        
       </div>
     </nav>
+
+    <!-- confirm logout -->
+    <div v-if="showLogoutConfirm" class="confirm-overlay">
+      <div class="confirm-box">
+        <p>Are you sure you want to logout?</p>
+        <div class="confirm-actions">
+          <button @click="logout()">Yes, leave</button>
+          <button @click="showLogoutConfirm = false">Cancel</button>
+        </div>
+      </div>
+    </div>
   </template>
 
   <script>
@@ -297,7 +299,7 @@
 
   export default {
     name: 'Navbar',
-    
+    emits: ['logout'],
     data() {
       return {
         isScrolled: false,
@@ -340,7 +342,7 @@
           if (authError) throw authError;
 
           if (!authData?.user) {
-            console.log('No user logged in');
+            // console.log('No user logged in');
             this.userInfo = null;
             this.userRole = 'player';
             return;  // ← Early return prevents errors

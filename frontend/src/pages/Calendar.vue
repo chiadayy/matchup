@@ -6,15 +6,22 @@
         <!-- Calendar Section -->
         <div class="col-lg-8 mb-4">
           <div class="calendar-container">
-            <FullCalendar :options="calendarOptions" />
+            <!-- Loading Overlay -->
+            <div v-if="isLoading" class="calendar-loading">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-3">Loading your matches...</p>
+            </div>
+            <FullCalendar v-else :options="calendarOptions" />
             <div class="legend">
               <div class="legend-item">
                 <div class="legend-dot-confirmed"></div>
-                <span>Confirmed Match</span>
+                <span>Confirmed (Match Full)</span>
               </div>
               <div class="legend-item">
                 <div class="legend-dot-pending"></div>
-                <span>Pending Match</span>
+                <span>Pending (Spots Available)</span>
               </div>
             </div>
           </div>
@@ -23,10 +30,19 @@
         <!-- Upcoming Matches Panel -->
         <div class="col-lg-4">
           <div class="upcoming-matches-panel">
-            <h4 class="fw-bold mb-4">Upcoming Matches</h4>
-            <div v-if="upcomingMatches.length === 0" class="no-matches">
+            <h4 class="fw-bold mb-4">Upcoming Matches Within A Week</h4>
+
+            <!-- Loading State -->
+            <div v-if="isLoading" class="text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="text-muted mt-3">Loading matches...</p>
+            </div>
+            <!-- Empty State -->
+            <div v-else-if="upcomingMatches.length === 0" class="no-matches">
               <div style="font-size: 64px; margin-bottom: 16px;">📅</div>
-              <p class="fw-semibold">No upcoming matches</p>
+              <p class="fw-semibold">No upcoming matches within a week</p>
               <p class="small">Browse available matches to join!</p>
             </div>
             <div v-else>
@@ -39,7 +55,7 @@
               >
                 <div class="d-flex justify-content-between align-items-start mb-2">
                   <h6 class="fw-bold mb-0">{{ sportEmojis[match.sport] }} {{ match.sport }}</h6>
-                  <span class="status-badge" :class="match.status">{{ match.status }}</span>
+                  <span class="status-badge" :class="match.status">{{ match.status === 'confirmed' ? 'Soon' : 'Upcoming' }}</span>
                 </div>
                 <div class="small mb-1">
                   <strong>📍</strong> {{ match.location }}
@@ -86,7 +102,6 @@
         </div>
         <div class="modal-footer">
           <button class="btn btn-outline-dark" @click="selectedMatch = null">Close</button>
-          <button class="btn btn-dark" @click="joinMatch(selectedMatch.id)">Join Match</button>
         </div>
       </div>
     </div>
@@ -95,10 +110,11 @@
 </template>
 
 <script>
-import FullCalendar from '@fullcalendar/vue3'
-import dayGridPlugin from '@fullcalendar/daygrid'
-import interactionPlugin from '@fullcalendar/interaction'
-import bootstrap5Plugin from '@fullcalendar/bootstrap5'
+import FullCalendar from '@fullcalendar/vue3';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import bootstrap5Plugin from '@fullcalendar/bootstrap5';
+import { supabase } from '@/lib/supabase';
 
 export default {
   name: 'Calendar',
@@ -107,15 +123,9 @@ export default {
   },
   data() {
     return {
-      userMatches: [
-        { id: 1, sport: 'Basketball', location: 'Hougang', date: '2025-10-10', time: '6:00 PM', status: 'confirmed', players: '7/8', price: 'Free' },
-        { id: 2, sport: 'Tennis', location: 'Sengkang', date: '2025-10-12', time: '7:00 PM', status: 'pending', players: '2/4', price: '$15' },
-        { id: 3, sport: 'Football', location: 'Bedok', date: '2025-10-15', time: '5:00 PM', status: 'confirmed', players: '18/22', price: 'Free' },
-        { id: 4, sport: 'Badminton', location: 'Tampines', date: '2025-10-18', time: '8:00 PM', status: 'pending', players: '6/8', price: '$10' },
-        { id: 5, sport: 'Basketball', location: 'Punggol', date: '2025-10-22', time: '6:00 PM', status: 'confirmed', players: '8/10', price: 'Free' },
-        { id: 6, sport: 'Volleyball', location: 'Pasir Ris', date: '2025-10-25', time: '7:00 PM', status: 'pending', players: '10/12', price: '$12' },
-        { id: 7, sport: 'Tennis', location: 'Simei', date: '2025-10-28', time: '5:00 PM', status: 'confirmed', players: '3/4', price: 'Free' }
-      ],
+      userMatches: [],
+      isLoading: false,
+      loadError: null,
       selectedMatch: null,
       sportEmojis: {
         'Basketball': '🏀',
@@ -144,17 +154,22 @@ export default {
     
     upcomingMatches() {
       const today = new Date()
+      const sevenDaysFromNow = new Date()
+      sevenDaysFromNow.setDate(today.getDate() + 7)  // Add 7 days
+      
       return this.userMatches
         .filter(match => {
           const matchDate = new Date(match.date)
-          return matchDate >= today
+          // Match must be: today or later AND within 7 days
+          return matchDate >= today && matchDate <= sevenDaysFromNow
         })
-        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .sort((a, b) => new Date(a.date) - new Date(b.date))  // Earliest first
+        .slice(0, 5)  // Show max 5 matches in sidebar
     },
     
   },
-  mounted() {
-    this.loadMatchesIntoCalendar()
+  async mounted() {
+    await this.fetchUserMatches();
   },
   watch: {
     userMatches: {
@@ -165,7 +180,82 @@ export default {
     }
   },
   methods: {
-    
+    async fetchUserMatches() {
+      this.isLoading = true
+      this.loadError = null
+
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError) throw authError;
+        if (!user) throw new Error('Not authenticated');
+
+        const { data, error } = await supabase
+          .from('users_matches')
+          .select(`
+            *,
+            matches (
+              id,
+              name,
+              description,
+              date,
+              time,
+              location,
+              sport_type,
+              host,
+              total_player_count,
+              current_player_count,
+              total_price,
+              skill_level
+            )
+          `)
+          .eq('user_id', user.id)
+          .eq('payment_success', true)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error
+
+        this.userMatches = (data || [])
+          .filter(item => item.matches !== null)
+          .map(item => ({
+            // Flatten structure for easier access
+            id: item.matches.id,
+            sport: item.matches.sport_type,
+            location: item.matches.location,
+            date: item.matches.date,
+            time: item.matches.time,
+            players: `${item.matches.current_player_count}/${item.matches.total_player_count}`,
+            price: item.matches.total_price === 0 ? 'Free' : `$${item.matches.total_price}`,
+            status: this.getMatchStatus(item.matches),
+            skillLevel: item.matches.skill_level,
+            description: item.matches.description,
+            current_player_count: item.matches.current_player_count,
+            total_player_count: item.matches.total_player_count,
+            // Store full match data for modal
+            fullData: item.matches
+          }))
+
+      } catch (err) {
+        console.error('Error fetching matches:', err)
+        this.loadError = 'Failed to load matches. Please try again.'
+      } finally {
+        this.isLoading = false
+      }
+    },
+    getMatchStatus(match) {
+      // Check if match is in the past first
+      const matchDate = new Date(match.date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (matchDate < today) {
+        return 'past';  // Match already happened
+      }
+      
+      // For future matches, check if full
+      const isFull = match.current_player_count >= match.total_player_count;
+      
+      return isFull ? 'confirmed' : 'pending';
+    },
     showMatchModal(match) {
       this.selectedMatch = match
     },
@@ -208,6 +298,21 @@ export default {
 </script>
 
 <style>
+.calendar-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+  color: #6c757d;
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3rem;
+}
+
 .fc-prev-button,
 .fc-next-button,
 .fc-today-button,
