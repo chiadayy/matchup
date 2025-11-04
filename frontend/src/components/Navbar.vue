@@ -12,9 +12,9 @@
 
           <!-- Desktop Navigation Links -->
           <div class="navbar-links">
-            <!-- Browser - visible to everyone except admins -->
+            <!-- Browser - visible to everyone except organisers -->
             <router-link 
-              v-if="userRole !== 'admin'"
+              v-if="userRole !== 'organiser'"
               to="/browser" 
               class="nav-link-custom"
             >
@@ -48,9 +48,9 @@
               Game Creation
             </router-link>
 
-            <!-- Admin Dashboard - visible to admins only -->
+            <!-- organiser Dashboard - visible to organisers only -->
             <router-link 
-              v-if="userRole === 'admin'"
+              v-if="userRole === 'organiser'"
               to="/admin-dashboard" 
               class="nav-link-custom"
             >
@@ -114,7 +114,7 @@
             </router-link>
 
             <router-link 
-              v-if="userRole === 'admin'"
+              v-if="userRole === 'organiser'"
               to="/admin-dashboard" 
               class="mobile-nav-link"
               @click="closeMobileMenu"
@@ -125,9 +125,9 @@
             <div class="mobile-menu-divider"></div>
 
             <!-- User Actions in Mobile Menu -->
-            <div v-if="userRole !== 'admin'" class="mobile-user-section">
+            <div v-if="userRole !== 'organiser'" class="mobile-user-section">
               <router-link 
-                v-if="userRole !== 'admin'"
+                v-if="userRole !== 'organiser'"
                 to="/profile" 
                 class="mobile-nav-link"
                 @click="closeMobileMenu"
@@ -146,7 +146,7 @@
               </button>
             </div>
 
-            <div v-if="userRole === 'admin'" class="mobile-user-section">
+            <div v-if="userRole === 'organiser'" class="mobile-user-section">
               <div class="mobile-profile-info">
                 <img :src="userInfo?.profile_image || defaultProfileImage" alt="Profile" class="mobile-profile-pic" />
                 <span class="mobile-user-name admin-badge">{{ userInfo?.name }} (Admin)</span>
@@ -216,9 +216,9 @@
           <!-- end of notifications -->
 
           <!-- User profile and logout -->
-          <div v-if="userRole !== 'admin'" class="d-flex gap-3">
+          <div v-if="userRole !== 'organiser'" class="d-flex gap-3">
             <router-link 
-              v-if="userInfo && userRole !== 'admin'" 
+              v-if="userInfo && userRole !== 'organiser'" 
               to="/profile" 
               class="d-flex align-items-center gap-2 text-decoration-none profile-link"
             >
@@ -235,27 +235,17 @@
 
             <!-- Logout Button (player User) - Desktop -->
             <button 
-              v-if="userInfo && userRole !== 'admin'"
+              v-if="userInfo && userRole !== 'organiser'"
               @click="showLogoutConfirm = true"
               class="btn btn-danger btn-sm d-md-inline-block logout-btn rounded-pill"
             >
               Logout
             </button>
             
-            <!-- <div v-if="showDropdown" class="dropdown-menu-custom" ref="dropdownMenu">
-              <router-link 
-                to="/profile" 
-                class="dropdown-item-custom"
-                @click="closeDropdown"
-              >
-                👤 My Profile
-              </router-link>
-              <hr class="dropdown-divider" />
-              <button @click="showLogoutConfirm = true" class="btn btn-logout">Logout</button>
-            </div> -->
+            
             <!-- Logout Button (player User) - Mobile Icon -->
             <button 
-              v-if="userInfo && userRole !== 'admin'"
+              v-if="userInfo && userRole !== 'organiser'"
               @click="showLogoutConfirm = true"
               class="btn btn-danger btn-sm d-inline-block d-md-none logout-btn-icon rounded-pill"
               aria-label="Logout"
@@ -264,18 +254,14 @@
             </button>
           </div>
 
-          <!-- Admin user - show admin label and logout -->
-          <div v-if="userRole === 'admin'" class="admin-section">
+          <!-- organiser user - show organiser label and logout -->
+          <div v-if="userRole === 'organiser'" class="admin-section">
             <span class="admin-label">Admin</span>
             <!-- <button @click="logout" class="btn btn-logout-small">Logout</button> -->
             <button @click="showLogoutConfirm = true" class="btn btn-logout-small">Logout</button>
           </div>
           
-          <!-- Not logged in - show login and signup -->
-          <!-- <template v-if="!isLoggedIn">
-            <router-link to="/login" class="nav-link-custom">Login</router-link>
-            <router-link to="/register" class="btn btn-signup">Sign Up</router-link>
-          </template> -->
+          
         </div>
 
         

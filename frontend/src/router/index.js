@@ -121,11 +121,41 @@ router.beforeEach(async (to, _from, next) => {
 
   // Only for admin
   if (to.meta.requiresAdmin) {
-    const { data: { user } } = await supabase.auth.getUser()
-    const role = user?.user_metadata?.role // or load from profiles table if you prefer
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        next('/login')
+        return
+      }
 
-    if (role !== 'organiser') {
-      next('/home') // redirect normal users
+      // ✅ FIX: Get role from profiles table instead of user_metadata
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      if (error) {
+        console.error('Error fetching profile:', error)
+        next('/home')
+        return
+      }
+
+      // Check if user is organiser
+      if (profile?.role !== 'organiser') {
+        console.warn('Access denied: User is not an admin')
+        next('/home')
+        return
+      }
+
+      // User is organiser, allow access
+      next()
+      return
+      
+    } catch (error) {
+      console.error('Error in admin check:', error)
+      next('/home')
       return
     }
   }
