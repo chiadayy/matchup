@@ -111,14 +111,6 @@
                   </div>
                 </div>
               </div>
-              <button
-                v-if="currentUser && player.id !== currentUser.id"
-                class="btn-message"
-                @click.stop="messagePlayer(player)"
-                title="Send message"
-              >
-                💬
-              </button>
             </div>
 
             <!-- Empty Slots -->
