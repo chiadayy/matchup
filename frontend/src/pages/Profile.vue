@@ -299,6 +299,7 @@
 
 <script>
 import { supabase } from '@/lib/supabase';
+import { eventBus } from '@/lib/eventBus';
 
 export default {
   name: 'Profile',
@@ -512,7 +513,7 @@ export default {
       const timestamp = Date.now();
       const filePath = `${userId}/${timestamp}.${fileExt}`;
 
-      console.log('Uploading to path:', filePath);
+      // console.log('Uploading to path:', filePath);
 
       const { data, error } = await supabase.storage
         .from('profile_images')
@@ -551,7 +552,7 @@ export default {
       if (error) {
         console.error('Error deleting old image:', error);
       } else {
-        console.log('Old image deleted successfully');
+        // console.log('Old image deleted successfully');
       }
     } catch (error) {
       console.error('Error in deleteOldProfileImage:', error);
@@ -596,8 +597,8 @@ export default {
       const { data: authData, error: authError } = await supabase.auth.getUser();
       if (!authData.user) throw new Error('Not authenticated');
 
-          console.log('Auth data:', authData);
-    console.log('Auth error:', authError);
+          // console.log('Auth data:', authData);
+    // console.log('Auth error:', authError);
 
     if (authError) {
       console.error('Auth error:', authError);
@@ -608,8 +609,8 @@ export default {
       throw new Error('Not authenticated - no user found');
     }
 
-    console.log('✅ User authenticated:', authData.user.id);
-    console.log('User role:', authData.user.role);
+    // console.log('✅ User authenticated:', authData.user.id);
+    // console.log('User role:', authData.user.role);
       let imageUrl = this.profileData.profile_image;
       
       if (this.selectedFile) {
@@ -645,6 +646,11 @@ export default {
       this.showSuccessNotification('Profile updated successfully!');
       this.isEditMode = false;
 
+      eventBus.emit('profile-updated', {
+        profile_image: imageUrl,
+        name: this.editFormData.name
+      });
+
       } catch (err) {
         console.error('Error saving profile:', err);
         this.showErrorNotification('Failed to update profile. Please try again.');
@@ -655,6 +661,49 @@ export default {
       const date = new Date(dateStr)
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     },
+
+    showSuccessNotification(message) {
+      if (this.notificationTimer) {
+        clearTimeout(this.notificationTimer);
+      }
+      
+      // Set the notification data
+      this.notificationType = 'success';  
+      this.notificationMessage = message;  
+      this.showNotification = true;
+      
+      // Auto-close after 3 seconds (3000 milliseconds)
+      this.notificationTimer = setTimeout(() => {
+        this.closeNotification();
+      }, 3000);
+    },
+
+    showErrorNotification(message) {
+      if (this.notificationTimer) {
+        clearTimeout(this.notificationTimer);
+      }
+      
+      this.notificationType = 'error';
+      this.notificationMessage = message;
+      this.showNotification = true;
+      
+      // Auto-close after 3 seconds
+      this.notificationTimer = setTimeout(() => {
+        this.closeNotification();
+      }, 3000);
+    },
+
+    closeNotification() {
+      if (this.notificationTimer) {
+        clearTimeout(this.notificationTimer);
+        this.notificationTimer = null;
+      }
+      
+      // Hide the notification
+      this.showNotification = false;
+      
+      this.notificationMessage = '';
+    },
     capitalizeFirst(str) {
       return str.charAt(0).toUpperCase() + str.slice(1)
     },
@@ -664,6 +713,167 @@ export default {
 </script>
 
 <style scoped>
+.notification-overlay {
+  position: fixed;           /* Stays in place when scrolling */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);  /* 50% transparent black */
+  display: flex;             /* Flexbox for centering */
+  justify-content: center;   /* Center horizontally */
+  align-items: center;       /* Center vertically */
+  z-index: 9999;            /* Above everything else */
+  animation: fadeIn 0.2s ease;  /* Smooth fade-in */
+}
+
+/* The notification box itself */
+.notification-modal {
+  background: white;
+  border-radius: 12px;       /* Rounded corners */
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);  /* Drop shadow */
+  min-width: 400px;          /* Minimum width */
+  max-width: 500px;          /* Maximum width */
+  animation: slideDown 0.3s ease;  /* Slides down from top */
+  overflow: hidden;          /* Clips the colored top bar */
+}
+
+/* Header section with icon and close button */
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+/* The checkmark or X icon */
+.notification-icon {
+  font-size: 2rem;
+  font-weight: bold;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;       /* Makes it circular */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Success version - green theme */
+.notification-modal.success .notification-header {
+  background: linear-gradient(135deg, #4CAF50, #45a049);  /* Green gradient */
+  color: white;
+}
+
+.notification-modal.success .notification-icon {
+  background: white;
+  color: #4CAF50;
+}
+
+/* Error version - red theme */
+.notification-modal.error .notification-header {
+  background: linear-gradient(135deg, #f44336, #d32f2f);  /* Red gradient */
+  color: white;
+}
+
+.notification-modal.error .notification-icon {
+  background: white;
+  color: #f44336;
+}
+
+/* Close button (X) */
+.btn-close-notification {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  transition: background 0.2s ease;
+}
+
+.btn-close-notification:hover {
+  background: rgba(255, 255, 255, 0.2);  /* Slight white background on hover */
+}
+
+/* Body section with the message */
+.notification-body {
+  padding: 30px;
+  text-align: center;
+}
+
+.notification-body p {
+  margin: 0;
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.5;
+}
+
+/* Footer with close button */
+.notification-footer {
+  padding: 15px 20px;
+  text-align: right;
+  background: #f9f9f9;
+  border-top: 1px solid #eee;
+}
+
+.notification-footer .btn {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s ease;
+}
+
+.notification-footer .btn:hover {
+  background: #e55a2b;  /* Slightly darker on hover */
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-50px);  /* Starts 50px above */
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);      /* Ends at normal position */
+    opacity: 1;
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 576px) {
+  .notification-modal {
+    min-width: 90%;           /* Takes up 90% of screen width on mobile */
+    margin: 0 15px;
+  }
+  
+  .notification-body {
+    padding: 20px;            /* Less padding on mobile */
+  }
+  
+  .notification-icon {
+    font-size: 1.5rem;        /* Smaller icon */
+    width: 35px;
+    height: 35px;
+  }
+}
+
 /* Video Background */
 .video-background {
   position: fixed;

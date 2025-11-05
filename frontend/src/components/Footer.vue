@@ -5,7 +5,7 @@
         <!-- Brand Section -->
         <div class="footer-brand">
           <div class="brand-header">
-            <router-link to="/" class="d-flex align-items-center text-decoration-none text-light">
+            <router-link to="/home" class="d-flex align-items-center text-decoration-none text-light">
               <span class="footer-icon">🏆</span>
               <h3 class="footer-title">MatchUp</h3>
             </router-link>
