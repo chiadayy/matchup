@@ -434,7 +434,7 @@
               <div class="match-header">
                 <div>
                   <h3 class="match-title">
-                    {{ match.sport_type }} @ {{ match.location }}
+                    {{ match.name }} @ {{ match.location }}
                   </h3>
                   <p class="sport-type">{{ match.skill_level }}</p>
                 </div>
@@ -1744,7 +1744,7 @@ export default {
   min-width: 0;
   box-sizing: border-box;
   word-break: break-word;
-
+  overflow: hidden;
 }
 
 .match-card:hover {
@@ -2311,6 +2311,8 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 100%;
+  display: block;
 }
 
 .match-price {

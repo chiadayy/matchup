@@ -252,6 +252,7 @@
                   :key="index"
                   class="nearby-match-item"
                   :style="{ animationDelay: `${index * 0.1}s` }"
+                  @click="openMatchDetail(match.matchData)"
                 >
                   <div class="sport-icon-small" :style="{ backgroundColor: getSportColor(match.sport) }">
                     {{ getSportIcon(match.sport) }}

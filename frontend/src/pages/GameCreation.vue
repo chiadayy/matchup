@@ -140,7 +140,7 @@
                     </div>
                   </div>
 
-  <button class="btn btn-primary" style="margin-top:8px;" @click="searchPlace">Search</button>
+  <!-- <button class="btn btn-primary" style="margin-top:8px;" @click="searchPlace">Search</button> -->
                   </div>
                 <!-- </div> -->
               </div>
@@ -546,6 +546,10 @@ export default {
     },
 
   async initMapPicker() {
+    if (this.highlightCircle) {
+      this.highlightCircle.setMap(null);
+      this.highlightCircle = null;
+    }
     if (typeof google === 'undefined' || !google.maps) {
       console.error('Google Maps API not loaded.');
       return;
@@ -554,7 +558,7 @@ export default {
     this.map = new google.maps.Map(this.$refs.pickerMap, {
       center: { lat: 1.3521, lng: 103.8198 },
       zoom: 12,
-      mapId: "1d622eb16f09ac0b3984b1bd"
+      mapId: "1d85aa34bdd69f6c32c5d842"
     });
     const { AdvancedMarkerElement } = await google.maps.importLibrary('marker');
     this.marker = new AdvancedMarkerElement({
@@ -563,6 +567,10 @@ export default {
       title: 'Selected Location'
     });
     this.map.addListener('click', (e) => {
+      if (this.highlightCircle) {
+        this.highlightCircle.setMap(null);
+        this.highlightCircle = null;
+      }
       this.setLatLng(e.latLng.lat(), e.latLng.lng());
       this.marker.position = e.latLng;  
     });
@@ -617,13 +625,15 @@ export default {
     );
   }
   ,
-  highlightArea(radiusMeters = 500) {
-    // Remove previous circle if exists
-    if (this.highlightCircle) {
-      this.highlightCircle.setMap(null);
-    }
-
-    // Create new circle centered at latitude/longitude
+highlightArea(radiusMeters = 500) {
+  // Remove previous circle if exists
+  if (this.highlightCircle) {
+    this.highlightCircle.setMap(null);
+    this.highlightCircle = null;
+  }
+  const lat = Number(this.formData.latitude);
+  const lng = Number(this.formData.longitude);
+  if (!isNaN(lat) && !isNaN(lng)) {
     this.highlightCircle = new google.maps.Circle({
       strokeColor: '#FF6B35',
       strokeOpacity: 0.8,
@@ -631,10 +641,11 @@ export default {
       fillColor: '#FF6B35',
       fillOpacity: 0.25,
       map: this.map,
-      center: { lat: this.formData.latitude, lng: this.formData.longitude },
+      center: { lat, lng },
       radius: radiusMeters
     });
-  },
+  }
+},
 
   hoverPrediction(index) {
     this.selectedIndex = index;
@@ -1219,12 +1230,12 @@ export default {
   }
 
   .steps-indicator {
-    flex-direction: row;
+    flex-direction: column;
     gap: 8px;
   }
 
   .steps-indicator::before {
-    display: block;
+    display: none;
   }
 
   .form-navigation {
@@ -1361,5 +1372,6 @@ export default {
   input, textarea, select {
     font-size: 0.8rem;
   }
+  
 }
 </style>
