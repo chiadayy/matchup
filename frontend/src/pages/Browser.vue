@@ -588,6 +588,9 @@ export default {
       filteredMatches: [],
       currentPage: 1,
       itemsPerPage: 8,
+
+      // Geocoding cache to avoid repeated API calls
+      geocodingCache: {},
       sports: ["Basketball", "Tennis", "Football", "Badminton"],
       sportsWithIcons: [
         { name: "Basketball", icon: "🏀" },
@@ -706,34 +709,24 @@ export default {
 
     // Searched location for red marker
     searchedLocationForMap() {
-      console.log("🎯 Computing searchedLocationForMap:", {
-        selectedLocationCoords: this.selectedLocationCoords,
-        location: this.location,
-      });
-
       if (this.selectedLocationCoords) {
-        const result = {
+        return {
           lat: this.selectedLocationCoords.lat,
           lng: this.selectedLocationCoords.lng,
           name: this.location || "Searched Location",
         };
-        console.log("📍 Returning exact coords:", result);
-        return result;
       } else if (
         this.location &&
         this.location !== "Near Me" &&
         this.location !== ""
       ) {
         const coords = this.getMatchCoords(this.location);
-        const result = {
+        return {
           lat: coords.lat,
           lng: coords.lng,
           name: this.location,
         };
-        console.log("📍 Returning location coords:", result);
-        return result;
       }
-      console.log("❌ Returning null");
       return null;
     },
     filteredLocationSuggestions() {
@@ -754,8 +747,6 @@ export default {
       return this.filteredMatches.slice(startIndex, endIndex);
     },
     mapGames() {
-      console.log("🗺️ mapGames computing with", this.filteredMatches.length, "filtered matches");
-
       // Map coordinates for Singapore locations
       const locationCoords = {
         Hougang: { lat: 1.3712, lng: 103.8863 },
@@ -784,14 +775,9 @@ export default {
       };
 
       const result = this.filteredMatches.map((match) => {
-        const coords = locationCoords[match.location] || {
-          lat: 1.3521,
-          lng: 103.8198,
-        };
-
-        if (!locationCoords[match.location]) {
-          console.warn(`⚠️ No coordinates found for location: "${match.location}" - using default`);
-        }
+        // Try predefined coords first, then geocoding cache, then default
+        const coords = locationCoords[match.location] ||
+                       this.getMatchCoords(match.location);
 
         const config = sportConfig[match.sport_type] || {
           icon: "🏃",
@@ -823,7 +809,6 @@ export default {
         };
       });
 
-      console.log("🗺️ Returning", result.length, "games for map");
       return result;
     },
   },
@@ -894,12 +879,48 @@ export default {
           return;
         } else {
           this.matches = data;
-          console.log("📊 All matches loaded:", data.length);
-          console.log("📍 Sample match locations:", data.slice(0, 3).map(m => m.location));
+          console.log("📊 Loaded", data.length, "matches");
+
+          // Geocode all unique addresses in the background
+          await this.geocodeAllAddresses();
         }
       } catch (err) {
         console.error("Unexpected error:", err);
       }
+    },
+
+    async geocodeAllAddresses() {
+      // Get unique locations that aren't already in predefined list
+      const predefinedLocations = [
+        "Hougang", "Sengkang", "Punggol", "Tampines", "Bedok",
+        "Serangoon CC", "Choa Chu Kang CC", "Bukit Merah CC",
+        "Woodlands", "Yishun", "Ang Mo Kio", "Bishan",
+        "Toa Payoh", "Jurong East", "Clementi"
+      ];
+
+      const uniqueLocations = [...new Set(this.matches.map(m => m.location))];
+      const addressesToGeocode = uniqueLocations.filter(
+        loc => !predefinedLocations.includes(loc) && !this.geocodingCache[loc]
+      );
+
+      if (addressesToGeocode.length === 0) {
+        console.log("✅ All locations already have coordinates");
+        return;
+      }
+
+      console.log(`🔍 Geocoding ${addressesToGeocode.length} addresses...`);
+
+      // Geocode all addresses (with small delay to avoid rate limiting)
+      for (const address of addressesToGeocode) {
+        await this.geocodeAddress(address);
+        // Small delay to be nice to the API
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      console.log("✅ All addresses geocoded");
+
+      // Refresh the map with new coordinates
+      this.filterMatches();
     },
     filterMatches() {
       this.filteredMatches = [...this.matches];
@@ -931,9 +952,7 @@ export default {
         // Use exact coordinates if available (from address search), otherwise use predefined coords
         const searchCoords =
           this.selectedLocationCoords || this.getMatchCoords(this.location);
-        console.log("🔍 Filtering by location:", this.location, "coords:", searchCoords);
 
-        const beforeCount = this.filteredMatches.length;
         this.filteredMatches = this.filteredMatches.filter((m) => {
           const matchCoords = this.getMatchCoords(m.location);
           const distance = this.calculateDistance(
@@ -942,13 +961,10 @@ export default {
             matchCoords.lat,
             matchCoords.lng
           );
-          console.log(`📍 Match at "${m.location}" (${matchCoords.lat}, ${matchCoords.lng}): ${distance.toFixed(2)}km away`);
           return distance <= 5; // Within 5km
         });
-        console.log(`✅ Location filter: ${beforeCount} → ${this.filteredMatches.length} matches`);
       } else if (this.locationSearch.trim()) {
         const query = this.locationSearch.toLowerCase();
-        console.log("🔍 Searching location text:", query);
         this.filteredMatches = this.filteredMatches.filter((m) =>
           m.location.toLowerCase().includes(query)
         );
@@ -1297,7 +1313,56 @@ export default {
       return colors[sport] || "#3b82f6";
     },
 
+    // Geocode an address using OneMap API
+    async geocodeAddress(address) {
+      // Check cache first
+      if (this.geocodingCache[address]) {
+        console.log(`📦 Using cached coords for "${address}"`);
+        return this.geocodingCache[address];
+      }
+
+      try {
+        const response = await fetch(
+          `https://www.onemap.gov.sg/api/common/elastic/search?searchVal=${encodeURIComponent(
+            address
+          )}&returnGeom=Y&getAddrDetails=Y&pageNum=1`
+        );
+
+        if (!response.ok) {
+          console.warn(`⚠️ OneMap API failed for "${address}"`);
+          return null;
+        }
+
+        const data = await response.json();
+
+        if (data.found > 0 && data.results && data.results.length > 0) {
+          const result = data.results[0];
+          const coords = {
+            lat: parseFloat(result.LATITUDE),
+            lng: parseFloat(result.LONGITUDE),
+          };
+
+          // Cache the result
+          this.geocodingCache[address] = coords;
+          console.log(`✅ Geocoded "${address}":`, coords);
+          return coords;
+        }
+
+        console.warn(`⚠️ No results found for "${address}"`);
+        return null;
+      } catch (error) {
+        console.error(`❌ Geocoding error for "${address}":`, error);
+        return null;
+      }
+    },
+
     getMatchCoords(location) {
+      // Check if we have cached geocoded coordinates
+      if (this.geocodingCache[location]) {
+        return this.geocodingCache[location];
+      }
+
+      // Predefined area coordinates (fast lookup)
       const locationCoords = {
         Hougang: { lat: 1.3712, lng: 103.8863 },
         Sengkang: { lat: 1.3917, lng: 103.8951 },
