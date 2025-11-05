@@ -12,7 +12,7 @@
         <!-- Profile Header -->
         <div class="profile-header">
           <div class="row align-items-center">
-            <div class="col-md-3 text-center">
+            <div class="col-12 col-lg-3 text-center mb-4 mb-lg-0 text-center">
               <!-- View Mode -->
               <div v-if="!isEditMode">
                 <div>
@@ -72,7 +72,7 @@
               </div>
             </div>
 
-            <div class="col-md-9">
+            <div class="col-12 col-lg-9">
               <div class="profile-info">
                 <!-- View Mode -->
                 <div v-if="!isEditMode">
@@ -1019,6 +1019,9 @@ export default {
   object-fit: cover;
   border: 4px solid var(--primary-color);
   box-shadow: 0 8px 20px rgba(255, 107, 53, 0.2);
+  max-width: 100%;      
+  margin: 0 auto;      
+  display: block;
 }
 
 .profile-info h1 {
@@ -1277,6 +1280,41 @@ export default {
 
 .align-items-center {
   align-items: center;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .profile-header {
+    padding: 30px 20px;
+  }
+
+  .profile-picture {
+    width: 150px;        /* Smaller on tablets */
+    height: 150px;
+    margin: 0 auto 20px; /* Center with bottom margin */
+  }
+
+  /* Make it stack vertically on tablets */
+  .profile-header .row {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  /* Center the stats cards on tablets */
+  .row.g-3 {
+    justify-content: center;
+  }
+
+  /* Reduce badge spacing */
+  .badges-row {
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .sport-badge {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+  }
 }
 
 @media (max-width: 768px) {
