@@ -252,6 +252,7 @@
                   :key="index"
                   class="nearby-match-item"
                   :style="{ animationDelay: `${index * 0.1}s` }"
+                  @click="openMatchDetail(match.matchData)"
                 >
                   <div class="sport-icon-small" :style="{ backgroundColor: getSportColor(match.sport) }">
                     {{ getSportIcon(match.sport) }}
@@ -1268,7 +1269,7 @@ export default {
       // Sort by distance (ascending) and take top 5
       const sortedMatches = matchesWithDistance
         .sort((a, b) => a.distanceKm - b.distanceKm)
-        .slice(0, 5);
+        .slice(0, 3);
 
       // Transform to display format
       this.nearbyMatches = sortedMatches.map(match => ({

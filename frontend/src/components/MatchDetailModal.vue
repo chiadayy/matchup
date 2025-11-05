@@ -656,14 +656,16 @@ export default {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  font-size: 24px;
-  line-height: 1;
+  font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
   color: #6c757d;
+  padding: 0;
+  line-height: 1;
+  vertical-align: middle;
 }
 
 .close-btn:hover {
