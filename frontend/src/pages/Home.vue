@@ -2525,13 +2525,16 @@ body {
 
 /* ========== ENHANCED NEARBY SIDEBAR ========== */
 .nearby-sidebar {
-    background: white;
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    position: sticky;
-    top: 20px;
-    animation: fadeInUp 0.8s ease 0.8s both;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  position: sticky;
+  top: 20px;
+  animation: fadeInUp 0.8s ease 0.8s both;
+  max-height: 600px; 
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .sidebar-title {

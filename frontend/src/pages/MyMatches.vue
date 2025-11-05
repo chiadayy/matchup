@@ -87,7 +87,7 @@
 
               <div class="info-section">
                 <div class="info-label">👥 Players</div>
-                <div class="info-value">{{ match.current_player_count }}/{{ match.total_player_count }}</div>
+                <div class="info-value">{{ match.confirmed_player_count }}/{{ match.total_player_count }}</div>
               </div>
             </div>
 

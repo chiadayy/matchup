@@ -4,7 +4,7 @@
         <!-- Brand + Main Navigation (Left side) -->
         <div class="navbar-left">
           <div class="navbar-brand">
-            <router-link to="/" class="d-flex align-items-center text-decoration-none">
+            <router-link to="/home" class="d-flex align-items-center text-decoration-none">
               <span class="brand-icon">🏆</span>
               <strong class="brand-text">MatchUp</strong>
             </router-link>
@@ -282,6 +282,7 @@
 
   <script>
   import { supabase } from '@/lib/supabase';
+  import { eventBus } from '@/lib/eventBus';
 
   export default {
     name: 'Navbar',
@@ -312,11 +313,13 @@
       document.addEventListener('click', this.handleNotificationClickOutside);
       this.loadNotifications();
       await this.loadCurrentUser();
+      eventBus.on('profile-updated', this.handleProfileUpdate);
     },
     beforeUnmount() {
       window.removeEventListener('scroll', this.handleScroll);
       document.removeEventListener('click', this.handleClickOutside);
       document.removeEventListener('click', this.handleNotificationClickOutside);
+      eventBus.off('profile-updated', this.handleProfileUpdate);
     },
     methods: {
       async loadCurrentUser() {
@@ -429,6 +432,12 @@
         if (this.showNotifications && dropdown && bell && !bell.contains(event.target) && !dropdown.contains(event.target)) {
           this.notifications = this.notifications.filter(n => !n.read); 
           this.showNotifications = false;
+        }
+      },
+      handleProfileUpdate(updatedData) {
+        if (this.userInfo) {
+          this.userInfo.profile_image = updatedData.profile_image;
+          this.userInfo.name = updatedData.name;
         }
       }
     }
