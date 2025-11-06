@@ -84,15 +84,94 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 ```
+### 4. Setup Storage for Profile Images
 
-### 4. Install Dependencies
+**Follow these steps in Supabase Dashboard:**
+
+#### 4.1. Create Storage Bucket
+
+1. Go to **Storage** in the left sidebar
+2. Click **"New bucket"**
+3. Enter bucket name: `profile_images`
+4. Set as **Public bucket** ✅
+5. Click **"Create bucket"**
+
+#### 4.2. Upload Default Avatar
+
+1. Click on the `profile_images` bucket
+2. Click **"Upload"** 
+3. Upload a default avatar image named: `default-avatar.png`
+4. This will be used when users don't have a profile picture
+
+#### 4.3. Configure Storage Policies
+
+Click on the `profile_images` bucket → **"Policies"** tab → **"New Policy"**
+
+**Policy 1: Public Read Access**
+- Click **"New Policy"** → **"For full customization"**
+- Policy name: `Public can see all images`
+- Target roles: `anon`, `authenticated`
+- Policy command: `SELECT`
+- USING expression:
+```sql
+  (bucket_id = 'profile_images'::text)
+```
+- Click **"Review"** → **"Save policy"**
+
+**Policy 2: Upload Images**
+- Click **"New Policy"** → **"For full customization"**
+- Policy name: `Authenticated users can upload`
+- Target roles: `authenticated`
+- Policy command: `INSERT`
+- WITH CHECK expression:
+```sql
+  (bucket_id = 'profile_images'::text)
+```
+- Click **"Review"** → **"Save policy"**
+
+**Policy 3: Update Own Images**
+- Click **"New Policy"** → **"For full customization"**
+- Policy name: `Auth users update own image`
+- Target roles: `authenticated`
+- Policy command: `UPDATE`
+- USING expression:
+```sql
+  (bucket_id = 'profile_images'::text)
+```
+- Click **"Review"** → **"Save policy"**
+
+**Policy 4: Delete Own Images**
+- Click **"New Policy"** → **"For full customization"**
+- Policy name: `Allow users to delete their own images`
+- Target roles: `authenticated`
+- Policy command: `DELETE`
+- USING expression:
+```sql
+  (bucket_id = 'profile_images'::text)
+```
+- Click **"Review"** → **"Save policy"**
+
+#### 4.4. Enable CORS (Important!)
+
+1. Go to **Storage** → **Configuration** → **CORS**
+2. Add the following allowed origins:
+```
+   http://localhost:5173
+   https://matchup-fe.onrender.com
+```
+3. Allowed methods: `GET, POST, PUT, DELETE`
+4. Click **"Save"**
+
+✅ **Storage setup complete!** Profile images will now work correctly.
+
+### 5. Install Dependencies
 
 ```bash
 cd frontend
 npm install
 ```
 
-### 5. Run Frontend
+### 6. Run Frontend
 
 ```bash
 cd frontend
