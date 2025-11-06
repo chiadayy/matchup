@@ -275,7 +275,7 @@
         <div class="footer-content">
           <div class="footer-brand">
             <div class="footer-logo">
-              <span class="footer-logo-icon">⚽</span>
+              <span class="footer-logo-icon">🏆</span>
               <span class="footer-logo-text">MatchUp</span>
             </div>
             <p class="footer-tagline">Connect with local players and find your perfect sports match. Join the community today!</p>
@@ -1679,22 +1679,20 @@ async function handleLogout() {
 }
 
 .footer-logo-icon {
-  font-size: 2rem;
-  background: rgba(255, 139, 61, 0.15);
+  font-size: 1.5rem;
+  background: #2d3e50;
   padding: 0.5rem;
-  border-radius: 12px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .footer-logo-text {
-  font-size: 1.75rem;
-  font-weight: 900;
-  background: linear-gradient(135deg, #FF8B3D 0%, #F59E0B 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .footer-tagline {

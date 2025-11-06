@@ -2,6 +2,18 @@
 
 Find nearby sports matches, check the weather, and join games in your area.
 
+## 🌐 Live Application
+
+**URL:** [Add your deployed URL here if the application is live]
+
+## 🔑 Demo Account Credentials
+
+If you need to access the application, you can use the following dummy account:
+- **Email:** demo@matchup.com
+- **Password:** demo123456
+
+*Note: Create this demo account in your Supabase dashboard or replace with actual test credentials*
+
 ## 🚀 Tech stack
 
 **Frontend:**
