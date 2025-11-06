@@ -1,6 +1,6 @@
 <template>
   <!-- Match Detail Modal -->
-  <div v-if="isOpen" class="modal-overlay" @click.self="closeModal">
+  <div v-if="isOpen && !showLeaveSuccess" class="modal-overlay" @click.self="closeModal">
     <div class="modal-container">
       <!-- Modal Header -->
       <div class="modal-header">
@@ -199,24 +199,25 @@
         </div>
       </div>
 
-      <!-- leave success -->
-      <div v-if="showLeaveSuccess" class="confirm-overlay" @click.self="handleSuccessOk">
-        <div class="confirm-box">
-          <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
-          <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 12px;">You have successfully left the match.</p>
-          <div v-if="match.total_price > 0" class="success-refund-info">
-            <p>💰 <strong>Refund Amount: ${{ match.total_price }}</strong></p>
-            <p style="font-size: 0.9rem; color: #6b7280;">Refund will be processed within 3-5 business days.</p>
-          </div>
-          <div class="confirm-actions">
-            <button
-              :style="{ 'background-color': '#FF6B35', color: 'white' }"
-              @click="handleSuccessOk"
-            >
-              OK
-            </button>
-          </div>
-        </div>
+    </div>
+  </div>
+
+  <!-- Leave Success Modal - Outside main modal to display properly -->
+  <div v-if="showLeaveSuccess && isOpen" class="confirm-overlay" @click.self="handleSuccessOk">
+    <div class="confirm-box">
+      <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+      <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 12px;">You have successfully left the match.</p>
+      <div v-if="match.total_price > 0" class="success-refund-info">
+        <p>💰 <strong>Refund Amount: ${{ match.total_price }}</strong></p>
+        <p style="font-size: 0.9rem; color: #6b7280;">Refund will be processed within 3-5 business days.</p>
+      </div>
+      <div class="confirm-actions">
+        <button
+          :style="{ 'background-color': '#FF6B35', color: 'white' }"
+          @click="handleSuccessOk"
+        >
+          OK
+        </button>
       </div>
     </div>
   </div>
