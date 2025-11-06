@@ -4,8 +4,7 @@ Find nearby sports matches, check the weather, and join games in your area.
 
 ## 🌐 Live Application
 
-**URL:** [Add your deployed URL here if the application is live]
-
+**URL:** https://matchup-fe.onrender.com
 ## 🔑 Demo Account Credentials
 
 If you need to access the application, you can use the following dummy account:

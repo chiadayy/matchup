@@ -6,7 +6,7 @@
     <canvas ref="canvasRef"></canvas>
     <div class="intro-content" :class="{ hidden: isTransitioning || dribbleCount > 0 }">
       <h1 class="intro-title">MATCHUP</h1>
-      <p class="intro-subtitle">Meet the team! Click 6 times</p>
+      <p class="intro-subtitle">Click 6 times!</p>
 
       <!-- Floating hints -->
       <p class="hint drag-hint" v-if="showDragHint">
