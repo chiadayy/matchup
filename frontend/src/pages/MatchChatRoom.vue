@@ -824,7 +824,8 @@ export default {
   }
 
   .content-wrapper {
-    padding: 30px 20px;
+    padding: 10px;
+    background: transparent; 
   }
 
   .mobile-tabs {
@@ -834,7 +835,8 @@ export default {
   .match-layout {
     flex-direction: column;
     max-width: 100%;
-    height: auto;
+    height: calc(100vh - 40px);
+    max-height: none; 
   }
 
   .sidebar {
@@ -846,7 +848,7 @@ export default {
 
   .chat-area {
     width: 100%;
-    height: calc(100vh - 150px);
+    height: calc(100vh - 100px);
     min-height: 500px;
   }
 

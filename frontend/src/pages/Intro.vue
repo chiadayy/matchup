@@ -84,40 +84,40 @@ export default {
       orbsActive: false,
       teammates: [
         {
-          name: 'Darrion',
-          role: 'Master Integrator',
-          photo: '/images/team/darrion.jpg',
-          sport: 'Soccer',
-          quote: 'Build it right!'
+          name: 'Tennis',
+          role: 'Singles or doubles!',
+          photo: '/images/team/tennis.jpg',
+          sport: 'The first tennis ball was made of wool',
+          quote: 'You cant measure success if you have never failed'
         },
         {
-          name: 'Ada',
-          role: 'The Connector',
-          photo: '/images/team/ada.jpg',
-          sport: 'Basketball',
-          quote: 'Code with passion!'
+          name: 'Golf',
+          role: 'Hole in One',
+          photo: '/images/team/golf.jpg',
+          sport: 'Golf was invented in Scotland',
+          quote: 'Work hard to get good then work hard to get better'
         },
         {
-          name: 'Bingzi',
-          role: 'Vibecoder',
+          name: 'Table Tennis',
+          role: 'Most popular racket sport',
           photo: '/images/team/bingzi.jpg',
-          sport: 'Table Tennis',
-          quote: 'Play smart, play fast!'
+          sport: 'Table tennis ball can travel as fast as 100mph',
+          quote: 'Theres no way around hardwork, embrace it!'
           
         },
         {
-          name: 'Peow Yeow',
-          role: 'Design Quarterback',
-          photo: '/images/team/PeowYeow.jpg',
-          sport: 'Tennis',
-          quote: 'Design with purpose!'
+          name: 'Hockey',
+          role: 'Sticks and ball to score!',
+          photo: '/images/team/hockey.jpg',
+          sport: 'Hockey pucks are frozen',
+          quote: 'You cant measure success if you have never failed!'
         },
         {
-          name: 'Yan Shuen',
-          role: 'Payment Wizard',
-          photo: '/images/team/yanshuen.jpg',
-          sport: 'Badminton',
-          quote: 'Lead with vision!'
+          name: 'Surfing',
+          role: 'Riding the waves',
+          photo: '/images/team/surfing.jpg',
+          sport: 'Surfing was a form of courtship',
+          quote: 'A man who wins is a man who thinks he can!'
         }
       ],
       isDragging: false,
