@@ -34,8 +34,8 @@ export default {
   setup() {
     const route = useRoute()
 
-    // Hide navbar/footer on intro, landing, login, register, and location-weather pages
-    const pagesWithoutNav = ['Intro', 'Landing', 'Login', 'Register', 'LocationWeather']
+    // Hide navbar/footer on intro, landing, login, register pages
+    const pagesWithoutNav = ['Intro', 'Landing', 'Login', 'Register']
 
     const showNavbar = computed(() => {
       return !pagesWithoutNav.includes(route.name)

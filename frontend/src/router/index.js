@@ -3,7 +3,6 @@ import Intro from '@/pages/Intro.vue'
 import Landing from '@/pages/Landing.vue'
 import Home from '@/pages/Home.vue'
 import MatchChatRoom from '@/pages/MatchChatRoom.vue'
-import LocationWeather from '@/pages/LocationWeather.vue'
 import Login from '@/pages/Login.vue'
 import Register from '@/pages/Register.vue'
 import Pay from '@/pages/Pay.vue'
@@ -44,12 +43,6 @@ const routes = [
     path: '/home',
     name: 'Home',
     component: Home,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/location-weather',
-    name: 'LocationWeather',
-    component: LocationWeather,
     meta: { requiresAuth: true }
   },
   {

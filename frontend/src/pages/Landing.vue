@@ -22,7 +22,7 @@
             <a href="#how-it-works" class="nav-link">How it works</a>
             <a href="#testimonials" class="nav-link">Reviews</a>
             <template v-if="isLoggedIn">
-              <RouterLink to="/location-weather" class="btn btn-primary btn-sm">Dashboard</RouterLink>
+              <RouterLink to="/home" class="btn btn-primary btn-sm">Dashboard</RouterLink>
               <button @click="handleLogout" class="btn btn-secondary btn-sm">Logout</button>
             </template>
             <RouterLink v-else to="/register" class="btn btn-primary btn-sm glow-btn">Get Started</RouterLink>
@@ -52,7 +52,7 @@
             <a href="#testimonials" class="mobile-nav-link" @click="mobileMenuOpen = false">Reviews</a>
             <div class="mobile-menu-divider"></div>
             <template v-if="isLoggedIn">
-              <RouterLink to="/location-weather" class="btn btn-primary w-100" @click="mobileMenuOpen = false">Dashboard</RouterLink>
+              <RouterLink to="/home" class="btn btn-primary w-100" @click="mobileMenuOpen = false">Dashboard</RouterLink>
               <button @click="handleLogout(); mobileMenuOpen = false" class="btn btn-secondary w-100">Logout</button>
             </template>
             <RouterLink v-else to="/register" class="btn btn-primary w-100" @click="mobileMenuOpen = false">Get Started</RouterLink>
@@ -87,7 +87,7 @@
 
             <!-- CTA Buttons -->
             <div class="hero-cta">
-              <RouterLink v-if="isLoggedIn" to="/location-weather" class="btn btn-primary btn-lg btn-hero">
+              <RouterLink v-if="isLoggedIn" to="/home" class="btn btn-primary btn-lg btn-hero">
                 <span>Go to Dashboard</span>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"/>
