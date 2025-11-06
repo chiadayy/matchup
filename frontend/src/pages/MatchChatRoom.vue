@@ -18,8 +18,26 @@
       </div>
 
       <div v-else-if="conversationId" class="match-layout">
+        <!-- Mobile Tabs -->
+        <div class="mobile-tabs">
+          <button 
+            @click="activeTab = 'chat'" 
+            :class="{ active: activeTab === 'chat' }"
+            class="tab-button"
+          >
+            💬 Chat
+          </button>
+          <button 
+            @click="activeTab = 'info'" 
+            :class="{ active: activeTab === 'info' }"
+            class="tab-button"
+          >
+            📋 Match Info
+          </button>
+        </div>
+
         <!-- Sidebar -->
-        <div class="sidebar">
+        <div class="sidebar" :class="{ 'mobile-hidden': activeTab === 'chat' }">
           <!-- Move back button here, inside match-header -->
           <div class="match-header">
             <router-link to="/my-matches" class="back-button-inline">
@@ -97,7 +115,7 @@
         </div>
 
         <!-- Chat Area -->
-        <div class="chat-area">
+        <div class="chat-area" :class="{ 'mobile-hidden': activeTab === 'info' }">
           <ChatRoom
             :matchId="matchId"
             :conversationId="conversationId"
@@ -141,6 +159,7 @@ export default {
     const matchData = ref({});
     const weather = ref(null);
     const allPlayers = ref([]);
+    const activeTab = ref('chat');
 
     const formatDate = (dateStr) => {
       return new Date(dateStr).toLocaleDateString("en-US", {
@@ -286,6 +305,7 @@ export default {
       matchData,
       weather,
       allPlayers,
+      activeTab,
       formatDate,
     };
   },
@@ -749,6 +769,52 @@ export default {
   min-height: 0;
 }
 
+/* Mobile Tabs */
+.mobile-tabs {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: white;
+  border-bottom: 2px solid #e2e8f0;
+  padding: 8px;
+  gap: 8px;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 14px 20px;
+  border: none;
+  background: #f8fafc;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tab-button:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.tab-button.active {
+  background: #0f172a;
+  color: white;
+}
+
+/* Only hide on mobile/tablet */
+@media (max-width: 991px) {
+  .mobile-hidden {
+    display: none !important;
+  }
+}
+
 /* ========== RESPONSIVE DESIGN ========== */
 
 /* Tablets and below (991px) */
@@ -761,20 +827,27 @@ export default {
     padding: 30px 20px;
   }
 
+  .mobile-tabs {
+    display: flex;
+  }
+
   .match-layout {
     flex-direction: column;
     max-width: 100%;
+    height: auto;
   }
 
   .sidebar {
     width: 100%;
     max-width: 100%;
-    margin-bottom: 20px;
+    height: auto;
+    max-height: calc(100vh - 150px);
   }
 
   .chat-area {
     width: 100%;
-    height: 500px;
+    height: calc(100vh - 150px);
+    min-height: 500px;
   }
 
   .match-header h2 {
@@ -961,6 +1034,11 @@ export default {
     height: 400px;
     border-radius: 12px;
   }
+
+  .tab-button {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
 }
 
 /* Extra small phones (375px) */
@@ -1039,6 +1117,14 @@ export default {
   .player img {
     width: 40px;
     height: 40px;
+  }
+
+  .mobile-tabs {
+    display: none;
+  }
+
+  .mobile-hidden {
+    display: block !important;
   }
 }
 </style>
