@@ -16,7 +16,8 @@ If you need to access the application, you can use the following dummy account:
 ## 🚀 Tech Stack
 
 **Frontend:**
-- Vue 3 + TypeScript
+- Vue 3
+- Javascript
 - Vite (build tool)
 - Vue Router
 - Bootstrap 5
@@ -27,13 +28,13 @@ If you need to access the application, you can use the following dummy account:
 - Node.js + Express
 - Supabase JS Client
 - JWT Authentication
-- Stripe API (payments)
+- Stripe API (Secure server-side payment handling)
 
 **APIs & Services:**
-- Google Maps API (location services)
-- OpenWeather API (weather data)
-- TalkJS (real-time chat)
-- Stripe (payment processing)
+- Google Maps API (Location services)
+- OpenWeather API (Weather data)
+- TalkJS (Real-time chat)
+- Stripe (Payment processing)
 
 **Database & Auth:**
 - Supabase (PostgreSQL + Authentication)
@@ -64,7 +65,7 @@ VITE_SUPABASE_URL=your_supabase_url_here
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 
 # API Configuration
-VITE_API_URL=http://localhost:5000
+VITE_API_URL=http://localhost:3000
 
 # Third-party APIs
 VITE_GOOGLE_MAPS_API_KEY=your_google_maps_key_here
@@ -96,10 +97,11 @@ SUPABASE_SERVICE_KEY=your_supabase_service_role_key_here
 ```
 
 **Get credentials:**
-- Supabase: Dashboard → Project Settings → API
+- Supabase API Key: Dashboard → Project Settings → API Keys → copy anon public key  
+- Supabase URL: Dashboard → Project Settings → Data API → copy URL 
 - Google Maps: [Google Cloud Console](https://console.cloud.google.com/)
 - OpenWeather: [OpenWeather API Keys](https://openweathermap.org/api)
-- Stripe: [Stripe Dashboard](https://dashboard.stripe.com/apikeys) (use Secret Key for backend, Publishable Key for frontend)
+- Stripe: Create an account at https://dashboard.stripe.com (use Secret Key for backend, Publishable Key for frontend)
 - TalkJS: [TalkJS Dashboard](https://talkjs.com/dashboard)
 
 ### 3. Run Database Migration
@@ -116,9 +118,9 @@ Go to **Supabase Dashboard → SQL Editor** and run `supabase_schema.sql`
 **Backend (Terminal 1):**
 ```bash
 cd backend
-npm start
+npm run dev
 ```
-Backend runs on: **http://localhost:5000**
+Backend runs on: **http://localhost:3000**
 
 **Frontend (Terminal 2):**
 ```bash
