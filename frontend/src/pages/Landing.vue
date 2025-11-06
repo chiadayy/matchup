@@ -20,7 +20,6 @@
           <nav class="nav">
             <a href="#features" class="nav-link">Features</a>
             <a href="#how-it-works" class="nav-link">How it works</a>
-            <a href="#pricing" class="nav-link">Pricing</a>
             <a href="#testimonials" class="nav-link">Reviews</a>
             <template v-if="isLoggedIn">
               <RouterLink to="/location-weather" class="btn btn-primary btn-sm">Dashboard</RouterLink>
@@ -50,7 +49,6 @@
           <nav class="mobile-nav">
             <a href="#features" class="mobile-nav-link" @click="mobileMenuOpen = false">Features</a>
             <a href="#how-it-works" class="mobile-nav-link" @click="mobileMenuOpen = false">How it works</a>
-            <a href="#pricing" class="mobile-nav-link" @click="mobileMenuOpen = false">Pricing</a>
             <a href="#testimonials" class="mobile-nav-link" @click="mobileMenuOpen = false">Reviews</a>
             <div class="mobile-menu-divider"></div>
             <template v-if="isLoggedIn">
@@ -276,13 +274,11 @@
       <div class="container">
         <div class="footer-content">
           <div class="footer-brand">
-            <div class="logo">MatchUp</div>
-            <p class="footer-tagline">Find your game. Play your way.</p>
-          </div>
-          <div class="footer-links">
-            <a href="#" class="footer-link">Privacy</a>
-            <a href="#" class="footer-link">Terms</a>
-            <a href="#" class="footer-link">Contact</a>
+            <div class="footer-logo">
+              <span class="footer-logo-icon">⚽</span>
+              <span class="footer-logo-text">MatchUp</span>
+            </div>
+            <p class="footer-tagline">Connect with local players and find your perfect sports match. Join the community today!</p>
           </div>
         </div>
         <div class="footer-bottom">
@@ -509,7 +505,7 @@ async function handleLogout() {
 }
 
 .landing-page {
-  background: linear-gradient(180deg, #FFF6EE 0%, #FFFFFF 80%);
+  background: radial-gradient(circle at top, #f5f3ed 0%, #f0ddb8 45%, #f0ddb8 90%);
   color: #1F2937;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.6;
@@ -1239,7 +1235,7 @@ async function handleLogout() {
 }
 
 .feature-desc {
-  color: #4B5563;
+  color: #4a4a4a;
   margin-bottom: 1.5rem;
   line-height: 1.6;
 }
@@ -1255,7 +1251,7 @@ async function handleLogout() {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: #CBD5E1;
+  color: #4a4a4a;
   font-size: 0.9375rem;
 }
 
@@ -1387,8 +1383,9 @@ async function handleLogout() {
 .testimonial-text {
   font-size: 1.0625rem;
   line-height: 1.7;
-  color: #CBD5E1;
+  color: #4a4a4a;
   margin-bottom: 2rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .testimonial-author {
@@ -1415,11 +1412,12 @@ async function handleLogout() {
 .author-name {
   font-weight: 700;
   margin-bottom: 0.25rem;
+  color: #1f1f1f;
 }
 
 .author-role {
   font-size: 0.875rem;
-  color: #1F2937;
+  color: #6b6b6b;
 }
 
 /* Technology Section */
@@ -1656,48 +1654,97 @@ async function handleLogout() {
 /* Footer */
 .footer {
   padding: 4rem 0 2rem;
-  border-top: 1px solid rgba(229, 231, 235, 0.8);
-  background: rgba(10, 15, 30, 0.8);
+  background: linear-gradient(135deg, #2c3e5f 0%, #3d5a80 50%, #2c3e5f 100%);
+  color: #ffffff;
 }
 
 .footer-content {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
 }
 
-.footer-brand .logo {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
+.footer-brand {
+  max-width: 600px;
+  text-align: center;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.footer-logo-icon {
+  font-size: 2rem;
+  background: rgba(255, 139, 61, 0.15);
+  padding: 0.5rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-logo-text {
+  font-size: 1.75rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #FF8B3D 0%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .footer-tagline {
-  color: #1F2937;
-  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.footer-right {
+  display: flex;
+  gap: 4rem;
+}
+
+.footer-section {
+  min-width: 150px;
+}
+
+.footer-heading {
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .footer-links {
   display: flex;
-  gap: 2rem;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .footer-link {
-  color: #4B5563;
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   font-size: 0.9375rem;
-  transition: color 0.2s;
+  transition: all 0.2s;
+  display: inline-block;
 }
 
 .footer-link:hover {
   color: #FF8B3D;
+  transform: translateX(4px);
 }
 
 .footer-bottom {
   text-align: center;
   padding-top: 2rem;
-  border-top: 1px solid rgba(71, 85, 105, 0.2);
-  color: #1F2937;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
   font-size: 0.875rem;
 }
 
